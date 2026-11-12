@@ -18,6 +18,11 @@
   <sub>macOS 14 or later · Windows 10 or 11 · Linux with KDE Plasma 6, Hyprland, Sway or niri · free, source available</sub>
 </p>
 
+> **Android.** This repository is an unofficial port of Snowhush to Android, in [`android/`](android/README.md): the same
+> snow over your apps, on the keyboard, or as a live wallpaper. Get the latest APK from
+> [Releases](../../releases/tag/latest). Everything else here is [Snowhush](https://github.com/mbezruchko/Snowhush) by
+> Mykhailo Bezruchko as it was at 0.13.1; the downloads above are his, for the desktops.
+
 https://github.com/user-attachments/assets/291c3cd5-3563-4b86-8b66-dfd924f980fc
 
 A tiny app that lives in the menu bar on macOS and in the tray on Windows and Linux. Soft snow drifts across your screen, settles along the tops of your windows and slips off when you drag them. Sweep the drift aside with your cursor.

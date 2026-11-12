@@ -1,0 +1,162 @@
+name: Android
+
+# Tests the engine, builds the Android app, tries it on an emulator, and keeps the latest build as a release.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  engine:
+    name: Engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Simulation tests
+        run: cargo test --locked --manifest-path core/Cargo.toml
+      - name: Engine tests
+        run: cargo test --locked --manifest-path android/native/Cargo.toml
+      # The same calls the app makes, from this machine's Java, drawn by Mesa without a display.
+      - name: The app's calls
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q libegl1 libgles2 libgl1-mesa-dri
+          android/hosttest/run.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: engine-pictures
+          path: android/hosttest/out/*.png
+          if-no-files-found: ignore
+
+  apk:
+    name: APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Rust for Android
+        run: |
+          rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+          cargo install cargo-ndk --locked
+          echo "ANDROID_NDK_HOME=${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}" >> "$GITHUB_ENV"
+      - name: Build
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace assembleRelease
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Snowhush-Android
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+  emulator:
+    name: On an emulator
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: Snowhush-Android
+          path: apk
+      - name: Let the emulator use the processor's virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install, start and look
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: sh android/tools/smoke.sh apk smoke
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: emulator
+          path: smoke
+          if-no-files-found: ignore
+
+  # The latest build of main, as a release anyone can download the APK from.
+  release:
+    name: Release
+    needs: apk
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: Snowhush-Android
+          path: apk
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest apk/*.apk --target "$GITHUB_SHA" --prerelease \
+            --title "Snowhush for Android, latest build" \
+            --notes "Built from $GITHUB_SHA. Unofficial Android port of Snowhush by Mykhailo Bezruchko, free for noncommercial use under the PolyForm Noncommercial License 1.0.0. Install the APK on Android 8 or later."
+
+  # What this run came to, with the emulator's screenshots and the log of whatever failed, on the ci-results branch:
+  # readable with nothing but git.
+  report:
+    name: Report
+    needs: [engine, apk, emulator]
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: emulator
+          path: results/emulator
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: engine-pictures
+          path: results/engine
+      - name: Gather
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p results
+          {
+            echo "commit: $GITHUB_SHA"
+            echo "run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "engine: ${{ needs.engine.result }}"
+            echo "apk: ${{ needs.apk.result }}"
+            echo "emulator: ${{ needs.emulator.result }}"
+          } > results/summary.txt
+          gh run view "$GITHUB_RUN_ID" --log-failed > results/failed.log 2>&1 || true
+          # The whole log of a failed build is long; its errors are near the end.
+          tail -c 400000 results/failed.log > results/failed-tail.log && rm results/failed.log
+          cat results/summary.txt
+      - name: Push
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd results
+          git init -q -b ci-results
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "What the Android workflow came to for $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-results

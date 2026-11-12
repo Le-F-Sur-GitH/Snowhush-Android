@@ -1,0 +1,92 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The processors libsnowhush.so is built for: every phone of the last years, and the emulator. Narrow it for a
+// quicker build with -Psnowhush.abis=arm64-v8a.
+def abis = (project.findProperty('snowhush.abis') ?: 'arm64-v8a,armeabi-v7a,x86_64').toString().split(',').collect { it.trim() }.findAll { it }
+
+android {
+    namespace 'app.snowhush.android'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'app.snowhush.android'
+        minSdk 26
+        targetSdk 36
+        // Follows the Snowhush it is built from; the code goes up with every build handed out.
+        versionCode 1
+        versionName '0.13.1'
+        setProperty('archivesBaseName', "Snowhush-${versionName}")
+        ndk {
+            abiFilters.addAll(abis)
+        }
+    }
+
+    signingConfigs {
+        // One key for every build, wherever it is made, so a newer one installs over an older one. The key in the
+        // repository is no secret and proves nothing about who built an APK: to hand the app out for real, point
+        // SNOWHUSH_KEYSTORE at a key of your own.
+        shared {
+            def own = System.getenv('SNOWHUSH_KEYSTORE')
+            storeFile own ? file(own) : rootProject.file('snowhush-debug.keystore')
+            storePassword System.getenv('SNOWHUSH_KEYSTORE_PASSWORD') ?: 'android'
+            keyAlias System.getenv('SNOWHUSH_KEY_ALIAS') ?: 'androiddebugkey'
+            keyPassword System.getenv('SNOWHUSH_KEY_PASSWORD') ?: 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.shared
+        }
+        release {
+            // Nothing to shrink: the app has no libraries, and the snow is native.
+            minifyEnabled false
+            signingConfig signingConfigs.shared
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+// The snow: libsnowhush.so for each processor, from ../native, put where the app picks native libraries up.
+// Needs Rust with the Android targets and cargo-ndk; see ../README.md. Skip it with -Psnowhush.skipNative when the
+// libraries are already in src/main/jniLibs.
+def cargoNdk = tasks.register('cargoNdk', Exec) {
+    group = 'build'
+    description = 'Builds libsnowhush.so with cargo-ndk.'
+    workingDir rootProject.file('native')
+    def arguments = ['cargo', 'ndk']
+    abis.each { arguments += ['-t', it] }
+    arguments += ['--platform', '26', '-o', file('src/main/jniLibs').absolutePath, 'build', '--release', '--locked']
+    commandLine arguments
+    inputs.files(fileTree(rootProject.file('native')) { exclude 'target/**' })
+    inputs.dir(rootProject.file('../core/src'))
+    inputs.dir(rootProject.file('../linux/src/shaders'))
+    inputs.property('abis', abis)
+    outputs.dir(file('src/main/jniLibs'))
+    doFirst {
+        // cargo-ndk looks for the NDK itself; where Gradle knows of one, it is told which.
+        if (!System.getenv('ANDROID_NDK_HOME')) {
+            try {
+                def ndk = android.ndkDirectory
+                if (ndk != null && ndk.exists()) environment 'ANDROID_NDK_HOME', ndk.absolutePath
+            } catch (Exception ignored) {
+                // None installed through Gradle: cargo-ndk says so if it finds none either.
+            }
+        }
+    }
+}
+
+if (!project.hasProperty('snowhush.skipNative')) {
+    tasks.named('preBuild') { dependsOn cargoNdk }
+}

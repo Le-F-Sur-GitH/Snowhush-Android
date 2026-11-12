@@ -1,0 +1,31 @@
+/* Snowhush for Android in this language: see en.strings. */
+
+"tagline" = "Está nevando en tu teléfono.";
+"hint" = "Apártala con el dedo. Desplázate y resbala.";
+"unavailable" = "Esta versión no tiene nieve para el procesador de este teléfono.";
+"overlay" = "Sobre tus apps";
+"overlay_summary" = "La nieve cae sobre todo lo que hay en la pantalla. Los toques la atraviesan.";
+"overlay_allow_hint" = "Android tiene que permitir que Snowhush se muestre sobre otras apps. Si dice que es un ajuste restringido, abre la información de la app, toca ⋮ y luego Permitir ajustes restringidos.";
+"allow" = "Permitir";
+"melt_summary" = "La nieve acumulada se derrite despacio y nunca invade la pantalla.";
+"deep_summary" = "La nieve se posa sobre el teclado, la imagen en imagen y la pantalla dividida, con toda su opacidad.";
+"deep_explained" = "La interacción profunda es un servicio de accesibilidad de Android. Le dice a Snowhush dónde están el teclado y las ventanas flotantes, para que la nieve se pose sobre ellos y caiga cuando se van.\n\nSnowhush solo lee dónde están esas ventanas y qué tamaño tienen. Nunca lee lo que hay en tu pantalla, y no tiene acceso a la red.\n\nEn la pantalla siguiente, elige Snowhush y actívalo.";
+"deep_description" = "Permite que la nieve se pose sobre el teclado, la imagen en imagen y la pantalla dividida. Snowhush solo lee dónde están esas ventanas, nunca lo que muestran, y no tiene acceso a la red.";
+"open_settings" = "Abrir Ajustes";
+"motion" = "Inclinar y agitar";
+"motion_summary" = "Inclina el teléfono y la nevada se va hacia ese lado. Agítalo para que la nieve acumulada salga volando.";
+"full_screen_summary" = "Sigue nevando sobre vídeos y juegos.";
+"performance_summary" = "Dibuja cada fotograma a la frecuencia máxima de la pantalla. Gasta más batería.";
+"wallpaper" = "Fondo animado";
+"wallpaper_summary" = "Nieve detrás de tus apps, en la pantalla de inicio y en la de bloqueo. Sin ningún permiso.";
+"wallpaper_picture" = "Elegir imagen";
+"wallpaper_remove" = "Quitar imagen";
+"wallpaper_unsupported" = "Este teléfono no tiene fondos animados.";
+"picture_failed" = "No se pudo usar esa imagen.";
+"startup" = "Abrir al encender";
+"about" = "Snowhush %1$s. Versión no oficial para Android. Snowhush es obra de Mykhailo Bezruchko, gratis para uso no comercial bajo la PolyForm Noncommercial License 1.0.0.";
+"on" = "Sí";
+"percent" = "%1$d %%";
+"notification_channel" = "Nevada";
+"notification_text" = "Está nevando sobre tus apps.";
+"stop" = "Detener";

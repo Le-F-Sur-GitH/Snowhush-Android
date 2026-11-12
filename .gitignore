@@ -12,3 +12,11 @@ linux/packaging/*.pkg.tar.zst
 linux/packaging/dist/
 linux/bench/out/
 site-engine/target/
+android/native/target/
+android/.gradle/
+android/local.properties
+android/app/src/main/jniLibs/
+android/hosttest/out/
+*.keystore
+!android/snowhush-debug.keystore
+*.jks

@@ -1,0 +1,31 @@
+/* Snowhush for Android in this language: see en.strings. */
+
+"tagline" = "Es schneit auf deinem Handy.";
+"hint" = "Wisch ihn mit dem Finger beiseite. Scrolle, und er rutscht herunter.";
+"unavailable" = "Diese Version hat keinen Schnee für den Prozessor dieses Handys.";
+"overlay" = "Über deinen Apps";
+"overlay_summary" = "Schnee fällt über alles auf deinem Bildschirm. Berührungen gehen einfach hindurch.";
+"overlay_allow_hint" = "Android muss Snowhush erlauben, über anderen Apps zu erscheinen. Falls das als eingeschränkte Einstellung gilt, öffne die App-Info, tippe auf ⋮ und dann auf Eingeschränkte Einstellungen zulassen.";
+"allow" = "Erlauben";
+"melt_summary" = "Die Schneewehe taut langsam und nimmt nie den Bildschirm ein.";
+"deep_summary" = "Schnee legt sich auf die Tastatur, auf Bild-im-Bild und auf geteilte Fenster, in voller Deckkraft.";
+"deep_explained" = "Tiefe Interaktion ist ein Android-Bedienungshilfendienst. Er sagt Snowhush, wo die Tastatur und schwebende Fenster sind, damit Schnee sich darauf legen und herunterfallen kann, wenn sie verschwinden.\n\nSnowhush liest nur, wo diese Fenster sind und wie groß sie sind. Nie, was auf deinem Bildschirm steht, und die App hat keinen Netzwerkzugriff.\n\nWähle auf dem nächsten Bildschirm Snowhush und schalte es ein.";
+"deep_description" = "Lässt Schnee auf der Tastatur, auf Bild-im-Bild und auf geteilten Fenstern liegen. Snowhush liest nur, wo diese Fenster sind, nie, was sie zeigen, und hat keinen Netzwerkzugriff.";
+"open_settings" = "Einstellungen öffnen";
+"motion" = "Neigen und Schütteln";
+"motion_summary" = "Neige dein Handy, und der Schnee treibt in diese Richtung. Schüttle es, um die Schneewehe wegzublasen.";
+"full_screen_summary" = "Es schneit auch über Videos und Spielen weiter.";
+"performance_summary" = "Zeichnet jedes Bild mit der vollen Bildrate des Displays. Braucht mehr Akku.";
+"wallpaper" = "Live-Hintergrund";
+"wallpaper_summary" = "Schnee hinter deinen Apps, auf Start- und Sperrbildschirm. Ganz ohne Berechtigung.";
+"wallpaper_picture" = "Bild auswählen";
+"wallpaper_remove" = "Bild entfernen";
+"wallpaper_unsupported" = "Dieses Handy hat keine Live-Hintergründe.";
+"picture_failed" = "Dieses Bild konnte nicht verwendet werden.";
+"startup" = "Beim Start öffnen";
+"about" = "Snowhush %1$s. Inoffizielle Android-Portierung. Snowhush stammt von Mykhailo Bezruchko und ist für nichtkommerzielle Nutzung kostenlos, unter der PolyForm Noncommercial License 1.0.0.";
+"on" = "Ein";
+"percent" = "%1$d %%";
+"notification_channel" = "Schneefall";
+"notification_text" = "Es schneit über deinen Apps.";
+"stop" = "Stoppen";

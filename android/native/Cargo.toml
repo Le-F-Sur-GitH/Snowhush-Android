@@ -1,0 +1,35 @@
+[package]
+name = "snowhush-android"
+version = "0.13.1"
+edition = "2024"
+publish = false
+description = "Snowhush's snow for Android: the shared simulation, drawn with OpenGL ES 3 and driven from Java through JNI."
+
+[lib]
+name = "snowhush"
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[features]
+# A drawing surface of its own, without a display, for trying the engine out on a desktop: see `examples/shots.rs`
+# and `hosttest/`.
+host = ["dep:khronos-egl"]
+
+[dependencies]
+snowhush-core = { path = "../../core" }
+glow = "0.18"
+jni = { version = "0.21", default-features = false }
+libloading = "0.8"
+png = "0.17"
+khronos-egl = { version = "6", features = ["dynamic"], optional = true }
+
+[[example]]
+name = "shots"
+required-features = ["host"]
+
+# The app is loaded into a Java process: a panic is caught at the JNI boundary and stops the snow instead of the app.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

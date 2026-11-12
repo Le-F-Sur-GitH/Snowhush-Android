@@ -1,0 +1,33 @@
+/* The words only the Android app has, one file per language, beside the shared ones in ../../locales. Every file has
+   every key of en.strings. tools/strings.py turns both into the app's string resources. %1$s and %1$d are filled in
+   by the app; \n is a new line. */
+
+"tagline" = "It's snowing on your phone.";
+"hint" = "Sweep it aside with your finger. Scroll, and it slides off.";
+"unavailable" = "This build has no snow for this phone's processor.";
+"overlay" = "Over Your Apps";
+"overlay_summary" = "Snow falls over everything on your screen. Touches go straight through it.";
+"overlay_allow_hint" = "Android has to allow Snowhush to display over other apps. If it calls this a restricted setting, open the app's info page, tap ⋮, then Allow restricted settings.";
+"allow" = "Allow";
+"melt_summary" = "The drift thaws slowly, so it never takes over your screen.";
+"deep_summary" = "Snow settles on the keyboard, picture-in-picture and split-screen windows, at full strength.";
+"deep_explained" = "Deep Interaction is an Android accessibility service. It tells Snowhush where the keyboard and floating windows are, so snow can settle on them and drop when they go.\n\nSnowhush reads only where those windows are and how big they are. It never reads what is on your screen, and it has no network access.\n\nOn the next screen, choose Snowhush and turn it on.";
+"deep_description" = "Lets snow settle on the keyboard, picture-in-picture and split-screen windows. Snowhush reads only where those windows are, never what they show, and has no network access.";
+"open_settings" = "Open Settings";
+"motion" = "Tilt and Shake";
+"motion_summary" = "Tilt your phone and the snowfall drifts that way. Shake it to blow the drift away.";
+"full_screen_summary" = "Keeps snowing over videos and games.";
+"performance_summary" = "Draws every frame at your display's full rate. Uses more battery.";
+"wallpaper" = "Live Wallpaper";
+"wallpaper_summary" = "Snow behind your apps, on the home and lock screens. No permission needed.";
+"wallpaper_picture" = "Choose Picture";
+"wallpaper_remove" = "Remove Picture";
+"wallpaper_unsupported" = "This phone has no live wallpapers.";
+"picture_failed" = "That picture couldn't be used.";
+"startup" = "Open at Startup";
+"about" = "Snowhush %1$s. Unofficial Android port. Snowhush is made by Mykhailo Bezruchko, free for noncommercial use under the PolyForm Noncommercial License 1.0.0.";
+"on" = "On";
+"percent" = "%1$d%%";
+"notification_channel" = "Snowfall";
+"notification_text" = "It's snowing over your apps.";
+"stop" = "Stop";
