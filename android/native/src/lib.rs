@@ -41,6 +41,8 @@ mod key {
     pub const SHADOW: i32 = 14;
     pub const BACKDROP: i32 = 15;
     pub const RESUME: i32 = 16;
+    pub const FALLS_BEHIND: i32 = 17;
+    pub const ADVANCE: i32 = 18;
 }
 
 const MODES: [Mode; 4] = [Mode::Snow, Mode::Autumn, Mode::Rain, Mode::Blossom];
@@ -203,6 +205,8 @@ pub fn set(scene: &mut Scene, what: i32, a: f32, b: f32, c: f32, d: f32) {
             _ => Backdrop::Clear,
         }),
         key::RESUME => scene.resume(),
+        key::FALLS_BEHIND => scene.set_falls_behind(on(a)),
+        key::ADVANCE => scene.advance(a),
         _ => {}
     }
 }

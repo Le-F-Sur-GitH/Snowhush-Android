@@ -36,8 +36,15 @@ final class Native {
     /** 0 for a see-through surface, 1 for the night, 2 for the picture; how far along it the view is, and its light. */
     static final int BACKDROP = 15;
     static final int RESUME = 16;
+    /** The snow falls behind the windows, as a wallpaper's does behind the icons: each gets its share. */
+    static final int FALLS_BEHIND = 17;
+    /** Lets the snow fall on unseen for this many seconds. */
+    static final int ADVANCE = 18;
 
-    /** Numbers per window handed to {@link #windows}: id, left, top, right, bottom, radius, kind and one to spare. */
+    /**
+     * Numbers per window handed to {@link #windows}: id, left, top, right, bottom, radius, kind, and how square its
+     * corners' curve is, from 2 for a circle's arc up, or 0 for that.
+     */
     static final int WINDOW_NUMBERS = 8;
     /** A window's kind: snow lies along its top edge. */
     static final int WINDOW_SETTLES = 1;
@@ -45,6 +52,8 @@ final class Native {
     static final int WINDOW_PANEL = 2;
     /** It is out of sight for now, and its snow waits for it. */
     static final int WINDOW_AWAY = 4;
+    /** It is small, as an app's icon is: snow lies on it however little room it has. */
+    static final int WINDOW_SMALL = 8;
 
     private static final boolean LOADED = load();
 

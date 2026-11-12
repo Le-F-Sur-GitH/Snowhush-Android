@@ -20,8 +20,8 @@ RES = os.path.join(ANDROID, "app", "src", "main", "res")
 # The shared words the app uses, under the names Android can give them: a resource's name has no dots.
 SHARED_KEYS = [
     "intensity", "opacity", "off", "mode", "mixed", "snow", "autumn", "rain", "blossom", "halloween",
-    "behavior", "display", "general", "accumulate", "surface.ground", "surface.windows",
-    "melt.snow", "melt.autumn", "melt.blossom", "deep", "full_screen", "performance", "support",
+    "behavior", "general", "accumulate", "surface.ground",
+    "melt.snow", "melt.autumn", "melt.blossom", "deep", "performance", "support",
     "clear.snow", "clear.autumn", "clear.blossom", "clear.snow.autumn", "clear.snow.blossom", "clear.autumn.blossom",
 ]
 # English is what Android falls back to; Traditional Chinese has no folder and so falls back to it too, rather than

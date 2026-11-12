@@ -41,6 +41,8 @@ const AWAY: V2 = V2::new(-1e6, -1e6);
 const SLIDE_DRAG: f32 = 0.025;
 /// How fast the phone must be tilted before its wind is worth a frame of its own.
 const WIND_FELT: f32 = 2.0;
+/// The step the snow is taken on by while no one sees it, in seconds: as long as the simulation stays steady at.
+const UNSEEN_STEP: f32 = 0.05;
 
 /// What the app's settings say.
 #[derive(Clone, Debug, PartialEq)]
@@ -82,14 +84,21 @@ pub struct Reported {
     pub panel: bool,
     /// It is out of sight for now and will be back, as a card scrolled away: its snow waits for it.
     pub away: bool,
+    /// It is small, as an app's icon on the home screen is: snow lies on it however little room it has.
+    pub small: bool,
+    /// How square its corners' curve is: 2 for a circle's arc, more for the squarer curve of an icon. See
+    /// `WindowSurface::corner_exponent`.
+    pub exponent: f32,
 }
 
 impl Reported {
-    /// How many numbers tell of one window: its id, left, top, right, bottom, radius and what it is, with one to spare.
+    /// How many numbers tell of one window: its id, left, top, right, bottom, radius, what it is, and its corners'
+    /// exponent, or zero for a circle's.
     pub const NUMBERS: usize = 8;
     const SETTLES: u32 = 1;
     const PANEL: u32 = 2;
     const AWAY: u32 = 4;
+    const SMALL: u32 = 8;
 
     pub fn read(numbers: &[f32]) -> Reported {
         let kind = numbers[6] as u32;
@@ -103,6 +112,8 @@ impl Reported {
             settles: kind & Reported::SETTLES != 0,
             panel: kind & Reported::PANEL != 0,
             away: kind & Reported::AWAY != 0,
+            small: kind & Reported::SMALL != 0,
+            exponent: if numbers[7] >= 1.0 { numbers[7] } else { 2.0 },
         }
     }
 }
@@ -119,6 +130,10 @@ pub struct Placed {
     /// The windows out of sight whose snow waits for them.
     pub away: HashSet<WindowId>,
 }
+
+/// The least a window measures, in points, for snow to lie on it: across and down. An icon gets by with less.
+const WINDOW_LEAST: (f32, f32) = (80.0, 40.0);
+const ICON_LEAST: (f32, f32) = (20.0, 16.0);
 
 /// Turns what Android reported into the windows of a simulation `width` by `height` points, as `windows::surfaces`
 /// does on Linux: a window collects snow when it has room above it, doesn't fill the screen and is big enough, and
@@ -149,7 +164,8 @@ pub fn place(reported: &[Reported], target: &Target, width: f32, height: f32, le
         let room_above = height - frame.max_y() >= 6.0;
         let on_screen = frame.max_x() > 0.0 && frame.min_x() < width && frame.max_y() > 0.0;
         let fills_screen = frame.width * frame.height >= width * height * 0.9;
-        if ledges && window.settles && room_above && on_screen && !fills_screen && frame.width >= 80.0 && frame.height >= 40.0 {
+        let least = if window.small { ICON_LEAST } else { WINDOW_LEAST };
+        if ledges && window.settles && room_above && on_screen && !fills_screen && frame.width >= least.0 && frame.height >= least.1 {
             let region = Rect { x: frame.x, y: frame.max_y() - radius, width: frame.width, height: 40.0 + radius };
             placed.surfaces.push(WindowSurface {
                 id: window.id,
@@ -157,7 +173,7 @@ pub fn place(reported: &[Reported], target: &Target, width: f32, height: f32, le
                 blockers: blockers.iter().filter(|b| intersects(b, &region)).copied().collect(),
                 cover: blockers.iter().filter(|b| intersects(b, &frame)).copied().collect(),
                 corner_radius: radius,
-                corner_exponent: 2.0,
+                corner_exponent: window.exponent,
             });
             if window.panel && placed.shelf.is_none() {
                 placed.shelf = Some(window.id);
@@ -187,6 +203,8 @@ pub struct Scene {
     target: Option<Target>,
     settings: Settings,
     budget: PowerBudget,
+    /// The snow falls behind the windows, as a wallpaper's does behind a home screen's icons.
+    falls_behind: bool,
     /// The fastest the snow is drawn, a second: the display's own rate, between 60 and 120.
     interactive_rate: u32,
     /// Every frame at `interactive_rate`, whatever the snow is doing and whatever the power.
@@ -237,6 +255,7 @@ impl Scene {
             target: None,
             settings: Settings::default(),
             budget: PowerBudget::Battery,
+            falls_behind: false,
             interactive_rate: 60,
             max_rate: false,
             hour: 12.0,
@@ -317,7 +336,11 @@ impl Scene {
                 if by > 0.0 { simulation.lower_ground(w, h, by) } else { simulation.raise_ground(w, h, -by) }
             }
             (Some(simulation), _) => simulation.resize(w, h),
-            (None, _) => self.simulation = Some(new_simulation(w, h, &self.settings, self.budget)),
+            (None, _) => {
+                let mut simulation = new_simulation(w, h, &self.settings, self.budget);
+                simulation.falls_behind = self.falls_behind;
+                self.simulation = Some(simulation);
+            }
         }
         self.target = Some(target);
         self.windows_stale = true;
@@ -350,6 +373,30 @@ impl Scene {
             simulation.accumulates = ground || ledges;
         }
         self.windows_stale = true;
+        self.stirred = true;
+    }
+
+    /// The snow falls behind the windows instead of in front of them: each icon of a home screen gets its share,
+    /// whatever is above it. See `SnowSimulation::falls_behind`.
+    pub fn set_falls_behind(&mut self, behind: bool) {
+        self.falls_behind = behind;
+        if let Some(simulation) = &mut self.simulation {
+            simulation.falls_behind = behind;
+        }
+    }
+
+    /// Lets the snow fall on unseen for `seconds`, as a wallpaper's does while an app covers it: what settled in
+    /// the meantime is there when the home screen is back. Nothing is drawn.
+    pub fn advance(&mut self, seconds: f32) {
+        if !seconds.is_finite() || seconds <= 0.0 {
+            return;
+        }
+        self.follow(self.windows_changed_at);
+        let Some(simulation) = &mut self.simulation else { return };
+        for _ in 0..(seconds.min(10.0) / UNSEEN_STEP).round() as usize {
+            simulation.step(UNSEEN_STEP, AWAY);
+        }
+        self.last_step = None;
         self.stirred = true;
     }
 
@@ -685,7 +732,26 @@ mod tests {
     const PHONE: Target = Target { width: 1080, height: 2340, x: 0, y: 0, w: 1080, h: 2340, scale: 3.0 };
 
     fn window(id: WindowId, left: f32, top: f32, right: f32, bottom: f32) -> Reported {
-        Reported { id, left, top, right, bottom, radius: 0.0, settles: true, panel: false, away: false }
+        Reported { id, left, top, right, bottom, radius: 0.0, settles: true, panel: false, away: false, small: false, exponent: 2.0 }
+    }
+
+    #[test]
+    fn an_icon_holds_snow_where_a_window_that_small_would_not() {
+        let icon = Reported { small: true, radius: 50.0, exponent: 2.6, ..window(5, 120.0, 900.0, 300.0, 1080.0) };
+        let placed = place(&[icon], &PHONE, 360.0, 780.0, true);
+        assert_eq!(placed.surfaces.len(), 1);
+        assert_eq!(placed.surfaces[0].frame.width, 60.0);
+        assert_eq!(placed.surfaces[0].corner_exponent, 2.6);
+        let placed = place(&[Reported { small: false, ..icon }], &PHONE, 360.0, 780.0, true);
+        assert!(placed.surfaces.is_empty());
+    }
+
+    #[test]
+    fn numbers_tell_of_a_window() {
+        let icon = Reported::read(&[41.0, 10.0, 20.0, 110.0, 120.0, 30.0, 9.0, 2.6]);
+        assert!(icon.settles && icon.small && !icon.panel && !icon.away);
+        assert_eq!((icon.id, icon.radius, icon.exponent), (41, 30.0, 2.6));
+        assert_eq!(Reported::read(&[1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 4.0, 0.0]).exponent, 2.0);
     }
 
     #[test]
@@ -775,6 +841,47 @@ mod tests {
         assert!(!scene.halloween());
         scene.set_modes(&[Mode::Snow], false, false);
         assert!(scene.halloween());
+    }
+
+    #[test]
+    fn snow_settles_unseen_on_every_icon_of_a_home_screen() {
+        let mut scene = Scene::new();
+        scene.set_intensity(1.0);
+        scene.set_falls_behind(true);
+        scene.place(1080, 2340, 0, 0, 0, 3.0);
+        // A widget across the top, and an icon under it.
+        let widget = Reported { radius: 60.0, ..window(1, 48.0, 300.0, 1032.0, 700.0) };
+        let icon = Reported { small: true, radius: 50.0, exponent: 2.6, ..window(2, 450.0, 1200.0, 630.0, 1380.0) };
+        scene.set_windows(vec![widget, icon], false);
+        for _ in 0..30 {
+            scene.advance(10.0);
+        }
+        let simulation = scene.simulation().unwrap();
+        let mut columns = vec![0.0; simulation.column_count()];
+        let piles = simulation.write_layers(&mut columns);
+        assert_eq!(piles.len(), 3, "the ground, the widget and the icon under it should each have snow");
+    }
+
+    /// How long a moment of unseen snow takes to work out: `cargo test --release unseen -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn unseen_snow_is_cheap() {
+        let mut scene = Scene::new();
+        scene.set_intensity(0.5);
+        scene.set_falls_behind(true);
+        scene.place(1080, 2340, 0, 0, 0, 3.0);
+        let mut windows = vec![Reported { radius: 60.0, ..window(1, 48.0, 300.0, 1032.0, 700.0) }];
+        for k in 0..24 {
+            let (left, top) = (45.0 + (k % 4) as f32 * 270.0, 800.0 + (k / 4) as f32 * 250.0);
+            windows.push(Reported { small: true, radius: 50.0, exponent: 2.6, ..window(10 + k, left, top, left + 180.0, top + 180.0) });
+        }
+        scene.set_windows(windows, false);
+        scene.advance(10.0);
+        let started = std::time::Instant::now();
+        for _ in 0..30 {
+            scene.advance(2.0);
+        }
+        println!("two seconds of unseen snow take {:?}", started.elapsed() / 30);
     }
 
     #[test]

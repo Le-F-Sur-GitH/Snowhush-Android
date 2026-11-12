@@ -63,8 +63,42 @@ impl Drop for Offscreen {
 /// What a scene last drew, as a PNG. A see-through surface is laid over `behind`, top and bottom, as it would lie
 /// over a screen; without, it is saved as it is, see-through.
 pub fn save(scene: &Scene, path: &str, behind: Option<([u8; 3], [u8; 3])>) -> Result<(), String> {
+    save_under(scene, path, behind, &[])
+}
+
+/// Something a home screen draws in front of its wallpaper, an icon or a widget: where it is, in the surface's
+/// pixels from its top left, how round its corners are and how square their curve, and its colour.
+pub struct Cover {
+    pub left: f32,
+    pub top: f32,
+    pub right: f32,
+    pub bottom: f32,
+    pub radius: f32,
+    pub exponent: f32,
+    pub color: [u8; 3],
+}
+
+/// As `save`, with `covers` painted over the picture as a home screen paints its icons and widgets over a wallpaper.
+pub fn save_under(scene: &Scene, path: &str, behind: Option<([u8; 3], [u8; 3])>, covers: &[Cover]) -> Result<(), String> {
     let (Some(gpu), Some(target)) = (scene.gpu(), scene.target()) else { return Err("nothing drawn yet".into()) };
-    let pixels = gpu.read(&target);
+    let mut pixels = gpu.read(&target);
+    let (width, height) = (target.width.max(1) as usize, target.height.max(1) as usize);
+    for cover in covers {
+        let (half_w, half_h) = ((cover.right - cover.left) / 2.0, (cover.bottom - cover.top) / 2.0);
+        let radius = cover.radius.min(half_w).min(half_h).max(0.01);
+        for y in cover.top.max(0.0) as usize..(cover.bottom.min(height as f32) as usize) {
+            for x in cover.left.max(0.0) as usize..(cover.right.min(width as f32) as usize) {
+                // How far into a corner's square the pixel is, across and down; inside the curve, it is covered.
+                let dx = ((x as f32 + 0.5 - (cover.left + half_w)).abs() - (half_w - radius)).max(0.0) / radius;
+                let dy = ((y as f32 + 0.5 - (cover.top + half_h)).abs() - (half_h - radius)).max(0.0) / radius;
+                if dx.powf(cover.exponent) + dy.powf(cover.exponent) <= 1.0 {
+                    let at = ((height - 1 - y) * width + x) * 4;
+                    pixels[at..at + 3].copy_from_slice(&cover.color);
+                    pixels[at + 3] = 255;
+                }
+            }
+        }
+    }
     write(path, &pixels, &target, behind)
 }
 

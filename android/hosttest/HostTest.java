@@ -44,23 +44,28 @@ public final class HostTest {
         Native.set(scene, Native.RATE, 120, 0, 0, 0);
         Native.set(scene, Native.HOUR, 21.5f, 0, 0, 0);
         Native.set(scene, Native.SHADOW, 0.2f, 0.3f, 0.6f, 1);
-        // A phone with a bar of buttons 48 pixels tall, and the keyboard up over the bottom third.
+        // A phone with a bar of buttons 48 pixels tall.
         Native.place(scene, WIDTH, HEIGHT, 0, 0, 48, 1f);
         error = Native.glInit(scene);
         check(error == null, "no graphics: " + error);
+        // A home screen: a widget, an icon under it, and an icon on another page, which is away.
         float[] windows = {
-            7, 0, 520, WIDTH, HEIGHT, 0, Native.WINDOW_SETTLES | Native.WINDOW_PANEL, 0,
-            8, 150, 200, 340, 310, 14, Native.WINDOW_SETTLES, 0,
-            9, 0, -400, WIDTH, -100, 14, Native.WINDOW_AWAY, 0,
+            7, 20, 120, 340, 300, 26, Native.WINDOW_SETTLES, 2.2f,
+            8, 150, 420, 210, 480, 18, Native.WINDOW_SETTLES | Native.WINDOW_SMALL, 2.6f,
+            9, 40, 420, 100, 480, 18, Native.WINDOW_AWAY | Native.WINDOW_SMALL, 2.6f,
         };
+        Native.set(scene, Native.FALLS_BEHIND, 1, 0, 0, 0);
         Native.windows(scene, windows, 3, false);
         long[] now = {1_000_000_000L};
         int drawn = run(scene, now, 400);
         check(drawn > 100, "falling snow should be drawn most frames, but only " + drawn + " were");
         String described = Native.describe(scene);
-        check(described.contains("2 windows"), "the keyboard and the floating window should hold snow: " + described);
+        check(described.contains("2 windows"), "the widget and the icon under it should hold snow: " + described);
+        // Unseen, as behind an app, the snow goes on falling.
+        for (int i = 0; i < 20; i++) Native.set(scene, Native.ADVANCE, 2f, 0, 0, 0);
+        run(scene, now, 3);
         check(!described.contains("failed"), described);
-        error = HostEgl.save(scene, folder + "/overlay.png");
+        error = HostEgl.save(scene, folder + "/home.png");
         check(error == null, "no picture: " + error);
 
         // The finger, a tilt, a shake, other weather, a full-screen app: nothing may break the scene.

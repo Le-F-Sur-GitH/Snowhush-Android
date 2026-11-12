@@ -2,60 +2,60 @@
 
 An unofficial Android port of [Snowhush](https://snowhush.app) by Mykhailo Bezruchko. It is the same snow: the
 simulation the Windows and Linux apps share (`../core`), drawn with the Linux app's OpenGL ES shaders
-(`../linux/src/shaders`), in a plain Java app with no libraries. Android 8 or later, OpenGL ES 3.
+(`../linux/src/shaders`), in a plain Java app with no libraries and no permissions. Android 8 or later, OpenGL ES 3.
 
 The latest build is on the repository's [releases page](../../../releases/tag/latest).
 
 ## What a phone gets
 
-A phone has no windows to drag and no cursor, and Android lets an app onto the screen in other ways than a desktop
-does. So the snow has three places to fall, and they share one set of settings.
+The snow is a **live wallpaper**: it falls on the home and lock screens, behind the apps, and nowhere else. It asks
+for no permission. The finger sweeps the drift as a cursor does, and the home screen's pages sliding past drag the
+air along as a desktop's spaces do. Behind it is the night under a street lamp, or a picture of your own.
 
-- **Over your apps.** A see-through window over everything, which touches go straight through. It needs "Display
-  over other apps". Android only lets touches through such a window while it is at most four fifths opaque, so the
-  snow is drawn at that strength. It sits above the apps and under the keyboard, the bars and the lock screen, lies
-  on top of a navigation bar with buttons as it does on a taskbar, and fades out of a full-screen app's way unless
-  told to show over full screen.
-- **Deep Interaction.** With Snowhush turned on as an accessibility service, Android tells it where the windows are,
-  which is what the desktop apps' window trackers ask their systems. The snow then settles on the keyboard, on a
-  picture-in-picture window and on the lower half of a split screen, drops when they go, and is drawn at full
-  strength, above everything. Only the windows' places and sizes are read, never what they show.
-- **Live wallpaper.** The snow behind the apps, on the home and lock screens, with no permission at all. The finger
-  sweeps the drift as a cursor does, and the home screen's pages sliding past drag the air along as a desktop's
-  spaces do. Behind it is the night under a street lamp, or a picture of your own.
+A phone has no windows for the snow to lie on. It has widgets and app icons, and with **Deep Interaction** they are
+the snow's windows: it settles along their tops, follows their rounded corners, and waits for the ones on another
+page as it waits for a window on another desktop. Deep Interaction is an accessibility service, because that is the
+one thing Android tells where the widgets and icons are. It listens to the launcher alone, only while the
+wallpaper is in sight, and reads how the home screen is laid out and nothing else.
+
+Two things are a wallpaper's own:
+
+- The home screen draws its icons over the wallpaper, so the snow falls behind them. A flake crossing an icon's top
+  leaves its snow there and falls on, and the icon under it gets its share too (`falls_behind` in the core).
+- A wallpaper is out of sight most of the time. While the screen is on, the snow goes on falling unseen behind
+  whatever app is in front, so what settled meanwhile is there when the home screen is back. With the screen off,
+  nothing falls and nothing runs.
 
 What stands in for the rest of a desktop:
 
 | On a desktop | On Android |
 | --- | --- |
-| Menu bar or tray icon | The app's one screen, and a Quick Settings tile |
-| Cursor pushing through the drift | A finger, on the wallpaper and in the app |
+| Menu bar or tray icon | The app's one screen |
+| Windows and the Dock | The home screen's widgets and app icons |
+| Cursor pushing through the drift | A finger, on the home screen and in the app |
 | Dragging or shaking a window | Tilting the phone blows the snowfall, shaking it blows the drift away |
-| Windows and the Dock | The keyboard, picture-in-picture, a split screen, the navigation bar |
 | A sliding desktop's wind | The home screen's pages |
-| Shadows tinted by the wallpaper | The same, from the colours Android takes from the wallpaper |
-| Less on battery, paused when asleep or locked | The same, from battery saver, charging, and the screen |
-| Open at Login | Open at Startup |
+| A window on another desktop | An icon on another page, or behind the app drawer |
+| Less on battery, paused when asleep or covered | The same, from battery saver, charging, and the screen |
 
-The app's own screen snows too. Its cards are the snow's windows: it settles on them, slides off as they scroll,
-and waits for a card scrolled out of sight.
+The app's own screen snows too, as a taste of the wallpaper: its cards are the snow's windows.
 
-Not here: hiding from screenshots, which Android gives an app no way to do, and checking for updates, since the app
-has no network access at all.
+Launchers lay their icons out each their own way, and most say only where an icon and its name are together, not
+where the picture is. Snowhush works that out, and *Snow Height on Apps* nudges the snow up or down until it sits
+right. To fit a launcher it misreads, hold the last line of the app's screen down: it hands over what Deep
+Interaction found on the home screen, sizes and places and nothing of what it shows.
+
+Not here: snow over other apps. Android only lets touches through a window over another app while that window is
+mostly see-through, and a phone's screen is for the app in front. Hiding from screenshots and checking for updates
+aren't here either: the app has no network access at all.
 
 ## Permissions
 
-| Permission | Why |
-| --- | --- |
-| Display over other apps | The snow over your apps |
-| Foreground service, notifications | Android only keeps that window up behind a notification |
-| Run at startup | Open at Startup |
-| Accessibility service, optional | Deep Interaction |
+None. A live wallpaper needs none, and the app declares none: nothing it reads can leave the phone.
 
-The app asks for no network permission, so nothing it reads can leave the phone.
-
-Android 13 and later hold back "Display over other apps" and accessibility for an app installed from a file. If
-Android calls either a restricted setting, open the app's info page, tap ⋮, then *Allow restricted settings*.
+Deep Interaction is turned on in Android's accessibility settings. Android 13 and later hold that back for an app
+installed from a file: if Android calls it a restricted setting, open the app's info page, tap ⋮, then *Allow
+restricted settings*.
 
 ## Building
 
@@ -85,8 +85,8 @@ real, point `SNOWHUSH_KEYSTORE` and its companions (see `app/build.gradle`) at a
   `render.rs` is the Linux renderer drawing at the phone's own resolution into whatever context is current, and
   `lib.rs` is the handful of calls Java makes. It builds for a desktop too.
 - `app/` is the app. `SnowEngine` owns a surface's thread, its EGL context and its scene, and tells the scene what
-  Android knows. `OverlayWindow` is the window over every app, put up by `OverlayService` or by `DeepService`, the
-  accessibility service. `SnowWallpaper` is the live wallpaper, `MainActivity` the screen, `SnowTile` the tile.
+  Android knows. `SnowWallpaper` is the live wallpaper, `DeepService` the accessibility service that reads the home
+  screen, `MainActivity` the screen.
 - `locales/` has the words only Android needs, in the nine languages of `../locales`; `tools/strings.py` turns both
   into string resources, and `tools/icon.py` draws the adaptive icon after `../scripts/make-icon.swift`.
 
@@ -98,16 +98,11 @@ cargo run --release --features host --example shots --manifest-path android/nati
 android/hosttest/run.sh
 ```
 
-The second draws each kind of weather as a phone would show it into PNGs, with Mesa and no display. The third
-calls the engine from a desktop's Java through the same `Native` class the app uses, so a native method that Rust
-names or shapes differently fails there instead of on a phone. `tools/smoke.sh` installs the APK on an emulator or
-a phone over adb, turns the snow on and keeps screenshots.
-
-To turn the snow over every app on or off from a script:
-
-```
-adb shell am start -n app.snowhush.android/.MainActivity --ez snow true
-```
+The second draws each kind of weather as a phone would show it into PNGs, with Mesa and no display, a home screen
+with its widget and icons among them. The third calls the engine from a desktop's Java through the same `Native`
+class the app uses, so a native method that Rust names or shapes differently fails there instead of on a phone.
+`tools/smoke.sh` installs the APK on an emulator or a phone over adb, sets the wallpaper, turns Deep Interaction on
+and keeps screenshots; `adb logcat -s Snowhush` says what the app found.
 
 ## License
 

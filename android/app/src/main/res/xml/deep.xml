@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Deep Interaction: Android tells the service when windows come, go and move, and where they are. It asks to
-     retrieve windows because that is how Android names being told where they are; DeepService never asks for what
-     is in one. It is no accessibility tool, and says so. -->
+<!-- Deep Interaction: Android tells the service when the home screen changes or its pages slide, and lets it read
+     how the screen is laid out. DeepService narrows what it hears to the launcher alone as soon as it starts, and
+     reads no other app. It is no accessibility tool, and says so. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityEventTypes="typeWindowsChanged|typeWindowStateChanged"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewScrolled"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagRetrieveInteractiveWindows"
+    android:accessibilityFlags="flagIncludeNotImportantViews"
     android:canRetrieveWindowContent="true"
     android:description="@string/deep_description"
     android:isAccessibilityTool="false"
-    android:notificationTimeout="80"
+    android:notificationTimeout="120"
     android:settingsActivity="app.snowhush.android.MainActivity"
     android:summary="@string/deep_summary" />

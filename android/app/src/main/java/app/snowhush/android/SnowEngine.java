@@ -1,7 +1,5 @@
 package app.snowhush.android;
 
-import android.app.WallpaperColors;
-import android.app.WallpaperManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +7,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.hardware.display.DisplayManager;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
@@ -41,23 +38,26 @@ import java.util.concurrent.TimeUnit;
 /**
  * The snow on one surface: a thread that owns the surface's graphics context and the scene drawn in it, steps the
  * scene at the pace it asks for, and tells it what Android knows, as {@code linux/src/snow.rs} does for a display:
- * the settings, the power, the hour, the wallpaper's colour, the windows and the finger. The overlay over every app,
- * a live wallpaper and the snow over the app's own settings each have one.
+ * the settings, the power, the hour, the windows and the finger. A live wallpaper and the snow over the app's own
+ * settings each have one.
  *
  * <p>Everything public is called on the main thread; the scene is only ever touched on the snow's.
  */
 final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeListener, Motion.Listener {
-    /** Over every app: see-through, lying on top of a navigation bar with buttons, out of a full-screen app's way. */
-    static final int OVERLAY = 0;
-    /** A live wallpaper: nothing is behind the snow but its own backdrop. */
+    /**
+     * A live wallpaper: nothing is behind the snow but its own backdrop, and the home screen's widgets and icons
+     * are in front of it.
+     */
     static final int WALLPAPER = 1;
-    /** Over the app's own settings, whose cards are its windows. */
+    /** Over the app's own settings, whose cards are its windows: see-through, in front of them. */
     static final int PREVIEW = 2;
 
     private static final String TAG = "Snowhush";
     private static final int EGL_CONTEXT_LOST = 0x300E;
     /** How much of a wallpaper picture's light is kept, so the snow stands out against it. */
     private static final float PICTURE_DIM = 0.82f;
+    /** How often a wallpaper's snow is taken on while an app covers it, in milliseconds. */
+    private static final long UNSEEN = 2000;
 
     private final Context context;
     private final int kind;
@@ -87,6 +87,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
     private int insetBottom;
     private float scale = 1f;
     private boolean active;
+    private boolean awake = true;
     private boolean broken;
     private boolean scheduled;
     private long dueAt;
@@ -129,8 +130,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         }
     };
 
-    /** Kept for as long as the engine listens: the wallpaper manager holds on to it. */
-    private Object colorsListener;
+    private final Runnable unseen = this::fallUnseen;
 
     SnowEngine(Context context, int kind) {
         this.context = context.getApplicationContext();
@@ -144,13 +144,17 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         snow.post(() -> {
             choreographer = Choreographer.getInstance();
             if (Native.available()) scene = Native.create();
-            if (scene == 0) broken = true;
+            if (scene == 0) {
+                broken = true;
+            } else if (kind == WALLPAPER) {
+                // The home screen draws its icons over the wallpaper: the snow falls behind them, and each gets its share.
+                Native.set(scene, Native.FALLS_BEHIND, 1, 0, 0, 0);
+            }
         });
         pushSettings();
         pushRate();
         pushPower();
         pushClock();
-        pushShadow();
     }
 
     // The surface
@@ -194,7 +198,34 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
                 scheduled = false;
                 choreographer.removeFrameCallback(tick);
             }
+            armUnseen();
         });
+    }
+
+    /**
+     * Whether the screen is on. While it is, a wallpaper's snow goes on falling behind whatever app covers it, so
+     * what settled meanwhile is there when the home screen is back; with the screen off, nothing falls.
+     */
+    void setAwake(boolean nowAwake) {
+        snow.post(() -> {
+            awake = nowAwake;
+            armUnseen();
+        });
+    }
+
+    private boolean fallsUnseen() {
+        return kind == WALLPAPER && scene != 0 && !broken && !active && awake;
+    }
+
+    private void armUnseen() {
+        snow.removeCallbacks(unseen);
+        if (fallsUnseen()) snow.postDelayed(unseen, UNSEEN);
+    }
+
+    private void fallUnseen() {
+        if (!fallsUnseen()) return;
+        Native.set(scene, Native.ADVANCE, UNSEEN / 1000f, 0, 0, 0);
+        snow.postDelayed(unseen, UNSEEN);
     }
 
     /** Stops the snow and gives everything back. The engine is of no use after. */
@@ -204,6 +235,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         shown = false;
         listen(false);
         await(() -> {
+            snow.removeCallbacks(unseen);
             detach();
             if (scene != 0) Native.destroy(scene);
             scene = 0;
@@ -223,11 +255,6 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         set(Native.CLEAR, Prefs.calm(context) ? 1 : 0, 0, 0, 0);
     }
 
-    /** Fades the snow out of a full-screen app's way, or back in. */
-    void setCovered(boolean covered) {
-        set(Native.COVERED, covered ? 1 : 0, 0, 0, 0);
-    }
-
     /** How far along the home screen's pages the view is, from 0 to 1, and how fast they slide past, in pixels a second. */
     void pages(float along, float velocity) {
         snow.post(() -> {
@@ -239,10 +266,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         });
     }
 
-    /**
-     * The windows Android tells of, front to back, {@link Native#WINDOW_NUMBERS} numbers each: the keyboard,
-     * picture-in-picture, a split screen's lower half.
-     */
+    /** The home screen's widgets and icons, {@link Native#WINDOW_NUMBERS} numbers each, as Deep Interaction found them. */
     void setSystemWindows(float[] windows, int count) {
         snow.post(() -> {
             systemWindows = windows;
@@ -251,7 +275,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         });
     }
 
-    /** The app's own cards, behind any of Android's windows; {@code moving} while they scroll. */
+    /** The app's own cards; {@code moving} while they scroll. */
     void setAppWindows(float[] windows, int count, boolean moving) {
         snow.post(() -> {
             appWindows = windows;
@@ -298,13 +322,11 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
                 context.registerReceiver(receiver, filter);
             }
             if (displays != null) displays.registerDisplayListener(displayListener, main);
-            watchWallpaper(true);
             // Whatever changed while the snow was out of sight.
             pushSettings();
             pushRate();
             pushPower();
             pushClock();
-            pushShadow();
         } else {
             prefs.unregisterOnSharedPreferenceChangeListener(this);
             try {
@@ -313,7 +335,6 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
                 // Nothing to undo.
             }
             if (displays != null) displays.unregisterDisplayListener(displayListener);
-            watchWallpaper(false);
         }
         updateMotion();
     }
@@ -347,8 +368,8 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
         final float intensity = Prefs.intensity(prefs, calm) / 100f;
         final float opacity = Prefs.opacity(prefs) / 100f;
         final boolean ground = prefs.getBoolean(Prefs.GROUND, true);
-        // A wallpaper is behind every window: there is none for its snow to lie on.
-        final boolean windows = kind != WALLPAPER && prefs.getBoolean(Prefs.WINDOWS, true);
+        // On the home screen's widgets and icons, or, in the app, on its cards, which stand for them.
+        final boolean windows = prefs.getBoolean(Prefs.WIDGETS, true) || prefs.getBoolean(Prefs.ICONS, true);
         final boolean melt = prefs.getBoolean(Prefs.MELT, true);
         final boolean performance = prefs.getBoolean(Prefs.PERFORMANCE, false);
         final int[] picked = Prefs.modes(prefs);
@@ -399,43 +420,6 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
             Native.set(scene, Native.HOUR, hour, 0, 0, 0);
             Native.set(scene, Native.HALLOWEEN, halloween ? 1 : 0, 0, 0, 0);
         });
-    }
-
-    /** The shadows take on the wallpaper's colour, as on the desktops, where there is a wallpaper behind the snow. */
-    private void pushShadow() {
-        if (kind != OVERLAY || Build.VERSION.SDK_INT < 27) return;
-        try {
-            WallpaperManager wallpaper = WallpaperManager.getInstance(context);
-            WallpaperColors colors = wallpaper == null ? null : wallpaper.getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
-            if (colors == null) {
-                set(Native.SHADOW, 0, 0, 0, 0);
-            } else {
-                Color color = colors.getPrimaryColor();
-                set(Native.SHADOW, color.red(), color.green(), color.blue(), 1);
-            }
-        } catch (RuntimeException unknown) {
-            set(Native.SHADOW, 0, 0, 0, 0);
-        }
-    }
-
-    private void watchWallpaper(boolean on) {
-        if (kind != OVERLAY || Build.VERSION.SDK_INT < 27) return;
-        try {
-            WallpaperManager wallpaper = WallpaperManager.getInstance(context);
-            if (wallpaper == null) return;
-            if (on) {
-                WallpaperManager.OnColorsChangedListener listener = (colors, which) -> {
-                    if ((which & WallpaperManager.FLAG_SYSTEM) != 0) pushShadow();
-                };
-                colorsListener = listener;
-                wallpaper.addOnColorsChangedListener(listener, main);
-            } else if (colorsListener != null) {
-                wallpaper.removeOnColorsChangedListener((WallpaperManager.OnColorsChangedListener) colorsListener);
-                colorsListener = null;
-            }
-        } catch (RuntimeException unsupported) {
-            // The shadows stay neutral.
-        }
     }
 
     // The snow's thread
@@ -547,7 +531,7 @@ final class SnowEngine implements SharedPreferences.OnSharedPreferenceChangeList
 
     private void place() {
         if (scene == 0 || eglSurface == EGL14.EGL_NO_SURFACE || width <= 0 || height <= 0) return;
-        // A wallpaper reaches behind the navigation bar, which the launcher draws over it.
+        // A wallpaper reaches behind the navigation bar, which the home screen draws over it.
         boolean bars = kind != WALLPAPER;
         Native.place(scene, width, height, bars ? insetLeft : 0, bars ? insetRight : 0, bars ? insetBottom : 0, scale);
         Native.set(scene, Native.BACKDROP, kind != WALLPAPER ? 0 : pictured ? 2 : 1, slide, PICTURE_DIM, 0);

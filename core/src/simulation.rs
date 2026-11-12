@@ -429,6 +429,10 @@ pub struct SnowSimulation {
     pub ground_settles: bool,
     /// How opaque snow, leaves and rain are while they fall, from the sky or off a window; once settled they show in full.
     pub falling_opacity: f32,
+    /// The snow falls behind the windows instead of in front of them, as behind the icons and widgets of a phone's
+    /// home screen when it is the wallpaper. A flake crossing a window's top leaves its snow there and falls on, so
+    /// a window under others gets its share too; a leaf, a petal or a drop either lands or falls on past.
+    pub falls_behind: bool,
     /// Side edges, left and right, with no display past them: a window slid past one leaves its snow heaped against the edge.
     pub walls: (bool, bool),
     /// Side edges, left and right, past which lies a display with a simulation of its own: snow on a window reaching
@@ -488,6 +492,7 @@ impl SnowSimulation {
             accumulates: true,
             ground_settles: true,
             falling_opacity: 1.0,
+            falls_behind: false,
             walls: (false, false),
             neighbours: (false, false),
             snowfall_held: false,
@@ -1301,6 +1306,25 @@ impl SnowSimulation {
                     self.recycle(i);
                     continue;
                 }
+                if let Some((li, column)) = hit
+                    && li > 0
+                    && self.falls_behind
+                {
+                    // Behind the window, not on it: snow leaves what it carries on the window's top and falls on.
+                    if !flake.rain() && flake.leaf <= 0.0 {
+                        let layer = &mut self.layers[li];
+                        let amount = flake.size * flake.size * DEPOSITION * flake.mass * layer.fill(column);
+                        layer.deposit(amount, flake.position.x, true, Blend::SNOW);
+                        self.air.heights_changed = true;
+                        self.air.flakes[i] = flake;
+                        continue;
+                    }
+                    // What can't be in two places lands on every other window it comes to.
+                    if !lands_behind(&flake, self.ids[li]) {
+                        self.air.flakes[i] = flake;
+                        continue;
+                    }
+                }
                 if let Some((li, column)) = hit {
                     if flake.rain() {
                         let surface = self.layers[li].surface(column);
@@ -1427,7 +1451,10 @@ impl SnowSimulation {
                     self.air.burst(&grain, layer);
                 } else {
                     let blend = grain.kind.blend();
-                    let missed = layer.deposit(grain.area, grain.position.x, true, blend);
+                    // Snow falling behind the windows leaves on each of them what a flake carries, so more comes off
+                    // them than fell: the ground takes it as it takes snow from the sky, to its depth and no deeper.
+                    let area = if self.falls_behind && li == 0 { grain.area * layer.fill(column) } else { grain.area };
+                    let missed = layer.deposit(area, grain.position.x, true, blend);
                     self.air.drop_past(layer, missed, grain.position.x, grain.velocity.x * 0.5, blend);
                 }
                 self.air.heights_changed = true;
@@ -2996,6 +3023,16 @@ fn restore(ledge: &mut SnowLayer, left: f32, top: f32, columns: usize) {
     ledge.offset_velocity = V2::ZERO;
     ledge.previous_base_y = top;
     ledge.moved_at = -1.0;
+}
+
+/// Whether a leaf, a petal or a drop falling behind a window lands on its top: half of them do, and the same one
+/// gives the same answer for the same window however often it is asked.
+fn lands_behind(flake: &Flake, window: WindowId) -> bool {
+    let mut bits = flake.sway_amount.to_bits() ^ flake.fall_speed.to_bits().rotate_left(13) ^ (window as u32).wrapping_mul(0x9E37_79B9);
+    bits ^= bits >> 16;
+    bits = bits.wrapping_mul(0x7FEB_352D);
+    bits ^= bits >> 15;
+    bits & 1 == 0
 }
 
 /// The highest visible snow surface crossed while falling from `from` to `to` at `x`, allowing for the surface moving meanwhile.

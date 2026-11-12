@@ -1235,3 +1235,45 @@ fn picks_a_language_from_system_tags() {
     assert_eq!(code("C"), None);
     assert_eq!(code("nl-NL"), None);
 }
+
+/// Under a window as wide as the screen nothing lands, unless the snow falls behind the windows: then each gets
+/// its share, as each icon of a home screen does under the widgets and icons above it.
+#[test]
+fn snow_falling_behind_windows_reaches_the_ones_below() {
+    let stacked = |behind: bool| {
+        let mut simulation = SnowSimulation::new(400.0, 800.0, 1.0);
+        simulation.falls_behind = behind;
+        let windows = [surface(1, 0.0, 600.0, 400.0), surface(2, 150.0, 250.0, 100.0)];
+        simulation.update_windows(&windows, DT, &HashSet::new(), &HashSet::new(), false);
+        run(&mut simulation, 120.0, AWAY);
+        assert_finite(&simulation);
+        // A window with no snow on it has no pile to show: each is found by how high it lies.
+        let piles = piles(&simulation);
+        let at = |top: f32| piles.iter().filter(|(origin, _)| (origin.y - top).abs() < 20.0).map(|(_, area)| *area).sum::<f32>();
+        (at(600.0), at(250.0), at(0.0))
+    };
+    let (upper, lower, _) = stacked(false);
+    assert!(upper > 50.0, "the upper window should collect snow, but has {upper}");
+    assert!(lower < upper * 0.05, "in front of the windows, the lower one is sheltered, but has {lower} to the upper's {upper}");
+    let (upper, lower, ground) = stacked(true);
+    assert!(upper > 50.0, "the upper window should collect snow, but has {upper}");
+    assert!(lower > upper * 0.1, "behind the windows, the lower one should get its share, but has {lower} to the upper's {upper}");
+    assert!(ground > 50.0, "and the ground under them both should get snow too, but has {ground}");
+}
+
+/// Snow that falls behind the windows is left on each of them, so more comes off them than fell from the sky: the
+/// ground under a screenful of icons still stops at its depth.
+#[test]
+fn the_ground_under_windows_snowed_on_from_behind_keeps_to_its_depth() {
+    let mut simulation = SnowSimulation::new(400.0, 800.0, 1.0);
+    simulation.falls_behind = true;
+    let windows: Vec<WindowSurface> = (0..5).map(|row| surface(row + 1, 170.0, 700.0 - row as f32 * 120.0, 60.0)).collect();
+    simulation.update_windows(&windows, DT, &HashSet::new(), &HashSet::new(), false);
+    run(&mut simulation, 900.0, AWAY);
+    assert_finite(&simulation);
+    let mut buffer = vec![0.0; simulation.column_count()];
+    let layers = simulation.write_layers(&mut buffer);
+    let ground = layers.iter().find(|pile| pile.origin.y.abs() < 1.0).expect("the ground has snow");
+    let deepest = buffer[ground.offset..ground.offset + ground.count].iter().copied().fold(0.0, f32::max);
+    assert!(deepest < 60.0, "the ground should stop near its depth of 40, but is {deepest} deep");
+}

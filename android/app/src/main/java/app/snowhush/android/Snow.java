@@ -1,53 +1,55 @@
 package app.snowhush.android;
 
+import android.app.WallpaperInfo;
+import android.app.WallpaperManager;
 import android.content.Context;
-import android.content.Intent;
-import android.provider.Settings;
-import android.util.Log;
 
 import java.util.ArrayList;
 
 /**
- * Where the snow over every app stands: whether it is wanted, what may put its window up, and who has. An
- * accessibility service, with Deep Interaction, comes before the plain overlay, which needs a foreground service to
- * stay up. Everything here is the main thread's.
+ * What the app's parts tell one another, all on the main thread: where the home screen's widgets and icons are, from
+ * Deep Interaction to the live wallpaper, whose snow lies on them, and that either of the two came or went, to the
+ * app's screen.
  */
 final class Snow {
-    private static final String TAG = "Snowhush";
-    private static OverlayWindow overlay;
-    private static final ArrayList<Runnable> watchers = new ArrayList<>();
+    /** Something that wants to hear when the home screen's layout, or what is running, changes. */
+    interface Watcher {
+        void onChanged();
+    }
+
+    private static final ArrayList<Watcher> watchers = new ArrayList<>();
+    private static final ArrayList<SnowEngine> wallpapers = new ArrayList<>();
+    private static float[] items = new float[0];
+    private static int itemCount;
+    private static boolean sliding;
+    private static int wallpapersInSight;
 
     private Snow() {}
 
-    /** The snow over every app while its window is up, or null. */
-    static SnowEngine overlay() {
-        return overlay == null ? null : overlay.engine();
-    }
-
-    static void setOverlay(OverlayWindow window) {
-        overlay = window;
-        changed();
-    }
-
-    /** The window was taken down, unless another has taken its place since. */
-    static void clearOverlay(OverlayWindow window) {
-        if (overlay == window) {
-            overlay = null;
-            changed();
-        }
-    }
-
-    /** Runs {@code watcher} whenever the snow over every app starts, stops or changes hands. */
-    static void watch(Runnable watcher) {
+    static void watch(Watcher watcher) {
         if (!watchers.contains(watcher)) watchers.add(watcher);
     }
 
-    static void unwatch(Runnable watcher) {
+    static void unwatch(Watcher watcher) {
         watchers.remove(watcher);
     }
 
     static void changed() {
-        for (Runnable watcher : new ArrayList<>(watchers)) watcher.run();
+        for (Watcher watcher : new ArrayList<>(watchers)) watcher.onChanged();
+    }
+
+    /** A live wallpaper's snow, for as long as it is the phone's wallpaper. */
+    static void join(SnowEngine wallpaper) {
+        if (!wallpapers.contains(wallpaper)) wallpapers.add(wallpaper);
+    }
+
+    static void leave(SnowEngine wallpaper) {
+        wallpapers.remove(wallpaper);
+    }
+
+    /** Clears what lies on the home and lock screens. */
+    static void clear() {
+        for (SnowEngine wallpaper : wallpapers) wallpaper.clear();
     }
 
     /** Whether Deep Interaction is on: the accessibility service is running. */
@@ -55,30 +57,48 @@ final class Snow {
         return DeepService.running() != null;
     }
 
-    /** Whether anything may put the snow's window up. */
-    static boolean allowed(Context context) {
-        return deep() || Settings.canDrawOverlays(context);
+    /** Whether the live wallpaper is the phone's wallpaper. */
+    static boolean wallpaper(Context context) {
+        try {
+            WallpaperManager manager = WallpaperManager.getInstance(context);
+            WallpaperInfo info = manager == null ? null : manager.getWallpaperInfo();
+            return info != null && context.getPackageName().equals(info.getPackageName());
+        } catch (RuntimeException unknown) {
+            return false;
+        }
     }
 
-    /** Makes what is on the screen match what is wanted. */
-    static void apply(Context context) {
-        Context app = context.getApplicationContext();
-        boolean wanted = Prefs.snowing(app) && Native.available();
-        DeepService deep = DeepService.running();
-        Intent service = new Intent(app, OverlayService.class);
-        if (deep != null) {
-            app.stopService(service);
-            deep.setSnowing(wanted);
-        } else if (wanted && Settings.canDrawOverlays(app)) {
-            try {
-                app.startForegroundService(service);
-            } catch (RuntimeException refused) {
-                // From the background Android may say no: the snow comes back when the app is next opened.
-                Log.w(TAG, "the snow couldn't be started from here", refused);
-            }
-        } else {
-            app.stopService(service);
-        }
+    /**
+     * The widgets and icons on the home screen, {@link Native#WINDOW_NUMBERS} numbers each, in the screen's pixels;
+     * {@code sliding} while its pages slide past, when nothing is where it was read.
+     */
+    static void setItems(float[] numbers, int count, boolean nowSliding) {
+        items = numbers;
+        itemCount = count;
+        sliding = nowSliding;
         changed();
+    }
+
+    static float[] items() {
+        return items;
+    }
+
+    static int itemCount() {
+        return itemCount;
+    }
+
+    static boolean sliding() {
+        return sliding;
+    }
+
+    /** A live wallpaper came into sight or went out of it: the home screen is only read while one shows. */
+    static void wallpaperInSight(boolean inSight) {
+        wallpapersInSight = Math.max(0, wallpapersInSight + (inSight ? 1 : -1));
+        DeepService deep = DeepService.running();
+        if (inSight && deep != null) deep.look();
+    }
+
+    static boolean anyWallpaperInSight() {
+        return wallpapersInSight > 0;
     }
 }

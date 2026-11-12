@@ -1,6 +1,5 @@
 package app.snowhush.android;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.WallpaperManager;
@@ -44,18 +43,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
- * The app's one screen: what the desktop apps keep in their menu, laid out as cards. It snows here too. The cards
- * are the snow's windows: it settles on their tops, slides off as they scroll, and the finger sweeps it as a cursor
- * does. While the snow falls over every app, that snow is the one this screen talks to; otherwise the screen has
- * snow of its own.
+ * The app's one screen: what the desktop apps keep in their menu, laid out as cards. It snows here too, as a taste
+ * of the wallpaper. The cards are the snow's windows, as the home screen's widgets and icons are the wallpaper's: it
+ * settles on their tops, slides off as they scroll, and the finger sweeps it as a cursor does.
  */
-public final class MainActivity extends Activity implements SurfaceHolder.Callback {
+public final class MainActivity extends Activity implements SurfaceHolder.Callback, Snow.Watcher {
     private static final String TAG = "Snowhush";
     private static final int PICK_PICTURE = 1;
-    private static final int ASK_NOTIFICATIONS = 2;
-    /** The cards' ids as windows, clear of the ones Android gives its own. */
+    /** The cards' ids as windows. */
     private static final int CARD_ID = 16_000_000;
-    private static final String EXTRA_SNOW = "snow";
     private static final String SPONSOR = "https://github.com/sponsors/mbezruchko";
     /** The longest side a wallpaper's picture is kept at, in pixels. */
     private static final int PICTURE_SIDE = 2560;
@@ -66,26 +62,22 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     private ScrollView scroll;
     private LinearLayout content;
     private SurfaceView snowView;
-    /** The snow over this screen alone, for while none falls over every app. */
+    /** The snow over this screen. */
     private SnowEngine preview;
-    /** The snow this screen's cards and touches are told to: the one over every app, or its own. */
-    private SnowEngine told;
     private final ArrayList<View> cards = new ArrayList<>();
     private boolean started;
-    private boolean awaitingOverlay;
-    private boolean askedNotifications;
     private int statusBar;
 
-    private Switch overlaySwitch;
-    private TextView overlayHint;
-    private TextView overlayAllow;
+    private TextView wallpaperStatus;
+    private TextView removePicture;
     private TextView intensityValue;
     private SeekBar intensity;
     private TextView opacityValue;
     private SeekBar opacity;
     private View accumulate;
     private TextView groundChip;
-    private TextView windowsChip;
+    private TextView widgetsChip;
+    private TextView iconsChip;
     private final TextView[] modeChips = new TextView[4];
     private Switch mixedSwitch;
     private Switch halloweenSwitch;
@@ -95,13 +87,11 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     private TextView meltTitle;
     private Switch meltSwitch;
     private TextView deepStatus;
+    private View liftRow;
+    private SeekBar lift;
     private Switch motionSwitch;
-    private Switch fullScreenSwitch;
     private Switch performanceSwitch;
-    private Switch bootSwitch;
-    private TextView removePicture;
 
-    private final Runnable watcher = this::overlayChanged;
     private final Runnable settled = () -> reportCards(false);
     private final SharedPreferences.OnSharedPreferenceChangeListener listener = (changed, key) -> refresh();
 
@@ -114,35 +104,6 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         build();
         setContentView(root);
         if (Native.available()) preview = new SnowEngine(this, SnowEngine.PREVIEW);
-        if (state != null) {
-            awaitingOverlay = state.getBoolean("awaitingOverlay");
-        } else {
-            asked(getIntent());
-        }
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        asked(intent);
-    }
-
-    /**
-     * The snow over every app can be asked for along with the app, as a shortcut or a script would:
-     * {@code am start -n app.snowhush.android/.MainActivity --ez snow true}. It still needs what it needs allowed.
-     */
-    private void asked(Intent intent) {
-        if (intent == null || !intent.hasExtra(EXTRA_SNOW)) return;
-        boolean snowing = intent.getBooleanExtra(EXTRA_SNOW, false);
-        if (snowing && !Snow.allowed(this)) return;
-        Prefs.setSnowing(this, snowing);
-        Snow.apply(this);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle state) {
-        super.onSaveInstanceState(state);
-        state.putBoolean("awaitingOverlay", awaitingOverlay);
     }
 
     /** The screen reaches behind the bars, as the snow does. */
@@ -189,10 +150,9 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
             missing.setPadding(0, ui.dp(12), 0, ui.dp(12));
             card.addView(missing, ui.fill());
         }
-        buildOverlay();
+        buildWallpaper();
         buildSnow();
         buildBehavior();
-        buildDisplay();
         buildGeneral();
 
         snowView = new SurfaceView(this);
@@ -279,19 +239,24 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         return status;
     }
 
-    private void buildOverlay() {
+    private void buildWallpaper() {
         LinearLayout card = card();
-        overlaySwitch = switchRow(card, ui.title(getString(R.string.overlay)), R.string.overlay_summary);
-        onToggle(overlaySwitch, () -> setSnowing(!Prefs.snowing(this)));
-        overlayHint = ui.summary(getString(R.string.overlay_allow_hint));
-        overlayHint.setTextColor(Ui.FAINT);
-        card.addView(overlayHint, ui.spaced(2));
-        overlayAllow = ui.button(getString(R.string.allow), true);
-        overlayAllow.setOnClickListener(view -> askOverlay());
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = ui.dp(12);
-        params.bottomMargin = ui.dp(12);
-        card.addView(overlayAllow, params);
+        wallpaperStatus = linkRow(card, R.string.wallpaper, R.string.wallpaper_summary, this::setWallpaper);
+        LinearLayout pictures = ui.row();
+        TextView set = ui.button(getString(R.string.wallpaper_set), true);
+        set.setOnClickListener(view -> setWallpaper());
+        pictures.addView(set, ui.weighted());
+        TextView choose = ui.button(getString(R.string.wallpaper_picture), false);
+        choose.setOnClickListener(view -> choosePicture());
+        LinearLayout.LayoutParams second = ui.weighted();
+        second.setMarginStart(ui.dp(10));
+        pictures.addView(choose, second);
+        card.addView(pictures, ui.spaced(4));
+        removePicture = ui.button(getString(R.string.wallpaper_remove), false);
+        removePicture.setOnClickListener(view -> removePicture());
+        card.addView(removePicture, ui.spaced(10));
+        View foot = new View(this);
+        card.addView(foot, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(12)));
     }
 
     private void buildSnow() {
@@ -332,12 +297,17 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         LinearLayout surfaces = ui.row();
         groundChip = ui.chip(getString(R.string.surface_ground));
         groundChip.setOnClickListener(view -> flip(Prefs.GROUND, true));
-        windowsChip = ui.chip(getString(R.string.surface_windows));
-        windowsChip.setOnClickListener(view -> flip(Prefs.WINDOWS, true));
+        // On widgets and on apps the snow needs telling where they are: that is Deep Interaction.
+        widgetsChip = ui.chip(getString(R.string.surface_widgets));
+        widgetsChip.setOnClickListener(view -> flipDeep(Prefs.WIDGETS));
+        iconsChip = ui.chip(getString(R.string.surface_apps));
+        iconsChip.setOnClickListener(view -> flipDeep(Prefs.ICONS));
         surfaces.addView(groundChip, ui.weighted());
-        LinearLayout.LayoutParams second = ui.weighted();
-        second.setMarginStart(ui.dp(10));
-        surfaces.addView(windowsChip, second);
+        for (TextView chip : new TextView[] {widgetsChip, iconsChip}) {
+            LinearLayout.LayoutParams next = ui.weighted();
+            next.setMarginStart(ui.dp(10));
+            surfaces.addView(chip, next);
+        }
         settle.addView(surfaces, ui.spaced(10));
         accumulate = settle;
         card.addView(settle, ui.fill());
@@ -368,7 +338,8 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
 
         clearButton = ui.button(getString(R.string.clear_snow), false);
         clearButton.setOnClickListener(view -> {
-            if (told != null) told.clear();
+            if (preview != null) preview.clear();
+            Snow.clear();
         });
         LinearLayout.LayoutParams params = ui.spaced(12);
         params.bottomMargin = ui.dp(12);
@@ -384,47 +355,50 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         onToggle(meltSwitch, () -> flip(Prefs.MELT, true));
         card.addView(ui.rule());
         deepStatus = linkRow(card, R.string.deep, R.string.deep_summary, this::openDeep);
+
+        // Launchers lay their icons out each their own way: a nudge puts the snow right on top of them.
+        LinearLayout nudge = ui.column();
+        nudge.addView(ui.title(getString(R.string.icon_lift)), ui.fill());
+        nudge.addView(ui.summary(getString(R.string.icon_lift_summary)), ui.spaced(2));
+        lift = ui.slider(-Prefs.ICON_LIFT_REACH, Prefs.ICON_LIFT_REACH);
+        lift.setContentDescription(getString(R.string.icon_lift));
+        nudge.addView(lift, ui.fill());
+        lift.setOnSeekBarChangeListener(new Slid() {
+            @Override
+            public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                if (fromUser) prefs.edit().putInt(Prefs.ICON_LIFT, progress).apply();
+            }
+        });
+        nudge.setPadding(0, ui.dp(6), 0, ui.dp(4));
+        liftRow = nudge;
+        card.addView(nudge, ui.fill());
+
         card.addView(ui.rule());
         motionSwitch = switchRow(card, ui.title(getString(R.string.motion)), R.string.motion_summary);
         onToggle(motionSwitch, () -> flip(Prefs.MOTION, true));
-    }
-
-    private void buildDisplay() {
-        LinearLayout card = card();
-        card.addView(ui.kicker(getString(R.string.display)), ui.spaced(14));
-        fullScreenSwitch = switchRow(card, ui.title(getString(R.string.full_screen)), R.string.full_screen_summary);
-        onToggle(fullScreenSwitch, () -> flip(Prefs.OVER_FULL_SCREEN, false));
         card.addView(ui.rule());
         performanceSwitch = switchRow(card, ui.title(getString(R.string.performance)), R.string.performance_summary);
         onToggle(performanceSwitch, () -> flip(Prefs.PERFORMANCE, false));
-        card.addView(ui.rule());
-        linkRow(card, R.string.wallpaper, R.string.wallpaper_summary, this::setWallpaper);
-        LinearLayout pictures = ui.row();
-        TextView choose = ui.button(getString(R.string.wallpaper_picture), false);
-        choose.setOnClickListener(view -> choosePicture());
-        pictures.addView(choose, ui.weighted());
-        removePicture = ui.button(getString(R.string.wallpaper_remove), false);
-        removePicture.setOnClickListener(view -> removePicture());
-        LinearLayout.LayoutParams second = ui.weighted();
-        second.setMarginStart(ui.dp(10));
-        pictures.addView(removePicture, second);
-        LinearLayout.LayoutParams params = ui.spaced(4);
-        params.bottomMargin = ui.dp(12);
-        card.addView(pictures, params);
     }
 
     private void buildGeneral() {
         LinearLayout card = card();
         card.addView(ui.kicker(getString(R.string.general)), ui.spaced(14));
-        bootSwitch = switchRow(card, ui.title(getString(R.string.startup)), 0);
-        onToggle(bootSwitch, () -> flip(Prefs.BOOT, false));
-        card.addView(ui.rule());
         linkRow(card, R.string.support, 0, () -> open(new Intent(Intent.ACTION_VIEW, Uri.parse(SPONSOR))));
         card.addView(ui.rule());
         TextView about = ui.summary(getString(R.string.about, version()));
         about.setTextColor(Ui.FAINT);
         about.setPadding(0, ui.dp(14), 0, ui.dp(14));
+        // Held down, it hands over what Deep Interaction last found on the home screen, to fit a launcher it misreads.
+        about.setOnLongClickListener(view -> shareLayout());
         card.addView(about, ui.fill());
+    }
+
+    private boolean shareLayout() {
+        String found = DeepService.report();
+        if (found.isEmpty()) return false;
+        Intent send = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Snowhush " + version() + "\n" + found);
+        return open(Intent.createChooser(send, null));
     }
 
     private String version() {
@@ -439,14 +413,20 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         prefs.edit().putBoolean(key, !prefs.getBoolean(key, fallback)).apply();
     }
 
+    /** Snow on widgets or on apps, which only Deep Interaction can lay: without it, the way to turn it on. */
+    private void flipDeep(String key) {
+        if (Snow.deep()) {
+            flip(key, true);
+        } else {
+            openDeep();
+        }
+    }
+
     /** Shows what the settings say. */
     private void refresh() {
-        if (overlaySwitch == null) return;
-        boolean snowing = Prefs.snowing(this) && Snow.allowed(this);
-        boolean allowed = Snow.allowed(this);
-        overlaySwitch.setChecked(snowing);
-        ui.show(overlayHint, !allowed);
-        ui.show(overlayAllow, !allowed);
+        if (intensity == null) return;
+        wallpaperStatus.setText(Snow.wallpaper(this) ? getString(R.string.on) : "\u203A");
+        ui.show(removePicture, prefs.getInt(Prefs.PICTURE, 0) != 0);
 
         int amount = Prefs.intensity(prefs, Prefs.calm(this));
         intensity.setProgress(amount);
@@ -461,8 +441,10 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         boolean blossom = Prefs.falls(modes, Prefs.BLOSSOM);
         // Rain doesn't lie: with nothing but rain falling there is nothing to settle, melt or clear.
         boolean lies = snow || autumn || blossom;
+        boolean deep = Snow.deep();
         boolean ground = prefs.getBoolean(Prefs.GROUND, true);
-        boolean windows = prefs.getBoolean(Prefs.WINDOWS, true);
+        boolean widgets = deep && prefs.getBoolean(Prefs.WIDGETS, true);
+        boolean icons = deep && prefs.getBoolean(Prefs.ICONS, true);
         for (int mode = 0; mode < modeChips.length; mode++) ui.pick(modeChips[mode], Prefs.falls(modes, mode));
         mixedSwitch.setChecked(prefs.getBoolean(Prefs.MIXED, false));
         // Halloween's ghosts come out over snow falling alone.
@@ -471,21 +453,21 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         ui.enable(halloweenRow, haunts);
         ui.show(accumulate, lies);
         ui.pick(groundChip, ground);
-        ui.pick(windowsChip, windows);
+        ui.pick(widgetsChip, widgets);
+        ui.pick(iconsChip, icons);
 
         ui.show(clearButton, lies);
         clearButton.setText(clearLabel(snow, autumn, blossom));
         ui.show(meltRow, lies);
         meltTitle.setText(snow ? R.string.melt_snow : autumn ? R.string.melt_autumn : R.string.melt_blossom);
         meltSwitch.setChecked(prefs.getBoolean(Prefs.MELT, true));
-        ui.enable(meltRow, ground || windows);
+        ui.enable(meltRow, ground || widgets || icons);
 
-        deepStatus.setText(Snow.deep() ? getString(R.string.on) : "›");
+        deepStatus.setText(deep ? getString(R.string.on) : "\u203A");
+        ui.show(liftRow, icons);
+        lift.setProgress(Prefs.iconLift(prefs));
         motionSwitch.setChecked(prefs.getBoolean(Prefs.MOTION, true));
-        fullScreenSwitch.setChecked(prefs.getBoolean(Prefs.OVER_FULL_SCREEN, false));
         performanceSwitch.setChecked(prefs.getBoolean(Prefs.PERFORMANCE, false));
-        bootSwitch.setChecked(prefs.getBoolean(Prefs.BOOT, false));
-        ui.show(removePicture, prefs.getInt(Prefs.PICTURE, 0) != 0);
     }
 
     /** What the clear button clears, named after the kinds that lie, as the desktop menus name it. */
@@ -498,30 +480,7 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         return R.string.clear_snow;
     }
 
-    // Over every app
-
-    private void setSnowing(boolean snowing) {
-        if (snowing && !Snow.allowed(this)) {
-            askOverlay();
-            return;
-        }
-        Prefs.setSnowing(this, snowing);
-        // The plain overlay stays up behind a notification, which Android 13 and later ask leave to show.
-        if (snowing && !Snow.deep() && Build.VERSION.SDK_INT >= 33 && !askedNotifications && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            askedNotifications = true;
-            requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, ASK_NOTIFICATIONS);
-        }
-        Snow.apply(this);
-        refresh();
-    }
-
-    /** Opens Android's "Display over other apps" for the app; the snow starts once it is allowed. */
-    private void askOverlay() {
-        awaitingOverlay = true;
-        if (!open(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())))) {
-            open(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION));
-        }
-    }
+    // Deep Interaction and the live wallpaper
 
     private void openDeep() {
         if (Snow.deep()) {
@@ -545,13 +504,10 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         }
     }
 
-    private void overlayChanged() {
-        if (!started) return;
-        bind();
-        refresh();
+    @Override
+    public void onChanged() {
+        if (started) refresh();
     }
-
-    // The live wallpaper
 
     private void setWallpaper() {
         Intent direct = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER)
@@ -657,32 +613,30 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     protected void onStart() {
         super.onStart();
         started = true;
-        Snow.watch(watcher);
+        Snow.watch(this);
         prefs.registerOnSharedPreferenceChangeListener(listener);
-        // Left on, with what it needs still allowed, the snow comes back with the app.
-        if (Prefs.snowing(this) && Snow.allowed(this) && Snow.overlay() == null) Snow.apply(this);
-        bind();
+        if (preview != null) preview.setShown(true);
         refresh();
+        reportCards(false);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (awaitingOverlay && Snow.allowed(this)) {
-            awaitingOverlay = false;
-            setSnowing(true);
-        }
+        // Back from Android's settings or its wallpaper picker, either may have changed.
         refresh();
     }
 
     @Override
     protected void onStop() {
         started = false;
-        Snow.unwatch(watcher);
+        Snow.unwatch(this);
         prefs.unregisterOnSharedPreferenceChangeListener(listener);
         scroll.removeCallbacks(settled);
-        tell(null);
-        if (preview != null) preview.setShown(false);
+        if (preview != null) {
+            preview.pointer(0, 0, false);
+            preview.setShown(false);
+        }
         super.onStop();
     }
 
@@ -693,33 +647,12 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         super.onDestroy();
     }
 
-    /** Picks the snow this screen talks to: the one over every app while it is up, otherwise its own. */
-    private void bind() {
-        SnowEngine overlay = Snow.overlay();
-        boolean own = overlay == null;
-        snowView.setVisibility(own && preview != null ? View.VISIBLE : View.GONE);
-        if (preview != null) preview.setShown(own && started);
-        tell(own ? preview : overlay);
-        reportCards(false);
-    }
-
-    /** The snow told until now forgets this screen's cards and its finger: their snow falls, as off a closed window. */
-    private void tell(SnowEngine next) {
-        if (told == next) return;
-        if (told != null) {
-            told.setAppWindows(new float[0], 0, false);
-            told.pointer(0, 0, false);
-        }
-        told = next;
-    }
-
     /** Tells the snow where the cards are, as the windows it can lie on; {@code moving} while they scroll. */
     private void reportCards(boolean moving) {
-        if (told == null || !started || root.getHeight() == 0) return;
-        boolean screen = told != preview;
+        if (preview == null || !started || root.getHeight() == 0) return;
         int[] at = new int[2];
         int[] origin = new int[2];
-        if (!screen) snowView.getLocationInWindow(origin);
+        snowView.getLocationInWindow(origin);
         float[] numbers = new float[cards.size() * Native.WINDOW_NUMBERS];
         int count = 0;
         int top = statusBar + ui.dp(10);
@@ -727,15 +660,9 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         for (int i = 0; i < cards.size(); i++) {
             View card = cards.get(i);
             if (card.getWidth() == 0 || card.getVisibility() != View.VISIBLE) continue;
-            if (screen) {
-                card.getLocationOnScreen(at);
-            } else {
-                card.getLocationInWindow(at);
-            }
-            int[] window = new int[2];
-            card.getLocationInWindow(window);
+            card.getLocationInWindow(at);
             // A card whose top edge is scrolled out of sight keeps its snow for when it is back.
-            boolean away = window[1] < top || window[1] > bottom;
+            boolean away = at[1] < top || at[1] > bottom;
             int base = count * Native.WINDOW_NUMBERS;
             numbers[base] = CARD_ID + i;
             numbers[base + 1] = at[0] - origin[0];
@@ -746,20 +673,16 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
             numbers[base + 6] = away ? Native.WINDOW_AWAY : Native.WINDOW_SETTLES;
             count++;
         }
-        told.setAppWindows(numbers, count, moving);
+        preview.setAppWindows(numbers, count, moving);
     }
 
     /** The finger sweeps the snow wherever it goes, on its way to whatever it touches. */
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        if (told != null && started) {
+        if (preview != null && started) {
             int action = event.getActionMasked();
             boolean down = action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_POINTER_DOWN;
-            if (told == preview) {
-                told.pointer(event.getX(), event.getY(), down);
-            } else {
-                told.pointer(event.getRawX(), event.getRawY(), down);
-            }
+            preview.pointer(event.getX(), event.getY(), down);
         }
         return super.dispatchTouchEvent(event);
     }

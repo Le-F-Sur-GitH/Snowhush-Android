@@ -65,7 +65,7 @@ jobs:
     name: On an emulator
     needs: apk
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
@@ -83,7 +83,10 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
-          profile: pixel_6
+          # A small screen: the emulator draws without a graphics card, and a big one is more than it can keep up with.
+          profile: Nexus 4
+          cores: 4
+          ram-size: 4096M
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: sh android/tools/smoke.sh apk smoke
@@ -138,7 +141,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          mkdir -p results
+          mkdir -p results/logs
           {
             echo "commit: $GITHUB_SHA"
             echo "run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
@@ -146,9 +149,13 @@ jobs:
             echo "apk: ${{ needs.apk.result }}"
             echo "emulator: ${{ needs.emulator.result }}"
           } > results/summary.txt
-          gh run view "$GITHUB_RUN_ID" --log-failed > results/failed.log 2>&1 || true
-          # The whole log of a failed build is long; its errors are near the end.
-          tail -c 400000 results/failed.log > results/failed-tail.log && rm results/failed.log
+          # The end of each finished job's log: a failed build's errors are there, and what the emulator said.
+          gh api "repos/$GH_REPO/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.status == "completed") | "\(.id) \(.name)"' > jobs.txt || true
+          while read -r id name; do
+            file="results/logs/$(echo "$name" | tr -c 'A-Za-z0-9\n' '-').log"
+            gh api "repos/$GH_REPO/actions/jobs/$id/logs" > full.log 2> /dev/null || continue
+            tail -c 250000 full.log > "$file"
+          done < jobs.txt
           cat results/summary.txt
       - name: Push
         env:

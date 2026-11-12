@@ -7,22 +7,24 @@ import android.provider.Settings;
 import java.util.Calendar;
 
 /**
- * The settings, under the names the Linux app's settings file gives them, and what follows from them: which kinds
- * fall, and whether it is Halloween. The same rules as {@code linux/src/prefs.rs} and the core's {@code halloween.rs}.
+ * The settings, under the names the Linux app's settings file gives the ones it has too, and what follows from them:
+ * which kinds fall, and whether it is Halloween. The same rules as {@code linux/src/prefs.rs} and the core's
+ * {@code halloween.rs}.
  */
 final class Prefs {
     static final String FILE = "settings";
 
-    /** Whether the snow falls over every app. */
-    static final String ENABLED = "enabled";
-    /** How many times the phone had started when the snow was last turned on. */
-    static final String ENABLED_BOOT = "enabledBoot";
     /** How much falls, in percent. */
     static final String INTENSITY = "intensity";
     /** How opaque what falls is drawn, in percent. */
     static final String OPACITY = "fallingOpacity";
     static final String GROUND = "settleGround";
-    static final String WINDOWS = "snowOnWindows";
+    /** Snow settles on the home screen's widgets, and on its apps' icons: both need Deep Interaction. */
+    static final String WIDGETS = "snowOnWidgets";
+    static final String ICONS = "snowOnIcons";
+    /** How much higher than worked out the snow lies on the icons, in density-independent pixels, to fit a launcher. */
+    static final String ICON_LIFT = "iconLift";
+    static final int ICON_LIFT_REACH = 24;
     static final String MELT = "meltSnow";
     /** What falls: the kind picked last. */
     static final String MODE = "mode";
@@ -33,11 +35,9 @@ final class Prefs {
     static final String HALLOWEEN_ON = "halloweenOn";
     /** The year whose Halloween was turned off, or zero. */
     static final String HALLOWEEN_SKIPPED = "halloweenSkipped";
-    static final String OVER_FULL_SCREEN = "showOverFullScreen";
     static final String PERFORMANCE = "performance";
     /** Tilting the phone blows the snowfall, shaking it blows the drift away. */
     static final String MOTION = "motion";
-    static final String BOOT = "openAtStartup";
     /** Goes up each time the live wallpaper's picture is chosen or removed; zero while there is none. */
     static final String PICTURE = "wallpaperPicture";
     /** The live wallpaper's picture, in the app's files. */
@@ -54,24 +54,6 @@ final class Prefs {
         return context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
-    /** How many times the phone has started. */
-    private static int boot(Context context) {
-        return Settings.Global.getInt(context.getContentResolver(), Settings.Global.BOOT_COUNT, 0);
-    }
-
-    /**
-     * Whether the snow falls over every app: turned on, and, unless it opens at startup, turned on since the phone
-     * last started.
-     */
-    static boolean snowing(Context context) {
-        SharedPreferences prefs = of(context);
-        return prefs.getBoolean(ENABLED, false) && (prefs.getBoolean(BOOT, false) || prefs.getInt(ENABLED_BOOT, -1) == boot(context));
-    }
-
-    static void setSnowing(Context context, boolean snowing) {
-        of(context).edit().putBoolean(ENABLED, snowing).putInt(ENABLED_BOOT, boot(context)).apply();
-    }
-
     /** Whether the person asked Android for less motion, by turning animations off. */
     static boolean calm(Context context) {
         return Settings.Global.getFloat(context.getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f;
@@ -79,6 +61,10 @@ final class Prefs {
 
     static int intensity(SharedPreferences prefs, boolean calm) {
         return clamp(prefs.getInt(INTENSITY, calm ? 25 : 50), 0, 100);
+    }
+
+    static int iconLift(SharedPreferences prefs) {
+        return clamp(prefs.getInt(ICON_LIFT, 0), -ICON_LIFT_REACH, ICON_LIFT_REACH);
     }
 
     static int opacity(SharedPreferences prefs) {

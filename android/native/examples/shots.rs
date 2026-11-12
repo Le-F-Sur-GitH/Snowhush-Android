@@ -1,7 +1,7 @@
 //! Draws the snow as a phone would show it, into PNGs, without a phone: `cargo run --release --features host
 //! --example shots -- <folder>`. Each picture is a scene stepped for a while at the pace the app draws it.
 
-use snowhush::host::{Offscreen, save};
+use snowhush::host::{Cover, Offscreen, save_under};
 use snowhush::render::Backdrop;
 use snowhush::scene::{Reported, Scene};
 use snowhush_core::simulation::Mode;
@@ -26,15 +26,97 @@ struct Shot {
     melt: bool,
 }
 
-const KEYBOARD: Reported =
-    Reported { id: 1, left: 0.0, top: 1500.0, right: 1080.0, bottom: 2340.0, radius: 0.0, settles: true, panel: true, away: false };
-const PICTURE_IN_PICTURE: Reported =
-    Reported { id: 2, left: 480.0, top: 620.0, right: 1032.0, bottom: 932.0, radius: 48.0, settles: true, panel: false, away: false };
-const CARD: Reported =
-    Reported { id: 3, left: 48.0, top: 1100.0, right: 1032.0, bottom: 1700.0, radius: 36.0, settles: true, panel: false, away: false };
+const KEYBOARD: Reported = Reported {
+    id: 1,
+    left: 0.0,
+    top: 1500.0,
+    right: 1080.0,
+    bottom: 2340.0,
+    radius: 0.0,
+    settles: true,
+    panel: true,
+    away: false,
+    small: false,
+    exponent: 2.0,
+};
+const PICTURE_IN_PICTURE: Reported = Reported {
+    id: 2,
+    left: 480.0,
+    top: 620.0,
+    right: 1032.0,
+    bottom: 932.0,
+    radius: 48.0,
+    settles: true,
+    panel: false,
+    away: false,
+    small: false,
+    exponent: 2.0,
+};
+const CARD: Reported = Reported {
+    id: 3,
+    left: 48.0,
+    top: 1100.0,
+    right: 1032.0,
+    bottom: 1700.0,
+    radius: 36.0,
+    settles: true,
+    panel: false,
+    away: false,
+    small: false,
+    exponent: 2.0,
+};
+
+/// A home screen four icons across: five rows of them under a widget, and a dock. Each is a window to the snow and
+/// something the home screen paints over its wallpaper.
+fn home() -> (Vec<Reported>, Vec<Cover>) {
+    const COLORS: [[u8; 3]; 6] = [[66, 133, 244], [234, 67, 53], [251, 188, 5], [52, 168, 83], [171, 71, 188], [240, 240, 240]];
+    let mut windows = vec![Reported {
+        id: 100,
+        left: 48.0,
+        top: 330.0,
+        right: 1032.0,
+        bottom: 690.0,
+        radius: 78.0,
+        settles: true,
+        panel: false,
+        away: false,
+        small: false,
+        exponent: 2.3,
+    }];
+    let mut covers = vec![Cover { left: 48.0, top: 330.0, right: 1032.0, bottom: 690.0, radius: 78.0, exponent: 2.3, color: [38, 44, 58] }];
+    let mut id = 200;
+    for row in 0..5 {
+        for column in 0..4 {
+            if row == 4 && column == 1 {
+                continue;
+            }
+            let left = column as f32 * 270.0 + 45.0;
+            // The last row is the dock.
+            let top = if row == 4 { 2010.0 } else { 800.0 + row as f32 * 290.0 };
+            id += 1;
+            windows.push(Reported {
+                id,
+                left,
+                top,
+                right: left + 180.0,
+                bottom: top + 180.0,
+                radius: 54.0,
+                settles: true,
+                panel: false,
+                away: false,
+                small: true,
+                exponent: 2.6,
+            });
+            covers.push(Cover { left, top, right: left + 180.0, bottom: top + 180.0, radius: 54.0, exponent: 2.6, color: COLORS[id as usize % 6] });
+        }
+    }
+    (windows, covers)
+}
 
 fn main() -> Result<(), String> {
     let folder = std::env::args().nth(1).unwrap_or_else(|| "shots".into());
+    // Only the shots whose names start with the second argument, when there is one.
+    let only = std::env::args().nth(2);
     std::fs::create_dir_all(&folder).map_err(|error| error.to_string())?;
     let _context = Offscreen::new(WIDTH, HEIGHT)?;
     let base = Shot {
@@ -59,7 +141,18 @@ fn main() -> Result<(), String> {
         Shot { name: "halloween", halloween: true, seconds: 300.0, ..base },
         Shot { name: "wallpaper-night", backdrop: Backdrop::Night, intensity: 0.5, ..base },
     ];
+    let (home_windows, home_covers) = home();
+    let home_windows: &'static [Reported] = Box::leak(home_windows.into_boxed_slice());
+    let shots = shots.into_iter().chain([
+        Shot { name: "home", backdrop: Backdrop::Night, intensity: 0.5, windows: home_windows, melt: true, seconds: 300.0, ..base },
+        Shot { name: "home-deep", backdrop: Backdrop::Night, intensity: 0.75, windows: home_windows, seconds: 400.0, ..base },
+    ]);
     for shot in shots {
+        if let Some(only) = &only
+            && !shot.name.starts_with(only.as_str())
+        {
+            continue;
+        }
         let mut scene = Scene::new();
         scene.set_intensity(shot.intensity);
         scene.set_modes(shot.modes, false, false);
@@ -67,6 +160,8 @@ fn main() -> Result<(), String> {
         scene.set_halloween(shot.halloween);
         scene.set_hour(if shot.halloween { 22.0 } else { 15.0 });
         scene.set_backdrop(shot.backdrop);
+        // A wallpaper's snow falls behind what the home screen shows.
+        scene.set_falls_behind(shot.name.starts_with("home"));
         scene.place(WIDTH, HEIGHT, 0, 0, shot.bar, SCALE);
         scene.gl_init()?;
         scene.set_windows(shot.windows.to_vec(), false);
@@ -87,7 +182,8 @@ fn main() -> Result<(), String> {
             draws += scene.frame(now).drew as u32;
         }
         let path = format!("{folder}/{}.png", shot.name);
-        save(&scene, &path, (shot.backdrop == Backdrop::Clear).then_some(BEHIND))?;
+        let covers: &[Cover] = if shot.name.starts_with("home") { &home_covers } else { &[] };
+        save_under(&scene, &path, (shot.backdrop == Backdrop::Clear).then_some(BEHIND), covers)?;
         println!("{path}: {draws} frames drawn; {}", scene.describe());
     }
     Ok(())

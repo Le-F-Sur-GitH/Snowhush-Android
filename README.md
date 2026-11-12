@@ -19,7 +19,7 @@
 </p>
 
 > **Android.** This repository is an unofficial port of Snowhush to Android, in [`android/`](android/README.md): the same
-> snow over your apps, on the keyboard, or as a live wallpaper. Get the latest APK from
+> snow as a live wallpaper, settling on your home screen's widgets and app icons. Get the latest APK from
 > [Releases](../../releases/tag/latest). Everything else here is [Snowhush](https://github.com/mbezruchko/Snowhush) by
 > Mykhailo Bezruchko as it was at 0.13.1; the downloads above are his, for the desktops.
 
