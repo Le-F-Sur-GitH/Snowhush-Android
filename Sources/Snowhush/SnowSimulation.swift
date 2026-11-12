@@ -1,0 +1,3880 @@
+import CoreGraphics
+import Foundation
+import simd
+
+/// What falls: snow, autumn leaves, rain or cherry blossom petals.
+enum Mode: Int, CaseIterable {
+    case snow, autumn, rain, blossom
+
+    /// Falls as leaves and heaps up as they do: autumn's, or cherry blossom petals.
+    var leafy: Bool { self == .autumn || self == .blossom }
+    /// What it heaps up as.
+    var blend: Blend { self == .autumn ? .autumn : self == .blossom ? .blossom : .snow }
+}
+
+struct Sprite {
+    var position: SIMD2<Float>
+    /// Smears fast snow into a short streak, as a camera would.
+    var velocity = SIMD2<Float>(repeating: 0)
+    var size: Float
+    var alpha: Float
+    var soft: Float
+    /// How much of `tint` shows instead of snow white.
+    var tintAmount: Float = 0
+    var tintRed: Float = 1
+    var tintGreen: Float = 1
+    var tintBlue: Float = 1
+    /// Gives a lump of snow its ragged outline and tumble; zero for a round flake.
+    var lump: Float = 0
+    /// Draws a ghost instead, its billowing timed by the value; zero for snow.
+    var ghost: Float = 0
+    /// For a ghost, the drift's surface it rises out of: nothing of it shows below.
+    var ground: Float = 0
+    /// For a ghost, how far its eyes are open.
+    var eyes: Float = 0
+    /// For a ghost, how far it has taken shape out of a heap of snow.
+    var form: Float = 0
+    /// For a ghost, how far its paws are up, saying boo.
+    var paws: Float = 0
+    /// For a ghost, how far its right paw is held at `armAngle`, for a sign or a throw.
+    var hold: Float = 0
+    var armAngle: Float = 0
+    /// For a ghost, how far its paws are spread to send a wave along them.
+    var wave: Float = 0
+    /// For a ghost, how far it is into a dab.
+    var dab: Float = 0
+    /// For a ghost, how cross it is: frowning and shaking.
+    var anger: Float = 0
+    /// A leaf instead of a snowflake: its seed, which picks its shape and colour; zero for snow.
+    var leaf: Float = 0
+    /// Which way a leaf points.
+    var turn: Float = 0
+    /// How much of a leaf's face shows, and which side: one is its front face on, below zero its back.
+    var flip: Float = 1
+    /// How fast a leaf turns and tumbles, a second: it blurs over the exposure, as it moves.
+    var turnSpeed: Float = 0
+    var flipSpeed: Float = 0
+    /// Rain instead of snow: one for a raindrop or a splash in the air, two for a drop running down the glass, three for
+    /// one hanging under an edge, four for spray on the glass, five for the film a running drop leaves behind.
+    var rain: Float = 0
+    /// One for a cherry blossom petal or flower instead of a leaf.
+    var petal: Float = 0
+}
+
+/// A Halloween sign a ghost holds up, or lets fall into the snow.
+struct SignSprite {
+    var caption: Int
+    /// The foot of its stick.
+    var anchor: SIMD2<Float>
+    var angle: Float
+    /// The drift's surface: nothing of the sign shows below.
+    var ground: Float
+}
+
+/// A Halloween jack-o'-lantern sitting in the snow at the bottom of the screen.
+struct PumpkinSprite {
+    /// The middle of its bottom.
+    var anchor: SIMD2<Float>
+    var width: Float
+    /// Sets its candle's flicker apart from the others'.
+    var seed: Float
+}
+
+/// A bit of something that crumbles into snow, such as a window: it keeps its colour for a moment while it falls.
+struct ScatterPiece {
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    var color: SIMD3<Float>
+}
+
+struct PileLayer {
+    var offset: Int
+    var count: Int
+    var origin: SIMD2<Float>
+    var top: Float
+    var bottom: Float
+    var occluders: [SIMD4<Float>]
+    var isDock: Bool
+    var drift: Float
+}
+
+private struct Flake {
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    var fallSpeed: Float
+    var size: Float
+    var depth: Float
+    var alpha: Float
+    var soft: Float
+    var phase: Float
+    var swayRate: Float
+    var swayAmount: Float
+    var settles: Bool
+    /// Scales the snow it leaves where it lands.
+    var mass: Float = 1
+    var tint = SIMD3<Float>(repeating: 1)
+    var tintAmount: Float = 0
+    /// The direction of the gust that caught the flake and carries it off the screen; zero until then.
+    var blown: Float = 0
+    var leaf: Float = 0
+    var kind = Mode.snow
+    var rain: Bool { kind == .rain }
+    /// A drop come off the glass: how big the water it carries is, to run on down whatever window it lands on; zero
+    /// for rain from the sky.
+    var water: Float = 0
+}
+
+/// A droplet thrown up where a raindrop bursts on a window's edge or the bottom of the screen.
+private struct Splash {
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    let size: Float
+    let alpha: Float
+    var age: Float = 0
+    let life: Float
+}
+
+/// Rain caught on a window's top edge, running down the window's face, or a bead of it left behind on the way.
+private struct GlassDrop {
+    let layer: SnowLayer
+    /// From the left end of the window's top edge.
+    var offset: SIMD2<Float>
+    /// How far down it can run before it reaches the window's bottom edge.
+    let face: Float
+    var radius: Float
+    var speed: Float = 0
+    /// Sideways for each point down: a running drop wanders a little.
+    var slope: Float = 0
+    var age: Float = 0
+    /// How far it has run since it last left a bead, and how far it runs before it leaves the next.
+    var travelled: Float = 0
+    var spacing: Float = 0
+    /// Caught under the window's bottom edge, it clings there, taking in what runs down onto it, until it is heavy
+    /// enough to let go: how long it has hung, how full it is, from a flat cap to a pear, and when it lets go, once
+    /// it starts to.
+    var hanging = false
+    var hung: Float = 0
+    var fill: Float = 0
+    var letsGo = Float.infinity
+    /// Left behind by a running drop, or run out of water: it holds still and dries up.
+    var bead = false
+    /// Where the film it leaves behind as it runs was last laid down to.
+    var mark = SIMD2<Float>(repeating: 0)
+    /// Caught on a speck on the glass: how much longer it holds there, and the patch of glass it last ran onto.
+    var held: Float = 0
+    var patch = SIMD2<Int32>(repeating: .min)
+    /// Picks its outline: where its edge clings to the glass, it is never quite round.
+    var seed: Float = 0
+    /// How hard it squashed and stretched when it last ran into more water or broke free, and when.
+    var jiggle: Float = 0
+    var jolted: Float = 0
+}
+
+private struct Grain {
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    var area: Float
+    var size: Float
+    /// A lump holds together in flight and bursts into powder where it lands; zero for loose snow.
+    var lump: Float = 0
+    /// Powder carried off by a gust: it rides the wind off the screen instead of settling.
+    var blown = false
+    /// Seconds it still clings to the screen where a snowball hit it, sagging, before it falls.
+    var stuck: Float = 0
+    /// For a leaf, picks its shape and colour.
+    var seed = Float.random(in: 0.001...1)
+    /// Only the bulk under fallen leaves, with no leaf of its own: unseen, it falls and adds to the heap it lands on.
+    var bulk = false
+    /// Snow, or a leaf or petal: autumn's or cherry blossom's.
+    var kind = Mode.snow
+}
+
+/// A leaf come to rest on a heap or a window: it lies flat on top, riding along with what it lies on, until others
+/// cover it. Its bulk is in the heap under it, so leaves pile up on one another.
+private struct LyingLeaf {
+    let layer: SnowLayer
+    /// From the layer's base along it, and up from the base to where the leaf rests and to the top of its own bulk.
+    var x: Float
+    var rest: Float
+    var top: Float
+    let size: Float
+    let seed: Float
+    let petal: Bool
+    let tilt: Float
+    /// Half a turn when it came down pointing the other way.
+    let around: Float
+    /// How it was turned and tumbled in the air, and how far along the surface it slides, while it settles.
+    let fromTurn: Float
+    let fromFlip: Float
+    let slide: Float
+    let settling: Float
+    var settled: Float = 0
+    let life: Float
+    var age: Float = 0
+    var fade: Float = 1
+}
+
+/// Powder thrown up by a lump bursting: it billows, slows in the air and fades without settling.
+private struct Mote {
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    var size: Float
+    var alpha: Float
+    var age: Float = 0
+    var life: Float
+}
+
+/// Snow, leaves and petals gathered from here and there, to come off as one.
+private struct Gathered {
+    var area: Float = 0
+    var leaves: Float = 0
+    var petals: Float = 0
+
+    mutating func add(_ amount: Float, _ blend: Blend) {
+        area += amount
+        leaves += amount * blend.leaves
+        petals += amount * blend.petals
+    }
+
+    var blend: Blend { area > 0 ? Blend(leaves: min(leaves / area, 1), petals: min(petals / area, 1)) : .snow }
+}
+
+/// A ghost made of a drift's snow on Halloween: the drift heaps up and the heap takes its shape. It says boo or
+/// holds up a sign, and after a while settles back into a heap of snow, sometimes after first slumping back and
+/// creeping along under the snow to come up once more somewhere else.
+private struct Ghost {
+    enum Stage {
+        case rising
+        case standing(until: Float)
+        /// Slumping back into the drift, to creep under the snow toward `x`.
+        case sinking(toward: Float)
+        /// Creeping along under the snow toward `x`, a bulge running through the drift.
+        case creeping(to: Float)
+        /// Going for good: it slumps into a heap that its snow is left as.
+        case settling
+    }
+
+    let layer: SnowLayer
+    /// Where it is along the layer, from the layer's left end.
+    var x: Float
+    let size: Float
+    let seed: Float
+    /// Whether it comes up once more somewhere else before it falls apart.
+    var returns: Bool
+    var stage = Stage.rising
+    var surfaced = 0
+    var age: Float = 0
+    /// How far it has taken shape: the heap rises up to 0.5, and turns into the ghost from 0.4 to 1.
+    var form: Float = 0
+    /// Snow it has drawn out of the drift around it, which goes back when it slumps or crumbles.
+    var taken: Float = 0
+    var booAt: Float = -10
+    /// When it says boo unprompted, if the cursor hasn't come near enough first.
+    var nextBoo: Float = .infinity
+    var sign: Int?
+    var signAt: Float = -10
+    var waveAt: Float = -10
+    var dabAt: Float = -10
+    /// After a third ghost is scared off, it comes out of the drift altogether and throws a snowball at the screen.
+    var avenges = false
+    var standAt: Float = 0
+    var threw = false
+
+    var column: Int { layer.clampedIndex(at: layer.base.x + x) }
+
+    /// How far its paws are up: thrown up quickly, held a moment, lowered.
+    var paws: Float {
+        let since = age - booAt
+        guard since >= 0, since < 1.3 else { return 0 }
+        return since < 0.9 ? smoothstep(0, 0.2, since) : 1 - smoothstep(0.9, 1.3, since)
+    }
+
+    /// How far its sign is up out of the snow: pulled up, held a few seconds, put back.
+    var signUp: Float {
+        let since = age - signAt
+        guard sign != nil, since >= 0, since < 4.2 else { return 0 }
+        return since < 3.8 ? smoothstep(0, 0.45, since) : 1 - smoothstep(3.8, 4.2, since)
+    }
+
+    /// How far its paw is up holding the sign; it reaches up a moment before the sign shows and lets go after.
+    var holding: Float {
+        let since = age - signAt
+        guard sign != nil, since >= 0, since < 4.4 else { return 0 }
+        return since < 3.9 ? smoothstep(0, 0.25, since) : 1 - smoothstep(3.9, 4.4, since)
+    }
+
+    /// How far its paws are spread for the wave, which runs along them for a few seconds.
+    var waving: Float {
+        let since = age - waveAt
+        guard since >= 0, since < 2.8 else { return 0 }
+        return since < 2.4 ? smoothstep(0, 0.3, since) : 1 - smoothstep(2.4, 2.8, since)
+    }
+
+    /// How far into a dab it is: snapped into, held a moment, let go.
+    var dabbing: Float {
+        let since = age - dabAt
+        guard since >= 0, since < 1.6 else { return 0 }
+        return since < 1.25 ? smoothstep(0, 0.15, since) : 1 - smoothstep(1.25, 1.6, since)
+    }
+
+    /// Its right paw winding far back over its head and swinging through, while it avenges itself.
+    var fling: (angle: Float, weight: Float)? {
+        guard avenges else { return nil }
+        let since = age - standAt
+        guard since > 0.4, since < 2.2 else { return nil }
+        if since < 1 { return (-1.35 + 3.1 * smoothstep(0.4, 1, since), smoothstep(0.4, 0.55, since)) }
+        if since < 1.12 { return (1.75 - 2.45 * smoothstep(1, 1.12, since), 1) }
+        return (-0.7, 1 - smoothstep(1.7, 2.2, since))
+    }
+
+    var settling: Bool {
+        if case .settling = stage { return true }
+        return false
+    }
+
+    /// How high it stands above the drift, as a share of its size: the heap's height, then the ghost's half.
+    var height: Float {
+        let heap = 0.3 * smoothstep(0, 0.5, form)
+        return heap + (0.425 - heap) * smoothstep(0.4, 1, form)
+    }
+    /// Its reach either side, in columns: its widest, which stays in the snow.
+    var reach: Int { Int((size * 0.4 / layer.columnWidth).rounded(.up)) }
+}
+
+private struct RandomSource {
+    private var state = UInt64.random(in: 1...UInt64.max)
+
+    mutating func next() -> Float {
+        state ^= state << 13
+        state ^= state >> 7
+        state ^= state << 17
+        return Float(state >> 40) / Float(1 << 24)
+    }
+
+    mutating func range(_ lower: Float, _ upper: Float) -> Float {
+        lower + (upper - lower) * next()
+    }
+}
+
+final class SnowSimulation {
+    let columnWidth: Float = 2
+    private(set) var width: Float
+    private(set) var height: Float
+    /// How briskly the scene changes, which sets how often it is drawn.
+    enum Pace {
+        /// Only snowfall and slow drifts: a low frame rate is indistinguishable.
+        case calm
+        /// Loose snow in flight.
+        case lively
+        /// The cursor or a window is pushing snow around: drawn as often as the display allows.
+        case interactive
+    }
+
+    private(set) var pace = Pace.calm
+
+    /// How much falls, from 0 to 1.
+    var intensity: Float {
+        didSet {
+            updateTarget()
+            thinAbove()
+            stirred()
+        }
+    }
+
+    /// Flakes still above the screen, waiting to come in, outnumber a lighter snowfall's target as the ones on screen
+    /// do: thinned in the same proportion, they come in at the new rate at once.
+    private func thinAbove() {
+        let counts = kindCounts()
+        let keep = Mode.allCases.map { counts[$0.rawValue] > targets[$0.rawValue] ? Float(targets[$0.rawValue]) / Float(counts[$0.rawValue]) : 1 }
+        guard keep.contains(where: { $0 < 1 }) else { return }
+        var i = 0
+        while i < flakes.count {
+            if flakes[i].position.y > height && random.next() >= keep[flakes[i].kind.rawValue] {
+                removeFlake(i)
+            } else {
+                i += 1
+            }
+        }
+    }
+    /// The flakes a megapoint of screen holds at an intensity from 0 to 1: a quarter of the way up is a light fall,
+    /// halfway a steady one, three quarters a heavy one, and the top nearly twice that.
+    private static func flakesPerMegapoint(_ intensity: Float) -> Float {
+        let stops: [Float] = [0, 150, 380, 800, 1500]
+        let along = min(max(intensity, 0), 1) * 4
+        let i = min(Int(along), 3)
+        return stops[i] + (stops[i + 1] - stops[i]) * (along - Float(i))
+    }
+    /// Called when the screen may get snow again after it has come to rest.
+    var stirred: () -> Void = {}
+    /// Scales the snowfall; flakes come and go through the usual cycle, so a change shows gradually.
+    var density: Float = 1 {
+        didSet { updateTarget() }
+    }
+    var thaws = false
+    var accumulates = true
+    /// Whether snow and leaves settle along the bottom of the screen; rain splashes there either way.
+    var groundSettles = true
+    /// How opaque snow, leaves and rain are while they fall, from the sky or off a window; once settled they show in full.
+    var fallingOpacity: Float = 1
+    /// Screen edges with no display past them: a window slid past one leaves its snow heaped against the edge.
+    var walls: (left: Bool, right: Bool) = (false, false)
+    /// Side edges past which lies a display with snow of its own that windows span onto: snow on a window reaching
+    /// over there is seen there.
+    var neighbours: (left: Bool, right: Bool) = (false, false)
+    /// Side edges past which another display goes on: snow thrown across goes on falling there, through `takeStrays`.
+    var openSides: (left: Bool, right: Bool) = (false, false)
+    /// Snow on windows that reach over here from a neighbouring display, which keeps it.
+    private var borrowed: [BorrowedSnow] = []
+    private var borrowedChanged = false
+    private var caught: [CaughtSnow] = []
+    private var strays: [StraySnow] = []
+    /// Keeps the snowfall from starting until a scattered window's snow first reaches the bottom of the screen.
+    var snowfallHeld = false {
+        didSet { updateTarget() }
+    }
+    /// Called when the held snowfall starts by itself, so the other displays can start theirs.
+    var snowfallReleased: () -> Void = {}
+
+    private let groundDepth: Float = 40
+    private let ledgeDepth: Float = 14
+    private let thawDepth: Float = 8
+    private let ledgeThawDepth: Float = 4
+    private let thawRate: Float = 0.02
+    private let thawTime: Float = 30
+    private let thawBalance: Float = 184
+    private let thawExponent: Float = 0.74
+    private let deposition: Float = 1.1
+    private let repose: Float = 0.8
+    private let rounding: Float = 0.15
+    private let cursorRadius: Float = 10
+    private let cursorOffset = SIMD2<Float>(4, -8)
+    private let gravity: Float = 2500
+    private let grainDrag: Float = 0.8
+    private let maxGrains = 12000
+    private let phaseWrap: Float = 20 * .pi
+    private let ledgeInset: Float = 0
+    private let grip: Float = 3
+    private let slip: Float = 2
+    private let breakLift: Float = 10
+    /// Snow sticks to a window: it only lets go when pulled away harder than this, on top of its weight.
+    private let adhesion: Float = 3500
+    private let shaking: Float = 4
+    /// Leaves hold together far less than snow: a heap of them flies apart as soon as it lifts off its window at
+    /// all, and a shake that would only stir snow throws them off.
+    private let leafBreakLift: Float = 2
+    private let leafShaking: Float = 0.8
+    /// Leaves hardly stick to a window and slide over it easily: shaken, the window moves out from under them.
+    private let leafAdhesion: Float = 500
+    private let leafGrip: Float = 0.8
+    private let leafSlip: Float = 0.5
+
+    private let jumpSpeed: Float = 6000
+    private let trackTime: Float = 0.06
+    private let maxMotes = 1500
+    private let gustSweep: Float = 0.6
+    private let gustLength: Float = 2.2
+    private let gustWind: Float = 1000
+    /// The snowfall is caught this long after the drifts, so it trails behind their powder.
+    private let gustLag: Float = 0.3
+    /// Snow a wall scrapes up packs down to this share of its fresh bulk.
+    private let packing: Float = 0.6
+    /// A sliding Space drags the air along: the wind it stirs up is this share of its speed, up to `slideWindMax`,
+    /// and dies down over `slideCalm` seconds once the Space stops.
+    private let slideDrag: Float = 0.025
+    private let slideWindMax: Float = 160
+    private let slideCalm: Float = 0.35
+    /// Leaves fall this much sparser than snow, each one being so much bigger.
+    private let leafShare: Float = 0.07
+    /// The share of a heap one fallen leaf makes up.
+    private let leafArea: Float = 24
+    /// How much of a heap's visible bulk each leaf coming off it stands for: a heap is packed with overlapping
+    /// leaves, so as many fly off as it looked to hold.
+    private let leafShown: Float = 30
+    /// Leaves lie loosely, with air between them: the bulk a landing leaf adds to its heap, per point of its length.
+    private let leafBulk: Float = 5.5
+    private let maxLying = 1500
+    /// The top of a heap is the lying leaves themselves: the pile shader draws the mass under them only this far down.
+    private let leafCover: Float = 2.5
+    private var lying: [LyingLeaf] = []
+    private var shownMark = 0
+    /// Rain crosses the screen in a second or so, where a flake takes half a minute: far fewer are in sight at once.
+    private let rainShare: Float = 0.12
+    private let rainGravity: Float = 900
+    private let maxSplashes = 1500
+    private var splashes: [Splash] = []
+    /// The share of raindrops hitting a window's top edge that run on down its face.
+    private let runShare: Float = 0.07
+    private let maxGlassDrops = 600
+    private let beadDrying: Float = 0.3
+    private let smallestRunning: Float = 1.6
+    private let glassScale: Float = 1.6
+    /// A drop running down the glass is drawn bigger still than the beads it leaves and the drops hanging below; the
+    /// biggest no bigger than they were, or they would stand out.
+    /// How far a drop of `radius` reaches each way as drawn: one running down the glass, unless `still`, a little
+    /// further.
+    private func halfWidth(_ radius: Float, still: Bool) -> Float {
+        let flat = max(radius, 1.2) * glassScale
+        if still { return flat }
+        // Past a size, bigger ones grow ever less, nearing the widest but still each its own size.
+        let half = flat * runningScale(radius) * glassy
+        let knee: Float = 2.5
+        guard half > knee else { return half }
+        return knee + (widestRunning - knee) * (1 - exp(-(half - knee) / (widestRunning - knee) * 0.8))
+    }
+
+    /// Drawn as glass, lit along its rim and with a shadow below, a running drop or a bead looks bigger than drawn
+    /// flat: it is drawn this much smaller, and a running drop reaches no further each way than the widest.
+    private let glassy: Float = 0.75
+    private let widestRunning: Float = 3.5
+
+    private func runningScale(_ radius: Float) -> Float {
+        1.2 - 0.2 * smoothstep(3, 4.6, radius)
+    }
+    /// How hard a window has to be shaken back and forth, in its swings against gravity, to shake off a drop of
+    /// radius 2.4: far harder than its snow. A smaller one holds on harder, a hanging one less.
+    private let dropShaking: Float = 22
+    /// A drop hanging under a window this big lets go; a smaller one clings on, waiting for more, and dries up.
+    private let heavyHanging: Float = 2.6
+    /// However much runs together, a drop on the glass grows no bigger than this.
+    private let largestDrop: Float = 6
+    private let hangingDrying: Float = 0.1
+    /// A hanging drop pinches off far faster than it fills: only a few frames show it stretch. Not all of it falls.
+    private let pinching: Float = 0.06
+    private let fallingShare: Float = 0.6
+    private var glassDrops: [GlassDrop] = []
+    /// Droplets of spray on all the windows at most, and on one for each point of its top edge.
+    private let maxSpray = 6000
+    private let sprayAlong: Float = 3
+    /// How far below a window's top edge its spray lands: most of it within the first, none past the second.
+    private let sprayReach: Float = 9
+    private let sprayDeepest: Float = 36
+    private let largestSpray: Float = 0.9
+    private let sprayDrying: Float = 0.003
+    /// A running drop lays down its film in pieces this long, as wide as this share of the drop, that dry in a few
+    /// seconds.
+    private let filmPiece: Float = 4
+    private let filmShare: Float = 0.4
+    private let filmLife: ClosedRange<Float> = 2...3.5
+    private let maxFilm = 4000
+    /// Specks that catch a running drop for a moment: one patch of glass this big in this many has one.
+    private let speckSpacing: Float = 6
+    private let speckShare: Float = 0.05
+    /// How far a running drop turns toward the water that joins it from one side, for the share of it that water is.
+    private let turning: Float = 1
+    /// How much of the spray a running drop runs into it keeps: the rest it leaves on the glass behind it.
+    private let sprayKept: Float = 0.35
+    private var wet: Bool { ledgeList.contains { !$0.spray.isEmpty || !$0.film.isEmpty } }
+
+    private let ground: SnowLayer
+    private var ledges: [CGWindowID: SnowLayer] = [:]
+    private var ledgeList: [SnowLayer] = []
+    /// Where each ledge starts and how many columns it has, laid out flat for finding the one a flake lands in;
+    /// they stay put while the flakes and grains move.
+    private var ledgeSpans: [(x: Float, count: Int)] = []
+    private var layers: [SnowLayer]
+    private var heldLayers: [SnowLayer] = []
+    private var flakes: [Flake] = []
+    private var grains: [Grain] = []
+    private var motes: [Mote] = []
+    private var targetFlakes = 0
+    /// How many of each kind should be falling, and how many are, by `Mode.rawValue`.
+    private var targets = [Int](repeating: 0, count: Mode.allCases.count)
+    private var airborne = [Int](repeating: 0, count: Mode.allCases.count)
+    private var random = RandomSource()
+    private var clock: Double = 0
+    private var cursor: SIMD2<Float>?
+    private var cursorVelocity = SIMD2<Float>(repeating: 0)
+    private var heightsChanged = false
+    private var windowsChanged = false
+    private var lastWindowMotion: Double = -10
+    private var lastCursorPush: Double = -10
+    /// Snow on windows that left the screen for another Space, kept until the window shows up again.
+    private var dormant: [CGWindowID: SnowLayer] = [:]
+    /// Where the left edge of each notification banner was at the last update.
+    private var bannerEdges: [CGWindowID: Float] = [:]
+    /// Windows that went off screen without a word yet on why; a Space switch keeps their snow, anything else drops it.
+    private var parking: [(id: CGWindowID, ledge: SnowLayer, since: Double)] = []
+    private var spaceChangedAt: Double = -10
+    private var scatteredUntil: Double = -10
+    /// A gust clearing the snow: its front sweeps across from the windward side, lifting the drifts behind it.
+    private var gust: (start: Double, direction: Float, calm: Bool)?
+    private var slideWind: Float = 0
+    /// What `spareLeaves` found since the step began, less the leaves shown since.
+    private var leafBudget: Float?
+    private var ghosts: [Ghost] = []
+    private var fallingSigns: [(sign: SignSprite, velocity: SIMD2<Float>, spin: Float, age: Float)] = []
+    private var lastCaption = -1
+    /// Ghosts crumbled by the cursor since the last revenge, whether or not others left on their own between; the
+    /// third brings one out for revenge.
+    private var scares = 0
+    private var revengeDue = false
+    /// Where the third scared ghost crumbled: the avenger comes up out of its snow.
+    private var revengeAt: (layer: SnowLayer, x: Float)?
+    private var snowballs: [(from: SIMD2<Float>, to: SIMD2<Float>, age: Float)] = []
+    private var hitAt: Double = -10
+
+    /// How far the whole scene is jolted, as if the screen it is on had been hit by a snowball.
+    var shake: SIMD2<Float> {
+        let since = Float(clock - hitAt)
+        guard since < 0.5 else { return .zero }
+        let amount = 7 * exp(-since * 9)
+        return SIMD2(sin(since * 90) * amount, cos(since * 77) * amount * 0.6)
+    }
+    private var nextGhost: Double = 0
+    var halloween = false {
+        // The first ghost comes soon, so it is seen before Halloween gets forgotten.
+        didSet {
+            nextGhost = clock + Double(random.range(3, 8))
+            pumpkinBottoms = []
+            pumpkinsMoved = true
+            stirred()
+        }
+    }
+    /// What falls, one kind or two mixed: leaves heap up where snow would, rain bursts on the windows and runs down
+    /// the glass. Mixed, each falls half as thick, and what heaps up is a mixture.
+    var modes: [Mode] = [.snow] {
+        didSet {
+            guard modes != oldValue else { return }
+            updateTarget()
+            if !Set(oldValue).isSubset(of: modes) {
+                lying.removeAll()
+                flakes = flakes.prefix(targetFlakes).map { makeFlake(kind: pickKind(), y: $0.position.y) }
+            }
+            restyled = true
+            stirred()
+        }
+    }
+    /// All that heaps up is leaves: autumn's, cherry blossom petals or both.
+    var leafy: Bool { modes.contains(where: \.leafy) && !modes.contains(.snow) }
+    var raining: Bool { modes.contains(.rain) }
+    private var restyled = false
+    /// The modes waiting for the gust to clear the screen, so one kind never turns into the other in sight.
+    private var nextMode: [Mode]?
+    private var switchedAt: Double = 0
+    /// Jack-o'-lanterns along the bottom of the screen, a pair on the right and one on the left: how far each sits
+    /// from the right edge, or from the left one when the inset is negative, and its width.
+    private let pumpkinSpots: [(inset: Float, width: Float)] = [(120, 52), (190, 37), (-150, 42)]
+    /// Where each pumpkin's bottom rests, easing after the drift under it.
+    private var pumpkinBottoms: [Float] = []
+    private var pumpkinsMoved = false
+    /// The app windows on the screen, left, bottom, right, top: a pumpkin hides from any that covers it.
+    var windowFrames: [SIMD4<Float>] = []
+
+    init(width: Float, height: Float, intensity: Float) {
+        self.width = width
+        self.height = height
+        self.intensity = min(max(intensity, 0), 1)
+        var seed = RandomSource()
+        ground = SnowLayer(
+            origin: .zero,
+            columns: Self.columnCount(for: width, columnWidth: columnWidth),
+            columnWidth: columnWidth,
+            depth: groundDepth,
+            opensAtEdges: false,
+            phases: (seed.range(0, 2 * .pi), seed.range(0, 2 * .pi))
+        )
+        layers = [ground]
+        updateTarget()
+    }
+
+    var pileTop: Float { ground.top }
+    var hasSnow: Bool { !lying.isEmpty || layers.contains { $0.top > 0.5 } }
+    /// Nothing falls, lies, waits for its window or haunts, and nothing will until the snow is stirred.
+    var isEmpty: Bool {
+        intensity <= 0 && !halloween && flakes.isEmpty && grains.isEmpty && motes.isEmpty && ghosts.isEmpty
+            && fallingSigns.isEmpty && snowballs.isEmpty && gust == nil && dormant.isEmpty && parking.isEmpty && lying.isEmpty && nextMode == nil
+            && splashes.isEmpty && glassDrops.isEmpty && !wet
+            && !layers.contains { $0.top > 0 }
+    }
+    /// Running drops or beads on the glass, drawn from a field of their own.
+    var hasGlassDrops: Bool { glassDrops.contains { !$0.hanging } }
+    var spriteCount: Int {
+        lying.count + flakes.count + grains.count + motes.count + ghosts.count * 2 + snowballs.count + splashes.count + glassDrops.count
+            + ledgeList.reduce(0) { $0 + $1.spray.count + $1.film.count }
+    }
+    /// Floats the renderer needs per frame: each layer's surface, bed and what it is made of.
+    var columnCount: Int { layers.reduce(0) { $0 + SnowLayer.rows * $1.count } + borrowed.reduce(0) { $0 + $1.columns.count } }
+
+    func resize(width: Float, height: Float) {
+        guard width != self.width || height != self.height else { return }
+        ground.resize(columns: Self.columnCount(for: width, columnWidth: columnWidth))
+        self.width = width
+        self.height = height
+        updateTarget()
+    }
+
+    /// Returns whether anything visible changed.
+    func step(dt: Float, cursor point: SIMD2<Float>) -> Bool {
+        clock += Double(dt)
+        let wasMoving = !flakes.isEmpty || !grains.isEmpty || !motes.isEmpty || !ghosts.isEmpty || !fallingSigns.isEmpty || !snowballs.isEmpty
+            || !splashes.isEmpty || !glassDrops.isEmpty || wet
+        heightsChanged = false
+        leafBudget = nil
+
+        releaseScattered()
+        slideWind = abs(slideWind) < 1 ? 0 : slideWind * exp(-dt / slideCalm)
+        expireParking()
+        for ledge in ledgeList { carry(ledge, dt: dt) }
+        trackCursor(point, dt: dt)
+        for ledge in ledgeList where !ledge.carried { confine(ledge) }
+        blow(dt: dt)
+        skim(dt: dt)
+        ledgeSpans = ledgeList.map { (x: $0.base.x, count: $0.count) }
+        advanceFlakes(dt: dt)
+        advanceGrains(dt: dt)
+        advanceMotes(dt: dt)
+        advanceSplashes(dt: dt)
+        runGlassDrops(dt: dt)
+        tendGlass(dt: dt)
+        haunt(dt: dt)
+        settle(dt: dt)
+        tendLeaves(dt: dt)
+        if let next = nextMode, gust == nil, grains.isEmpty || clock - switchedAt > 6 {
+            nextMode = nil
+            modes = next
+        }
+        spawnFlakes()
+        if halloween { settlePumpkins(dt: dt) }
+
+        for layer in layers {
+            layer.refreshTop()
+            layer.previousBaseY = layer.base.y
+        }
+        // Only a cursor that actually displaces snow needs the full rate; one passing near it or resting in it changes nothing.
+        let pushed = clock - lastWindowMotion < 0.6 || clock - lastCursorPush < 0.3 || gust != nil || !snowballs.isEmpty || clock - hitAt < 0.6
+        // The steady trickle off window corners is a few tiny grains at a time; they read fine at the calm rate.
+        let flying = grains.count > 24 || clock < scatteredUntil || abs(slideWind) > 20
+        if pushed {
+            pace = .interactive
+        } else if flying {
+            pace = .lively
+        } else {
+            pace = .calm
+        }
+        let changed = wasMoving || !flakes.isEmpty || !grains.isEmpty || !motes.isEmpty || !ghosts.isEmpty || !fallingSigns.isEmpty || !snowballs.isEmpty
+            || !splashes.isEmpty || !glassDrops.isEmpty || wet || heightsChanged || windowsChanged || pumpkinsMoved || restyled || borrowedChanged
+        restyled = false
+        windowsChanged = false
+        borrowedChanged = false
+        pumpkinsMoved = false
+        return changed
+    }
+
+    func writeSprites(into buffer: UnsafeMutablePointer<Sprite>, capacity: Int) -> Int {
+        var count = 0
+        let shown = markShown()
+        for leaf in lying where count < capacity && leaf.layer.shown == shown {
+            let layer = leaf.layer
+            let ease = 1 - pow(1 - leaf.settled, 3)
+            let x = layer.heapX + leaf.x - leaf.slide * (1 - ease)
+            guard let i = layer.index(at: x), layer.visible[i] else { continue }
+            let target = restingTurn(of: leaf, on: layer, at: i)
+            // Sliding over to where it comes to rest, it skims the ground until it rides up onto the leaves there.
+            let rest = leaf.settled < 1 ? min(layer.surface(i) - layer.base.y, leaf.rest) : leaf.rest
+            // The heap's mass shows `leafCover` below its surface, as much of it as is leaves: the leaf lies on what
+            // shows, or on the bare window.
+            let sink = min(leafCover * layer.blend(i).leaves, max(0, rest - layer.bed[i]))
+            buffer[count] = Sprite(
+                position: SIMD2(x, layer.base.y + rest + leaf.size * 0.2 - sink),
+                size: drawnSize(leaf.size, seed: leaf.seed, petal: leaf.petal),
+                alpha: leaf.fade,
+                soft: 0,
+                tintAmount: leaf.petal ? smoothstep(0.3, 1, leaf.age / leaf.life) : 0,
+                armAngle: isFlower(leaf.seed, petal: leaf.petal) ? .pi / 2 : 0,
+                leaf: leaf.seed,
+                turn: leaf.fromTurn + (target - leaf.fromTurn) * ease,
+                flip: leaf.fromFlip + ((leaf.fromFlip < 0 ? -0.7 : 0.7) - leaf.fromFlip) * ease,
+                petal: leaf.petal ? 1 : 0
+            )
+            count += 1
+        }
+        for flake in flakes where count < capacity {
+            let petal = flake.kind == .blossom
+            let tilt = isFlower(flake.leaf, petal: petal) ? flowerTilt(seed: flake.leaf, phase: flake.phase) : nil
+            buffer[count] = Sprite(
+                position: flake.position,
+                velocity: flake.leaf != 0 ? motion(of: flake) : flake.velocity,
+                size: flake.leaf != 0 ? drawnSize(flake.size, seed: flake.leaf, petal: petal) : flake.size,
+                alpha: flake.alpha * fallingOpacity,
+                soft: flake.soft,
+                tintAmount: flake.tintAmount,
+                tintRed: flake.tint.x,
+                tintGreen: flake.tint.y,
+                tintBlue: flake.tint.z,
+                armAngle: tilt?.direction ?? 0,
+                leaf: flake.leaf,
+                turn: turn(of: flake),
+                flip: tilt?.face ?? tumble(flake.leaf),
+                turnSpeed: flake.leaf != 0 ? cos(flake.phase) * 0.6 * flake.swayRate + spinRate(flake.leaf, petal: petal) : 0,
+                flipSpeed: flake.leaf != 0 && tilt == nil ? tumbleSpeed(flake.leaf) : 0,
+                rain: flake.rain ? 1 : 0,
+                petal: petal ? 1 : 0
+            )
+            count += 1
+        }
+        for splash in splashes where count < capacity {
+            let fade = 1 - splash.age / splash.life
+            buffer[count] = Sprite(position: splash.position, velocity: splash.velocity, size: splash.size, alpha: splash.alpha * fade, soft: 0.5, rain: 1)
+            count += 1
+        }
+        for ledge in ledgeList {
+            for piece in ledge.film where count < capacity {
+                let position = ledge.base + (piece.from + piece.to) * 0.5
+                guard !ledge.faceOccluders.contains(where: { $0.x < position.x && $0.z > position.x && $0.y < position.y && $0.w > position.y }) else { continue }
+                // It dries from its edges in, thinning as it fades.
+                let dry = piece.age / piece.life
+                buffer[count] = Sprite(
+                    position: position,
+                    velocity: piece.to - piece.from,
+                    size: piece.width * (1 - 0.45 * dry),
+                    alpha: pow(1 - dry, 1.5),
+                    soft: 0,
+                    rain: 5
+                )
+                count += 1
+            }
+            for droplet in ledge.spray where count < capacity {
+                let position = ledge.base + droplet.offset
+                guard !ledge.faceOccluders.contains(where: { $0.x < position.x && $0.z > position.x && $0.y < position.y && $0.w > position.y }) else { continue }
+                buffer[count] = Sprite(
+                    position: position,
+                    size: droplet.radius * 2 * glassScale,
+                    alpha: 0.8 * min(1, (droplet.radius - 0.2) / 0.15),
+                    soft: 0,
+                    rain: 4
+                )
+                count += 1
+            }
+        }
+        for drop in glassDrops where count < capacity {
+            let position = drop.layer.base + drop.offset
+            // A window in front of the one it runs down hides it.
+            guard !drop.layer.faceOccluders.contains(where: { $0.x < position.x && $0.z > position.x && $0.y < position.y && $0.w > position.y }) else { continue }
+            // It swells out of nothing as it gathers on the edge, down from the edge, its top staying where it gathers.
+            let still = drop.hanging || drop.bead
+            let grown = drop.bead ? 1 : min(1, (drop.age / 0.15).squareRoot())
+            let half = drop.bead ? beadWidth(drop.radius) : halfWidth(drop.radius, still: still)
+            // Held back, a running drop's water piles up in its front; jolted, it squashes and stretches for a moment.
+            let since = drop.age - drop.jolted
+            buffer[count] = Sprite(
+                position: position + SIMD2(0, still ? 0 : half * (1 - grown)),
+                velocity: still ? .zero : SIMD2(drop.slope, -1) * drop.speed,
+                size: half * 2 * grown,
+                // Drying up, a hanging drop fades rather than shrinking past the smallest drawn.
+                alpha: min(1, drop.radius / (drop.hanging ? 1.2 : 0.35)),
+                soft: drop.hanging ? hangingStage(of: drop) : 0,
+                tintAmount: still ? 0 : 0.16 * (1 - smoothstep(0, 40, drop.speed)),
+                lump: drop.seed,
+                turn: drop.offset.y * 0.06,
+                turnSpeed: still ? 0 : drop.jiggle * exp(-since / 0.15) * cos(since * 2 * .pi * 11),
+                rain: drop.hanging ? 3 : 2
+            )
+            count += 1
+        }
+        for grain in grains where count < capacity && !grain.bulk {
+            if grain.kind.leafy {
+                let petal = grain.kind == .blossom
+                let tilt = isFlower(grain.seed, petal: petal) ? flowerTilt(seed: grain.seed, phase: spin(1.7) + grain.seed * 30) : nil
+                buffer[count] = Sprite(
+                    position: grain.position,
+                    velocity: grain.velocity,
+                    size: drawnSize(grain.size >= 5.5 ? grain.size : 6 + grain.seed * 4.5, seed: grain.seed, petal: petal),
+                    alpha: 0.95 * fallingOpacity,
+                    soft: 0,
+                    armAngle: tilt?.direction ?? 0,
+                    leaf: grain.seed,
+                    turn: turn(of: grain),
+                    flip: tilt?.face ?? tumble(grain.seed),
+                    turnSpeed: (grain.seed - 0.5) * 9,
+                    flipSpeed: tilt == nil ? tumbleSpeed(grain.seed) : 0,
+                    petal: petal ? 1 : 0
+                )
+            } else {
+                buffer[count] = Sprite(
+                    position: grain.position,
+                    velocity: grain.velocity,
+                    size: grain.size,
+                    alpha: (grain.lump > 0 ? 0.97 : grain.blown ? 0.8 : 0.95) * fallingOpacity,
+                    soft: grain.lump > 0 ? 0.2 : 0.3,
+                    lump: grain.lump
+                )
+            }
+            count += 1
+        }
+        for mote in motes where count < capacity {
+            let t = mote.age / mote.life
+            let fade = min(1, mote.age / 0.06) * pow(1 - t, 1.5)
+            buffer[count] = Sprite(position: mote.position, size: mote.size * (1 + t), alpha: mote.alpha * fade * fallingOpacity, soft: 1)
+            count += 1
+        }
+        for ghost in ghosts where count < capacity {
+            let (ground, center) = placement(of: ghost)
+            buffer[count] = Sprite(
+                position: center,
+                size: ghost.size,
+                alpha: 1,
+                soft: 1,
+                ghost: 1 + ghost.seed,
+                ground: ground,
+                eyes: smoothstep(0.85, 1, ghost.form),
+                form: ghost.form,
+                paws: ghost.paws,
+                hold: ghost.fling?.weight ?? ghost.holding,
+                armAngle: ghost.fling?.angle ?? 0.35,
+                wave: ghost.waving,
+                dab: ghost.dabbing,
+                anger: ghost.avenges ? 1 : 0
+            )
+            count += 1
+            if ghost.avenges, !ghost.threw, let fling = ghost.fling, count < capacity {
+                buffer[count] = Sprite(position: paw(of: ghost, at: fling.angle), size: 7, alpha: 1, soft: 0.15)
+                count += 1
+            }
+        }
+        for ball in snowballs where count < capacity {
+            let t = min(ball.age / 0.5, 1)
+            let position = ball.from + (ball.to - ball.from) * (1 - pow(1 - t, 2)) + SIMD2(0, sin(t * .pi) * 60)
+            buffer[count] = Sprite(position: position, size: 7 + 145 * t * t, alpha: 1, soft: 0.12)
+            count += 1
+        }
+        return count
+    }
+
+    var signs: [SignSprite] {
+        ghosts.compactMap(sign(of:)) + fallingSigns.map(\.sign)
+    }
+
+    var pumpkins: [PumpkinSprite] {
+        guard halloween else { return [] }
+        return zip(pumpkinSpots, pumpkinBottoms).enumerated().map { k, pair in
+            PumpkinSprite(anchor: SIMD2(pumpkinX(pair.0.inset), pair.1), width: pair.0.width, seed: Float(k))
+        }
+    }
+
+    private func pumpkinX(_ inset: Float) -> Float {
+        inset < 0 ? -inset : width - inset
+    }
+
+    func writeLayers(into buffer: UnsafeMutablePointer<Float>, capacity: Int) -> [PileLayer] {
+        var result: [PileLayer] = []
+        var offset = 0
+        for layer in layers where layer.top > 0.05 && offset + SnowLayer.rows * layer.count <= capacity {
+            layer.writeSmoothed(into: buffer + offset)
+            result.append(PileLayer(
+                offset: offset,
+                count: layer.count,
+                origin: layer.base,
+                top: layer.top,
+                bottom: -layer.bedDepth,
+                occluders: layer.occluders,
+                isDock: layer.isDock,
+                drift: layer.drift
+            ))
+            offset += SnowLayer.rows * layer.count
+        }
+        for lent in borrowed where lent.top > 0.05 && offset + lent.columns.count <= capacity {
+            for (i, value) in lent.columns.enumerated() { buffer[offset + i] = value }
+            result.append(PileLayer(
+                offset: offset,
+                count: lent.count,
+                origin: lent.origin,
+                top: lent.top,
+                bottom: lent.bottom,
+                occluders: lent.occluders,
+                isDock: false,
+                drift: lent.drift
+            ))
+            offset += lent.columns.count
+        }
+        return result
+    }
+
+    // MARK: - Pumpkins
+
+    /// Each pumpkin sits on the drift under it, sunk into it a little under half its height, or on the bottom of the
+    /// screen while the snow there is shallower than that; it eases up and down as the drift grows and is swept.
+    /// They belong to the desktop: one a window or the Dock covers sinks below the screen's edge until it moves off it.
+    private func settlePumpkins(dt: Float) {
+        let reach: Float = 24
+        let dock = layers.first(where: \.isDock).map { SIMD4($0.base.x - reach, 0, $0.base.x + $0.width + reach, $0.base.y + reach) }
+        let covers = windowFrames + (dock.map { [$0] } ?? [])
+        let settled = pumpkinBottoms.isEmpty
+        if settled { pumpkinBottoms = Array(repeating: 0, count: pumpkinSpots.count) }
+        for (k, spot) in pumpkinSpots.enumerated() {
+            let x = pumpkinX(spot.inset)
+            let from = ground.clampedIndex(at: x - spot.width * 0.3), to = ground.clampedIndex(at: x + spot.width * 0.3)
+            let surface = (from...to).reduce(Float(0)) { $0 + ground.surface($1) } / Float(to - from + 1)
+            let height = spot.width * HalloweenPumpkin.aspect
+            let covered = covers.contains { $0.x < x + spot.width / 2 && $0.z > x - spot.width / 2 && $0.y < height && $0.w > 0 }
+            let target = covered ? -height - 6 : max(0, surface - height * 0.42)
+            let bottom = settled ? target : pumpkinBottoms[k] + (target - pumpkinBottoms[k]) * min(1, dt * 5)
+            if abs(bottom - pumpkinBottoms[k]) > 0.01 { pumpkinsMoved = true }
+            pumpkinBottoms[k] = bottom
+        }
+    }
+
+    // MARK: - Windows
+
+    func spaceChanged() {
+        spaceChangedAt = clock
+        for entry in parking { dormant[entry.id] = entry.ledge }
+        parking.removeAll()
+    }
+
+    /// A Space slid past at `velocity` points a second, negative to the left: the air it drags along blows the
+    /// falling snow that way for a moment.
+    func spaceSlid(velocity: Float) {
+        let wind = min(max(velocity * slideDrag, -slideWindMax), slideWindMax)
+        if abs(wind) > abs(slideWind) { slideWind = wind }
+    }
+
+    func updateWindows(_ surfaces: [WindowSurface], interval: Float, parked: Set<CGWindowID> = [], elsewhere: Set<CGWindowID> = [], sliding: Bool = false) {
+        leafBudget = nil
+        var seen = Set<CGWindowID>()
+        var edges: [CGWindowID: Float] = [:]
+        defer { bannerEdges = edges }
+        for surface in surfaces {
+            let left = Float(surface.frame.minX) + ledgeInset
+            let top = Float(surface.frame.maxY)
+            let right = Float(surface.frame.maxX) - ledgeInset
+            let columns = Int((Float(surface.frame.width) - 2 * ledgeInset) / columnWidth)
+            guard columns >= 8 else { continue }
+            // A banner carries no snow: sliding in, it only pushes the snow in its way aside.
+            if NotificationBanner.ids.contains(surface.id) {
+                if surface.sweeps {
+                    sweep(from: bannerEdges[surface.id] ?? width, to: left, bottom: Float(surface.frame.minY), top: top, interval: interval)
+                }
+                edges[surface.id] = left
+                continue
+            }
+            seen.insert(surface.id)
+
+            let ledge: SnowLayer
+            if let existing = ledges[surface.id] {
+                ledge = existing
+                if sliding && columns == ledge.count {
+                    pan(ledge, left: left, top: top, interval: interval)
+                } else {
+                    move(ledge, left: left, right: right, top: top, columns: columns, interval: interval)
+                }
+            } else if let returning = dormant.removeValue(forKey: surface.id) ?? unpark(surface.id) {
+                ledge = returning
+                restore(returning, left: left, top: top, columns: columns)
+                ledges[surface.id] = returning
+            } else {
+                ledge = SnowLayer(
+                    origin: SIMD2(left, top),
+                    columns: columns,
+                    columnWidth: columnWidth,
+                    depth: ledgeDepth,
+                    opensAtEdges: true,
+                    phases: (random.range(0, 2 * .pi), random.range(0, 2 * .pi))
+                )
+                ledges[surface.id] = ledge
+            }
+            ledge.right = right
+            ledge.shapeCorners(radius: Float(surface.cornerRadius), exponent: Float(surface.cornerExponent))
+            let blockers = surface.blockers.map { SIMD4<Float>(Float($0.minX), Float($0.minY), Float($0.maxX), Float($0.maxY)) }
+            ledge.occluders = Array(blockers.prefix(16))
+            ledge.faceOccluders = surface.cover.prefix(16).map { SIMD4<Float>(Float($0.minX), Float($0.minY), Float($0.maxX), Float($0.maxY)) }
+            ledge.isDock = surface.isDock
+            ledge.face = Float(surface.frame.height)
+            ledge.updateVisibility(seen: seenSpan, blockers: blockers)
+        }
+
+        for id in ledges.keys where !seen.contains(id) {
+            guard let ledge = ledges.removeValue(forKey: id) else { continue }
+            if elsewhere.contains(id) {
+                dormant[id] = ledge
+            } else if !parked.contains(id) {
+                // The Dock slides down out of sight, about its height in a fifth of a second: its snow drops along with
+                // it instead of hanging behind while gravity picks it up.
+                let sink = ledge.isDock ? SIMD2<Float>(0, -450) : .zero
+                shed(ledge, share: 1, velocity: ledge.trackVelocity + ledge.offsetVelocity + sink)
+            } else if clock - spaceChangedAt < 0.6 {
+                dormant[id] = ledge
+            } else {
+                parking.append((id, ledge, clock))
+            }
+        }
+        if dormant.count > 200, let stale = dormant.keys.first { dormant[stale] = nil }
+        ledgeList = Array(ledges.values)
+        layers = [ground] + ledgeList
+    }
+
+    private func unpark(_ id: CGWindowID) -> SnowLayer? {
+        guard let index = parking.firstIndex(where: { $0.id == id }) else { return nil }
+        return parking.remove(at: index).ledge
+    }
+
+    /// Puts snow that waited off screen back on its window, wherever the window is now, without treating the jump as motion.
+    private func restore(_ ledge: SnowLayer, left: Float, top: Float, columns: Int) {
+        ledge.resize(columns: columns)
+        ledge.origin = SIMD2(left, top)
+        ledge.track = ledge.origin
+        ledge.trackVelocity = .zero
+        ledge.offset = .zero
+        ledge.offsetVelocity = .zero
+        ledge.previousBaseY = top
+        ledge.movedAt = -1
+        ledge.carried = true
+    }
+
+    /// Off-screen windows that no Space switch accounts for were minimized or hidden: their snow falls.
+    private func expireParking() {
+        while let first = parking.first, clock - first.since > 0.25 {
+            parking.removeFirst()
+            shed(first.ledge, share: 1, velocity: .zero)
+        }
+    }
+
+    /// Carries snow along with a window that the whole Space is sliding past: nothing pushes the snow, so it doesn't react.
+    private func pan(_ ledge: SnowLayer, left: Float, top: Float, interval: Float) {
+        let shift = SIMD2(left, top) - ledge.origin
+        guard shift != .zero else { return }
+        ledge.carried = true
+        ledge.origin += shift
+        ledge.track += shift
+        ledge.previousBaseY = ledge.base.y
+        if clock - ledge.trimmedAt > 1 {
+            ledge.trimmedAt = clock
+            // Thrown along the slide, but not at its full speed: the snow would fly across the screen.
+            let velocity = shift / max(interval, 1.0 / 120)
+            trimEnds(of: ledge, velocity: SIMD2(min(max(velocity.x, -600), 600), 0))
+        }
+        if ledge.top > 0.05 {
+            lastWindowMotion = clock
+            windowsChanged = true
+        }
+    }
+
+    /// A switch between Spaces shakes the snow off a window's ends: stopping short of the edges, the snow doesn't
+    /// show the frame or two it trails the window by.
+    private func trimEnds(of ledge: SnowLayer, velocity: SIMD2<Float>) {
+        // A twentieth of the window from each end, but no more than 40 points off a wide one.
+        let ends = min(max(1, Int((min(ledge.width * 0.05, 40) / columnWidth).rounded())), ledge.count / 2)
+        var left = Gathered(), right = Gathered()
+        for i in 0..<ends {
+            let j = ledge.count - 1 - i
+            left.add(ledge.heights[i] * columnWidth, ledge.blend(i))
+            right.add(ledge.heights[j] * columnWidth, ledge.blend(j))
+            ledge.set(i, 0)
+            ledge.set(j, 0)
+        }
+        guard left.area + right.area > 0.05 else { return }
+        heightsChanged = true
+        release(left.area, at: edgePoint(of: ledge, left: true), velocity: velocity + SIMD2(-30, -15), spread: SIMD2(1, 2), scatter: 0.25, blend: left.blend)
+        release(right.area, at: edgePoint(of: ledge, left: false), velocity: velocity + SIMD2(30, -15), spread: SIMD2(1, 2), scatter: 0.25, blend: right.blend)
+    }
+
+    private func move(_ ledge: SnowLayer, left: Float, right: Float, top: Float, columns: Int, interval: Float) {
+        let oldLeft = ledge.origin.x
+        // The window's own edges, not the snow's: rounded down to whole columns, the snow's right end would twitch
+        // as the left edge is dragged, and shake the snow about.
+        let oldRight = ledge.right > 0 ? ledge.right : oldLeft + ledge.width
+        // A resize keeps the edge that didn't move fixed; a plain move shifts both edges alike.
+        let shift = abs(left - oldLeft) <= abs(right - oldRight) ? left - oldLeft : right - oldRight
+        let displacement = SIMD2(shift, top - ledge.origin.y)
+        let resized = columns != ledge.count || abs(left - oldLeft - shift) > 0.5
+        guard displacement != .zero || resized else { return }
+        ledge.carried = false
+
+        let elapsed = max(interval, 1.0 / 120)
+        // Only a motion that began unobserved, between slow polls, has to be picked up mid-flight.
+        let wasResting = clock - ledge.movedAt > 0.3 && interval > 0.05
+        ledge.movedAt = clock
+        if ledge.top > 0.05 {
+            lastWindowMotion = clock
+            windowsChanged = true
+        }
+
+        if simd_length(displacement) / elapsed > jumpSpeed {
+            // The window vanished from under the snow and reappeared elsewhere: nothing carried the snow along.
+            shed(ledge, share: 1, velocity: .zero, asLeaves: true)
+            ledge.offset = .zero
+            ledge.offsetVelocity = .zero
+            ledge.trackVelocity = .zero
+        }
+
+        if resized {
+            // The snow stays put as the window's edge moves under it: it shifts along the window by whole columns,
+            // as many as the drift it has built up comes to, so that rounding never adds up and walks it off.
+            let along = oldLeft + shift - left
+            let before = (ledge.drift / columnWidth).rounded()
+            ledge.drift += along
+            let by = Int((ledge.drift / columnWidth).rounded() - before)
+            var fresh = [Float](repeating: 0, count: columns)
+            var leaves = fresh, petals = fresh
+            for i in 0..<ledge.count where ledge.heights[i] > 0 {
+                let j = i + by
+                if j >= 0 && j < columns {
+                    fresh[j] += ledge.heights[i]
+                    leaves[j] += ledge.leaves[i]
+                    petals[j] += ledge.petals[i]
+                } else {
+                    let h = ledge.heights[i]
+                    release(
+                        h * columnWidth,
+                        at: SIMD2(ledge.centerX(i), ledge.floor(i)),
+                        velocity: ledge.trackVelocity,
+                        spread: SIMD2(columnWidth / 2, h),
+                        leaves: max(h - leafCover, 0) / h,
+                        blend: ledge.blend(i)
+                    )
+                }
+            }
+            ledge.replace(heights: fresh, leaves: leaves, petals: petals)
+        }
+        ledge.origin = SIMD2(left, top)
+        // Resized, the window doesn't move under its snow: the edge dragged is no jolt to it.
+        ledge.track.x += left - oldLeft - shift
+        if simd_length(displacement) / elapsed > jumpSpeed {
+            ledge.track = ledge.origin
+        } else if wasResting {
+            // Join the motion at its current pace, with the lag a steady follow would have, instead of as a jolt.
+            ledge.trackVelocity = displacement / elapsed
+            ledge.track = ledge.origin - ledge.trackVelocity * trackTime
+        }
+    }
+
+    /// Moves a ledge's snow as a body riding on its window: it feels gravity plus the inertia of the
+    /// window's acceleration, sticks by friction, slides when that's exceeded, and flies free when the
+    /// window drops away faster than gravity or stops short after rising.
+    private func carry(_ ledge: SnowLayer, dt: Float) {
+        let previousVelocity = ledge.trackVelocity
+        smoothDamp(&ledge.track, &ledge.trackVelocity, toward: ledge.origin, time: trackTime, dt: dt)
+        let acceleration = (ledge.trackVelocity - previousVelocity) / dt
+        ledge.jolt = acceleration
+        // Agitation is vibration: two consecutive back-and-forth swings, not a single start or stop.
+        ledge.agitation *= exp(-dt / 0.3)
+        let magnitude = simd_length(acceleration)
+        if magnitude > 1, simd_dot(acceleration, ledge.swingDirection) < 0 {
+            ledge.agitation = max(ledge.agitation, min(ledge.previousSwingPeak, ledge.swingPeak) / gravity)
+            ledge.previousSwingPeak = ledge.swingPeak
+            ledge.swingPeak = magnitude
+            ledge.swingDirection = acceleration / magnitude
+        } else {
+            ledge.swingPeak = max(ledge.swingPeak, magnitude)
+            if magnitude > 1 && ledge.swingDirection == .zero { ledge.swingDirection = acceleration / magnitude }
+        }
+
+        guard ledge.top > 0.05 else {
+            ledge.offset = .zero
+            ledge.offsetVelocity = .zero
+            return
+        }
+
+        var lift = ledge.offset.y
+        var liftVelocity = ledge.offsetVelocity.y
+        // Mostly leaves, the heap holds as leaves do.
+        let leafy = ledge.blend.leaves > 0.5
+        let (stick, hold, rub) = leafy ? (leafAdhesion, leafGrip, leafSlip) : (adhesion, grip, slip)
+        let fall = -gravity - acceleration.y
+        if lift > 0 || fall > stick {
+            liftVelocity += fall * dt
+            lift += liftVelocity * dt
+            if lift <= 0 {
+                lift = 0
+                liftVelocity = 0
+            }
+        }
+
+        let pressure = lift > 0 ? 0 : max(0, gravity + stick + acceleration.y)
+        let drive = -acceleration.x
+        var slideVelocity = ledge.offsetVelocity.x
+        if !(slideVelocity == 0 && abs(drive) <= hold * pressure) {
+            let direction: Float = slideVelocity != 0 ? (slideVelocity > 0 ? 1 : -1) : (drive > 0 ? 1 : -1)
+            let next = slideVelocity + (drive - direction * rub * pressure) * dt
+            slideVelocity = pressure > 0 && next * direction <= 0 ? 0 : next
+        }
+
+        var slide = ledge.offset.x + slideVelocity * dt
+        let carried = ledge.trackVelocity + SIMD2(slideVelocity, liftVelocity)
+        while abs(slide) >= columnWidth {
+            let direction = slide > 0 ? 1 : -1
+            let dropped = ledge.slideColumn(toward: direction)
+            slide -= Float(direction) * columnWidth
+            ledge.drift += Float(direction) * columnWidth
+            if dropped.height > 0.01 {
+                let x = dropped.x + Float(direction) * columnWidth
+                release(
+                    dropped.height * columnWidth,
+                    at: SIMD2(x, dropped.y),
+                    velocity: carried,
+                    spread: SIMD2(columnWidth / 2, dropped.height),
+                    leaves: max(dropped.height - leafCover, 0) / dropped.height,
+                    blend: dropped.blend
+                )
+            }
+        }
+
+        let moved = lift != ledge.offset.y || slide != ledge.offset.x
+        ledge.offset = SIMD2(slide, lift)
+        ledge.offsetVelocity = SIMD2(slideVelocity, liftVelocity)
+        if moved { heightsChanged = true }
+
+        let shakes = leafy ? leafShaking : shaking
+        if lift > (leafy ? leafBreakLift : breakLift) {
+            shed(ledge, share: 1, velocity: carried, asLeaves: true)
+            ledge.offset = .zero
+            ledge.offsetVelocity = .zero
+        } else if ledge.agitation > shakes {
+            // A granular bed shaken well past gravity throws grains off its surface.
+            let rate = leafy ? leafShakeRate(ledge.agitation) : min(0.8, 0.06 * (ledge.agitation - shakes))
+            let picks = Int(Float(ledge.count) * rate * dt * 2 + random.next())
+            for _ in 0..<picks {
+                let i = Int(random.next() * Float(ledge.count))
+                let h = ledge.heights[min(i, ledge.count - 1)]
+                guard h > 0.2 else { continue }
+                let column = min(i, ledge.count - 1)
+                let blend = ledge.blend(column)
+                ledge.set(column, h * 0.5)
+                release(
+                    h * 0.5 * columnWidth,
+                    at: SIMD2(ledge.centerX(column), ledge.floor(column) + h * 0.5),
+                    velocity: carried + SIMD2(random.range(-80, 80), random.range(50, 200)),
+                    spread: SIMD2(columnWidth / 2, h * 0.5),
+                    scatter: 0.25,
+                    leaves: min(h * 0.5, max(h - leafCover, 0)) / (h * 0.5),
+                    blend: blend
+                )
+            }
+            if picks > 0 { heightsChanged = true }
+        }
+    }
+
+    /// How fast a shaken heap of leaves comes apart: the share of its columns, and of the leaves lying on it, thrown
+    /// off in half a second.
+    private func leafShakeRate(_ agitation: Float) -> Float {
+        min(0.8, 0.3 * max(agitation - leafShaking, 0))
+    }
+
+    /// The part of a window slid past a wall carries no snow: the wall scrapes it off, and it heaps up against the
+    /// wall, which holds up the heap's face as the cursor holds up the snow it touches.
+    private func confine(_ ledge: SnowLayer) {
+        let count = ledge.count
+        let first = walls.left ? min(max(0, Int((-ledge.base.x / columnWidth - 0.5).rounded(.up))), count) : 0
+        let last = walls.right ? max(min(count - 1, Int(((width - ledge.base.x) / columnWidth - 0.5).rounded(.down))), -1) : count - 1
+        guard first > 0 || last < count - 1 else { return }
+        guard first <= last else {
+            // Nothing of the window is left this side of the wall: its snow falls down the wall.
+            let x: Float = first > 0 ? 1 : width - 1
+            for i in 0..<count where ledge.heights[i] > 0.05 {
+                let h = ledge.heights[i]
+                let blend = ledge.blend(i)
+                ledge.set(i, 0)
+                release(h * columnWidth, at: SIMD2(x, ledge.floor(i)), velocity: .zero, spread: SIMD2(1, h), blend: blend)
+            }
+            heightsChanged = true
+            return
+        }
+        if !heldLayers.contains(where: { $0 === ledge }) { heldLayers.append(ledge) }
+        scrape(ledge, 0..<first, onto: first, inward: 1)
+        scrape(ledge, (last + 1)..<count, onto: last, inward: -1)
+    }
+
+    /// Heaps the snow on `columns`, past a wall, onto column `edge` just inside it, packing down what wasn't packed
+    /// already. Scraped off fast, some of it crumbles off the heap and tumbles back over the window.
+    private func scrape(_ ledge: SnowLayer, _ columns: Range<Int>, onto edge: Int, inward: Float) {
+        var scraped = Gathered()
+        for i in columns {
+            let packed = min(ledge.packed[i], ledge.heights[i])
+            scraped.add((packed + (ledge.heights[i] - packed) * packing) * columnWidth, ledge.blend(i))
+            ledge.set(i, 0)
+            ledge.hold(i)
+        }
+        let area = scraped.area
+        guard area > 0.01 else { return }
+        heightsChanged = true
+        let speed = max(0, -inward * (ledge.trackVelocity.x + ledge.offsetVelocity.x))
+        let crumbled = area * 0.4 * smoothstep(200, 1200, speed)
+        if crumbled > 0.5 {
+            release(
+                crumbled,
+                at: SIMD2(ledge.centerX(edge), ledge.surface(edge)),
+                velocity: SIMD2(inward * speed * 0.25, 60 + speed * 0.12),
+                spread: SIMD2(columnWidth, 2),
+                scatter: 0.6,
+                blend: scraped.blend
+            )
+        }
+        ledge.heap(area - crumbled, against: edge, inward: Int(inward), slope: repose * columnWidth, blend: scraped.blend)
+    }
+
+    /// A notification banner sliding in, its left edge moving from `from` to `to` over the band from `bottom` to `top`:
+    /// it scrapes the snow, or the leaves, off the windows it passes over, which fly off ahead of it, and pushes the falling
+    /// snow along.
+    private func sweep(from: Float, to: Float, bottom: Float, top: Float, interval: Float) {
+        guard to < from - 0.5 else { return }
+        let speed = (from - to) / max(interval, 1.0 / 120)
+        let thrown = SIMD2(-min(speed * 0.3, 900), 60)
+        for ledge in ledges.values where ledge.top > 0.01 && ledge.base.x < from && ledge.base.x + ledge.width > to {
+            let lower = max(0, Int(((to - ledge.base.x) / columnWidth).rounded(.down)))
+            let upper = min(ledge.count, Int(((from - ledge.base.x) / columnWidth).rounded(.up)))
+            var start = lower
+            while start < upper {
+                // A few columns at a time hold together, as snow shed off a window does.
+                let end = min(upper, start + Int(random.range(2, 7)))
+                var swept = Gathered()
+                var seen: Float = 0
+                var highest = bottom
+                for i in start..<end {
+                    let floor = ledge.floor(i)
+                    let surface = floor + ledge.heights[i]
+                    // Only snow on a window whose top the banner covers, and of that only what the banner reaches.
+                    guard floor <= top, surface > bottom + 0.01 else { continue }
+                    let removed = surface - max(floor, bottom)
+                    let blend = ledge.blend(i)
+                    ledge.set(i, ledge.heights[i] - removed)
+                    swept.add(removed * columnWidth, blend)
+                    seen += max(removed - leafCover, 0) * columnWidth * blend.leaves
+                    highest = max(highest, surface)
+                }
+                if swept.area > 0.02 {
+                    let position = SIMD2(to - columnWidth, (max(bottom, ledge.base.y) + highest) / 2)
+                    let spread = SIMD2(columnWidth, (highest - position.y) + 1)
+                    releaseHeld(swept, at: position, velocity: thrown, spread: spread, scatter: 0.5, leaves: swept.leaves > 0 ? seen / swept.leaves : 0)
+                    heightsChanged = true
+                }
+                start = end
+            }
+            // The leaves lying on top fly off ahead of it with the rest.
+            for k in lying.indices.reversed() where lying[k].layer === ledge {
+                let x = ledge.heapX + lying[k].x
+                let y = ledge.base.y + lying[k].rest
+                guard x >= to, x < from, y > bottom, let i = ledge.index(at: x), ledge.floor(i) <= top else { continue }
+                fly(k, velocity: thrown + SIMD2(random.range(-40, 40), random.range(10, 60)), from: SIMD2(to - columnWidth, y))
+            }
+        }
+        for i in flakes.indices where flakes[i].position.x >= to && flakes[i].position.x < from
+            && flakes[i].position.y >= bottom && flakes[i].position.y <= top {
+            flakes[i].position.x = to - 1
+            flakes[i].velocity.x = min(flakes[i].velocity.x, thrown.x)
+        }
+        lastWindowMotion = clock
+        windowsChanged = true
+    }
+
+    /// Turns part of a ledge's snow into falling snow where it lies: a few columns at a time hold together
+    /// as a lump, the rest pours off as powder. A heap of leaves thrown off `asLeaves` shows as the leaves it is
+    /// made of; one left by a window closing or hiding goes unseen, leaving only the leaves lying on it to fall.
+    private func shed(_ ledge: SnowLayer, share: Float, velocity: SIMD2<Float>, asLeaves: Bool = false) {
+        var shown: Float = 0
+        if asLeaves && ledge.leaves.contains(where: { $0 > 0 }) {
+            // The leaves lying on top go along with the rest, and count among the leaves the heap shows.
+            var lyingHere: Float = 0
+            for k in lying.indices.reversed() where lying[k].layer === ledge {
+                fly(k, velocity: velocity + SIMD2(random.range(-40, 40), random.range(10, 60)))
+                lyingHere += 1
+            }
+            let area = ledge.leaves.reduce(0) { $0 + max($1, 0) } * share * columnWidth
+            let seen = ledge.heights.indices.reduce(Float(0)) { $0 + max(ledge.heights[$1] - leafCover, 0) * ledge.blend($1).leaves } * share * columnWidth
+            shown = area > 0 ? max(0, seen / leafShown - lyingHere) * leafShown / area : 0
+        }
+        var start = 0
+        while start < ledge.count {
+            let end = min(ledge.count, start + Int(random.range(2, 7)))
+            var snow: Float = 0
+            var lowest = Float.greatestFiniteMagnitude
+            var highest = -Float.greatestFiniteMagnitude
+            for i in start..<end where ledge.heights[i] > 0.05 {
+                let h = ledge.heights[i]
+                snow += h * share * columnWidth * (1 - ledge.blend(i).leaves)
+                lowest = min(lowest, ledge.floor(i) + h * (1 - share))
+                highest = max(highest, ledge.floor(i) + h)
+            }
+            // Only snow holds together in lumps.
+            let cohesion = snow > 14 ? random.range(0.4, 0.7) : 0
+            for i in start..<end where ledge.heights[i] > 0.05 {
+                let h = ledge.heights[i]
+                let amount = h * share
+                let blend = ledge.blend(i)
+                ledge.set(i, h - amount)
+                let at = SIMD2(ledge.centerX(i), ledge.floor(i) + h - amount)
+                release(amount * columnWidth * blend.leaves, at: at, velocity: velocity, spread: SIMD2(columnWidth / 2, amount), scatter: 0.25,
+                        leaves: shown, blend: blend.leafOnly)
+                release(amount * columnWidth * (1 - blend.leaves) * (1 - cohesion), at: at, velocity: velocity, spread: SIMD2(columnWidth / 2, amount),
+                        scatter: 0.25)
+            }
+            if cohesion > 0 {
+                let left = ledge.centerX(start)
+                let right = ledge.centerX(end - 1)
+                throwLump(snow * cohesion, at: SIMD2((left + right) / 2, (lowest + highest) / 2), velocity: velocity)
+            }
+            start = end
+        }
+        heightsChanged = true
+    }
+
+    /// Lets go of what `held` gathered as falling snow and leaves where it lies: of the snow, some holds together as
+    /// a lump.
+    private func releaseHeld(_ held: Gathered, at position: SIMD2<Float>, velocity: SIMD2<Float>, spread: SIMD2<Float>, scatter: Float, leaves: Float) {
+        let snow = held.area - held.leaves
+        let cohesion = snow > 14 ? random.range(0.4, 0.7) : 0
+        release(held.leaves, at: position, velocity: velocity, spread: spread, scatter: scatter, leaves: leaves, blend: held.blend.leafOnly)
+        release(snow * (1 - cohesion), at: position, velocity: velocity, spread: spread, scatter: scatter)
+        if cohesion > 0 { throwLump(snow * cohesion, at: position, velocity: velocity) }
+    }
+
+    private func throwLump(_ area: Float, at position: SIMD2<Float>, velocity: SIMD2<Float>) {
+        let pieces = Int(area / 90) + 1
+        for _ in 0..<pieces where grains.count < maxGrains {
+            let share = area / Float(pieces)
+            grains.append(Grain(
+                position: position + SIMD2(random.range(-2, 2), random.range(-1, 1)),
+                // Lumps break away a moment before the powder around them, so a falling sheet comes apart.
+                velocity: velocity * (1 + random.range(-0.2, 0.2)) + SIMD2(random.range(-25, 25), random.range(-80, 0)),
+                area: share,
+                size: min(11, share.squareRoot() * 1.05),
+                lump: random.range(0.05, 1)
+            ))
+        }
+    }
+
+    /// A lump hitting the snow: most of it packs in where it lands, a few crumbs hop off and a puff of powder rises.
+    private func burst(_ lump: Grain, into layer: SnowLayer) {
+        let impact = max(0, -lump.velocity.y)
+        let force = min(max(impact / 900, 0.35), 1.3)
+        let crumbs = lump.area * 0.18
+        for spot: Float in [-0.3, 0, 0.3] {
+            let x = lump.position.x + spot * lump.size
+            let missed = layer.deposit((lump.area - crumbs) / 3, at: x, wide: true)
+            dropPast(layer, missed, near: x, velocity: lump.velocity.x * 0.3, blend: .snow)
+        }
+        let surface = layer.index(at: lump.position.x).map { layer.surface($0) } ?? lump.position.y
+        release(
+            crumbs,
+            at: SIMD2(lump.position.x, surface + 1),
+            velocity: SIMD2(lump.velocity.x * 0.3, impact * random.range(0.08, 0.16)),
+            spread: SIMD2(lump.size * 0.4, 1),
+            scatter: 0.6
+        )
+
+        let count = min(maxMotes - motes.count, Int(2 + lump.size * 0.6 * force))
+        guard count > 0 else { return }
+        for _ in 0..<count {
+            let angle = random.range(0.15, .pi - 0.15)
+            let speed = random.range(25, 110) * force
+            motes.append(Mote(
+                position: SIMD2(lump.position.x + random.range(-0.5, 0.5) * lump.size, surface + random.range(0, lump.size * 0.4)),
+                velocity: SIMD2(cos(angle) * speed * 1.4 + lump.velocity.x * 0.2, sin(angle) * speed * 0.6),
+                size: random.range(0.3, 0.6) * lump.size + 1,
+                alpha: random.range(0.1, 0.22),
+                life: random.range(0.45, 0.9)
+            ))
+        }
+    }
+
+    /// `scatter` varies each clump's speed by that fraction, so a thrown sheet of snow breaks up instead of flying as one band.
+    /// Of the leaves in `blend`, `leaves` of what comes off shows as the leaves it is made of.
+    private func release(_ area: Float, at position: SIMD2<Float>, velocity: SIMD2<Float>, spread: SIMD2<Float> = SIMD2(1, 1), scatter: Float = 0, leaves: Float = 0,
+                         blend: Blend = .snow) {
+        guard area > 0.02 else { return }
+        let leafy = area * blend.leaves
+        if leafy > 0.02 {
+            releaseLeaves(leafy, petals: blend.leafOnly.petals, at: position, velocity: velocity, spread: spread, scatter: scatter, shown: leaves)
+        }
+        let snow = area - leafy
+        guard snow > 0.02 else { return }
+        let room = maxGrains - grains.count
+        guard room > 0 else {
+            if groundSettles { ground.deposit(snow, at: position.x, wide: true) }
+            return
+        }
+        let count = min(room, max(1, min(6, Int(snow / 3))))
+        let share = snow / Float(count)
+        for _ in 0..<count {
+            grains.append(Grain(
+                position: position + SIMD2(random.range(-spread.x, spread.x), random.range(0, spread.y)),
+                velocity: velocity * (1 + random.range(-scatter, scatter)) + SIMD2(random.range(-12, 12) - 40 * scatter * random.range(-1, 1), random.range(-10, 8)),
+                area: share,
+                size: min(5, max(1.1, share.squareRoot() * 1.05))
+            ))
+        }
+    }
+
+    /// Leaves off a heap, `petals` of them petals: `shown` of them as the leaves they are, the rest as the bulk.
+    private func releaseLeaves(_ area: Float, petals: Float, at position: SIMD2<Float>, velocity: SIMD2<Float>, spread: SIMD2<Float>, scatter: Float, shown: Float) {
+        if shown > 0 {
+            let count = min(Int(area * shown / leafShown + random.next()), maxGrains - grains.count, Int(spareLeaves()))
+            if count > 0 {
+                leafBudget = spareLeaves() - Float(count)
+                // The leaves carry the bulk along, so the heap makes up again just where and when they land.
+                for _ in 0..<count {
+                    let petal = random.next() < petals
+                    grains.append(Grain(
+                        position: position + SIMD2(random.range(-spread.x, spread.x), random.range(0, spread.y)),
+                        velocity: velocity * (1 + random.range(-scatter, scatter)) + SIMD2(random.range(-40, 40), random.range(10, 60)),
+                        area: area / Float(count),
+                        size: leafLength(depth: random.range(0.3, 1), petal: petal),
+                        seed: random.range(0.001, 1),
+                        kind: petal ? .blossom : .autumn
+                    ))
+                }
+                return
+            }
+        }
+        let room = maxGrains - grains.count
+        guard room > 0 else {
+            if groundSettles { ground.deposit(area, at: position.x, wide: true, blend: Blend(leaves: 1, petals: petals)) }
+            return
+        }
+        // The bulk goes unseen and makes up a heap again wherever it lands; whatever leaves show come off above.
+        let count = min(room, Int(area / leafArea) + 1, 4)
+        let share = area / Float(count)
+        for _ in 0..<count {
+            grains.append(Grain(
+                position: position + SIMD2(random.range(-spread.x, spread.x), random.range(0, spread.y)),
+                velocity: velocity * (1 + random.range(-scatter, scatter)) + SIMD2(random.range(-30, 30), random.range(0, 40)),
+                area: share,
+                size: 2,
+                bulk: true,
+                kind: random.next() < petals ? .blossom : .autumn
+            ))
+        }
+    }
+
+    /// How many more leaves the heaps can show coming off them: as many as all the bulk lying about is worth, less
+    /// the leaves already shown, lying or in the air. Leaves flown off a heap leave their bulk in it, so without
+    /// this a heap thrown about again and again would show more and more of them.
+    private func spareLeaves() -> Float {
+        if let leafBudget { return leafBudget }
+        var bulk = grains.reduce(Float(0)) { $0 + ($1.kind.leafy ? $1.area : 0) }
+        for layer in layers { bulk += layer.leaves.reduce(0) { $0 + max($1, 0) } * layer.columnWidth }
+        let shown = lying.count + grains.reduce(0) { $0 + ($1.bulk || !$1.kind.leafy ? 0 : 1) }
+        let spare = bulk / leafShown - Float(shown)
+        leafBudget = spare
+        return spare
+    }
+
+    /// How high the snow lying just past one end of a window's ledge comes up that end, from below or beside it: a heap
+    /// grown up to a window's end props up the snow on it, so the window stops pouring onto the heap.
+    private func outside(of ledge: SnowLayer, left: Bool) -> Float {
+        let end = left ? 0 : ledge.count - 1
+        let floor = ledge.floor(end)
+        let x = left ? ledge.base.x - ledge.columnWidth * 0.5 : ledge.base.x + ledge.width + ledge.columnWidth * 0.5
+        var highest = -Float.greatestFiniteMagnitude
+        for layer in layers where layer !== ledge {
+            guard let i = layer.index(at: x), layer.floor(i) <= floor else { continue }
+            highest = max(highest, layer.surface(i))
+        }
+        return max(highest - floor, 0)
+    }
+
+    /// Snow that lands past the end of a ledge drops off that end instead.
+    private func dropPast(_ layer: SnowLayer, _ area: Float, near x: Float, velocity: Float, blend: Blend) {
+        guard layer.opensAtEdges, area > 0.05 else { return }
+        let leftSide = x < layer.base.x + layer.width / 2
+        release(area, at: edgePoint(of: layer, left: leftSide), velocity: SIMD2(velocity, -10), spread: SIMD2(0.25, 1), blend: blend)
+    }
+
+    /// Where snow leaves an open layer: just past its end, at the height the snow reaches on the end column,
+    /// which on a rounded corner lies well down the curve.
+    private func edgePoint(of layer: SnowLayer, left: Bool) -> SIMD2<Float> {
+        let end = left ? 0 : layer.count - 1
+        let x = left ? layer.base.x - 0.75 : layer.base.x + layer.width + 0.75
+        return SIMD2(x, layer.surface(end))
+    }
+
+    // MARK: - Cursor
+
+    private func trackCursor(_ point: SIMD2<Float>, dt: Float) {
+        for layer in heldLayers { layer.releaseSupport() }
+        heldLayers.removeAll(keepingCapacity: true)
+
+        let center = point + cursorOffset
+        guard let previous = cursor else {
+            cursor = center
+            return
+        }
+        cursor = center
+
+        let delta = center - previous
+        var velocity = delta / max(dt, 1.0 / 240)
+        let speed = simd_length(velocity)
+        if speed > 3000 { velocity *= 3000 / speed }
+        cursorVelocity += (velocity - cursorVelocity) * 0.5
+
+        let low = min(center.y, previous.y) - cursorRadius
+        let high = max(center.y, previous.y) + cursorRadius
+        let left = min(center.x, previous.x) - cursorRadius
+        let right = max(center.x, previous.x) + cursorRadius
+        let touched = layers.filter { layer in
+            low <= layer.base.y + layer.top + 1 && high >= layer.base.y - layer.bedDepth
+                && right >= layer.base.x && left <= layer.base.x + layer.width
+                && (layer === ground || layer.top > 0.01)
+        }
+        guard !touched.isEmpty else { return }
+
+        let distance = simd_length(delta)
+        if distance > 400 {
+            for layer in touched { carve(layer, at: center, velocity: .zero, travel: 0, final: true) }
+            return
+        }
+        let steps = Int(distance / (cursorRadius * 0.5)) + 1
+        for step in 1...steps {
+            let position = previous + delta * (Float(step) / Float(steps))
+            for layer in touched {
+                carve(layer, at: position, velocity: velocity, travel: distance / Float(steps), final: step == steps)
+            }
+        }
+    }
+
+    private func carve(_ layer: SnowLayer, at center: SIMD2<Float>, velocity: SIMD2<Float>, travel: Float, final: Bool) {
+        let radius = cursorRadius
+        let lower = max(0, Int(((center.x - radius - layer.base.x) / columnWidth).rounded(.down)))
+        let upper = min(layer.count - 1, Int(((center.x + radius - layer.base.x) / columnWidth).rounded(.down)))
+        guard lower <= upper else { return }
+
+        let local = center.y - layer.base.y
+        let speed = simd_length(velocity)
+        let spray = (snow: smoothstep(60, 420, speed), leaves: smoothstep(60, 500, speed))
+        var pushedLeft = Gathered()
+        var pushedRight = Gathered()
+
+        for i in lower...upper where layer.visible[i] {
+            let x = layer.centerX(i)
+            let dx = x - center.x
+            let reach = radius * radius - dx * dx
+            guard reach > 0 else { continue }
+            let half = reach.squareRoot()
+            // Heights here are measured up from the bed under this column.
+            let bedLevel = layer.bed[i]
+            let bottom = max(0, local - half - bedLevel)
+            let top = local + half - bedLevel
+            guard top > bottom else { continue }
+            let h = layer.heights[i]
+            let buried = h > top
+            if final && !buried && h >= bottom - 1 {
+                if !heldLayers.contains(where: { $0 === layer }) { heldLayers.append(layer) }
+                layer.hold(i)
+            }
+            guard h > bottom + 0.01 else { continue }
+
+            // A buried cursor only displaces the snow it sweeps through; the rest rests on top of it.
+            let removed = buried ? (top - bottom) * min(1, travel / (2 * radius)) : h - bottom
+            guard removed > 0.001 else { continue }
+            let blend = layer.blend(i)
+            layer.set(i, h - removed)
+            lastCursorPush = clock
+            heightsChanged = true
+
+            // The lying leaves on top fly off by themselves; only the mass under them is swept out.
+            let hidden = max(0, leafCover - (buried ? h - top : 0)) * blend.leaves
+            let area = max(0, removed - hidden) * columnWidth
+            let surface = layer.floor(i) + (buried ? h - removed : h)
+            let share = blend.leaves > 0.5 ? spray.leaves : spray.snow
+            let sprayed = share > 0 ? emit(area * share, from: SIMD2(x, surface), center: center, velocity: velocity, blend: blend) : 0
+            let side = abs(velocity.x) > 40 ? velocity.x : dx
+            if side < 0 { pushedLeft.add(area - sprayed, blend) } else { pushedRight.add(area - sprayed, blend) }
+        }
+
+        for (pushed, x) in [(pushedLeft, center.x - radius - columnWidth * 3), (pushedRight, center.x + radius + columnWidth * 3)] where pushed.area > 0 {
+            let missed = layer.deposit(pushed.area, at: x, wide: true, blend: pushed.blend)
+            dropPast(layer, missed, near: x, velocity: velocity.x * 0.5, blend: pushed.blend)
+        }
+    }
+
+    /// Throws some of what the cursor sweeps out of a heap into the air; returns how much.
+    private func emit(_ area: Float, from origin: SIMD2<Float>, center: SIMD2<Float>, velocity: SIMD2<Float>, blend: Blend) -> Float {
+        guard area > 0.6, grains.count < maxGrains else { return 0 }
+        let speed = simd_length(velocity)
+        let offset = origin - center
+        let length = simd_length(offset)
+        let outward = length > 0.001 ? offset / length : SIMD2<Float>(0, 1)
+        var thrown: Float = 0
+
+        let leafy = area * blend.leaves
+        // Leaves swept out of a heap skim along the way the cursor goes, a whole leaf at a time.
+        let leaves = leafy > 0 ? min(3, Int(leafy / leafArea + random.next())) : 0
+        if leaves > 0 {
+            let petals = blend.leafOnly.petals
+            for _ in 0..<leaves {
+                let petal = random.next() < petals
+                grains.append(Grain(
+                    position: origin + SIMD2(random.range(-2, 2), random.range(0, 3)),
+                    velocity: swept(by: velocity + outward * (speed * random.range(0.05, 0.15))),
+                    area: leafy / Float(leaves),
+                    size: leafLength(depth: pow(random.next(), 1.2), petal: petal),
+                    kind: petal ? .blossom : .autumn
+                ))
+            }
+            thrown += leafy
+        }
+
+        let snow = area - leafy
+        guard snow > 0.6 else { return thrown }
+        let count = min(4, Int(snow / 1.6) + 1)
+        let share = snow / Float(count)
+        for _ in 0..<count {
+            var v = velocity * random.range(0.55, 1.25) + outward * (speed * random.range(0.05, 0.25))
+            v.y += speed * random.range(0.02, 0.2)
+            v += SIMD2(random.range(-30, 30), random.range(-20, 40))
+            grains.append(Grain(
+                position: origin + SIMD2(random.range(-1, 1), random.range(0, 2)),
+                velocity: v,
+                area: share,
+                size: min(4.2, max(1.1, share.squareRoot() * 1.05))
+            ))
+        }
+        return thrown + snow
+    }
+
+    // MARK: - Particles
+
+    /// The highest visible snow surface crossed while falling from `from` to `to` at `x`, allowing for the surface moving meanwhile.
+    /// Past an edge shared with another display only the ground counts: snow there is the other display's to land.
+    private func landing(x: Float, from: Float, to: Float, here: Bool = true, ground onGround: Bool) -> (layer: SnowLayer, index: Int)? {
+        var hit: (layer: SnowLayer, index: Int)?
+        var highest = -Float.greatestFiniteMagnitude
+        for (k, span) in ledgeSpans.enumerated() where here {
+            let i = Int(((x - span.x) / columnWidth).rounded(.down))
+            guard i >= 0 && i < span.count else { continue }
+            let ledge = ledgeList[k]
+            guard ledge.visible[i] else { continue }
+            let surface = ledge.surface(i)
+            // Entering the snow from above the window's edge counts, even if the surface rose this frame.
+            if from >= ledge.previousBaseY + ledge.bed[i] && to <= surface && surface > highest {
+                hit = (ledge, i)
+                highest = surface
+            }
+        }
+        if let hit { return hit }
+        guard onGround else { return nil }
+        let i = ground.clampedIndex(at: x)
+        return to <= ground.surface(i) ? (ground, i) : nil
+    }
+
+    private func advanceFlakes(dt: Float) {
+        let wind = breeze() + slideWind
+        // A Space's wind is short: the flakes take it up faster than the slow breeze, or it would be gone first.
+        let follow = min(1, dt * (1.2 + abs(slideWind) * 0.03))
+        let settle = min(1, dt * 1.6)
+        let wake = cursorWake()
+        airborne = kindCounts()
+
+        var i = flakes.count - 1
+        while i >= 0 {
+            var flake = flakes[i]
+            if flake.blown != 0 {
+                // The nearer the flake, the faster the gust seems to carry it.
+                flake.velocity.x += (flake.blown * gustWind * (1.3 + 1.3 * flake.depth) - flake.velocity.x) * min(1, dt * 2.5)
+            } else {
+                // Rain falls slanted, as wind drives it; snow and leaves only drift.
+                flake.velocity.x += (wind * (flake.rain ? 3 : 1) * (0.35 + 0.65 * flake.depth) - flake.velocity.x) * follow
+            }
+            flake.velocity.y += (-flake.fallSpeed - flake.velocity.y) * settle
+
+            if let wake, !flake.rain { stir(&flake.velocity, at: flake.position, in: wake, dt: dt) }
+
+            // Harmonic ratios 2.3 and 1.3 stay continuous across the 20π wrap.
+            flake.phase += flake.swayRate * dt
+            if flake.phase > phaseWrap { flake.phase -= phaseWrap }
+            if flake.tintAmount > 0 { flake.tintAmount = max(0, flake.tintAmount - dt * 1.3) }
+            let previousY = flake.position.y
+            flake.position += motion(of: flake) * dt
+
+            if flake.blown != 0 && crossed(flake.position) {
+                strays.append(StraySnow(piece: .flake(flake)))
+                removeFlake(i)
+                i -= 1
+                continue
+            }
+            if flake.blown != 0 && (flake.position.x < -30 || flake.position.x > width + 30) {
+                removeFlake(i)
+                i -= 1
+                continue
+            }
+            if flake.position.x < -30 {
+                flake.position.x += width + 60
+            } else if flake.position.x > width + 30 {
+                flake.position.x -= width + 60
+            }
+
+            if flake.settles && (accumulates || flake.rain) && flake.blown == 0 {
+                let hit = landing(x: flake.position.x, from: previousY, to: flake.position.y, here: !crossed(flake.position), ground: groundSettles || flake.rain)
+                // Only snow is handed over: leaves and rain on a window kept by another display fall on past it.
+                if !flake.rain && flake.leaf == 0,
+                   landsOnBorrowed(below: hit, x: flake.position.x, from: previousY, to: flake.position.y, area: flake.size * flake.size * deposition * flake.mass) {
+                    recycle(i)
+                    i -= 1
+                    continue
+                }
+                if let hit {
+                    if flake.rain {
+                        splash(at: SIMD2(flake.position.x, hit.layer.surface(hit.index)), depth: flake.depth)
+                        if hit.layer !== ground {
+                            spray(hit.layer, from: flake.position.x, depth: flake.depth)
+                            if flake.water > 0 || random.next() < runShare {
+                                runDown(hit.layer, from: flake.position.x, water: flake.water)
+                            }
+                        }
+                        recycle(i)
+                        i -= 1
+                        continue
+                    }
+                    if snowfallHeld && flake.mass < 1 && hit.layer === ground {
+                        snowfallHeld = false
+                        snowfallReleased()
+                    }
+                    if flake.leaf > 0 {
+                        let petal = flake.kind == .blossom
+                        let bulk = hit.layer.fill(hit.index) > 0 ? flake.size * leafBulk : 0
+                        lay(size: flake.size, seed: flake.leaf, petal: petal, area: bulk, at: flake.position.x, on: hit.layer,
+                            turn: turn(of: flake),
+                            flip: isFlower(flake.leaf, petal: petal) ? flowerTilt(seed: flake.leaf, phase: flake.phase).face : tumble(flake.leaf),
+                            drift: flake.velocity.x)
+                    } else {
+                        hit.layer.deposit(flake.size * flake.size * deposition * flake.mass * hit.layer.fill(hit.index), at: flake.position.x, wide: true)
+                    }
+                    heightsChanged = true
+                    recycle(i)
+                    i -= 1
+                    continue
+                }
+            }
+            if flake.position.y < -flake.size * 2 {
+                recycle(i)
+                i -= 1
+                continue
+            }
+
+            flakes[i] = flake
+            i -= 1
+        }
+    }
+
+    /// The air a moving cursor drags along, which carries off what falls through it; nil while it is still.
+    private func cursorWake() -> (center: SIMD2<Float>, velocity: SIMD2<Float>)? {
+        guard let cursor else { return nil }
+        let speed = simd_length(cursorVelocity)
+        guard speed > 20 else { return nil }
+        return (cursor, speed > 500 ? cursorVelocity * (500 / speed) : cursorVelocity)
+    }
+
+    private func stir(_ velocity: inout SIMD2<Float>, at position: SIMD2<Float>, in wake: (center: SIMD2<Float>, velocity: SIMD2<Float>), dt: Float) {
+        let radius: Float = 80
+        let distanceSquared = simd_length_squared(position - wake.center)
+        guard distanceSquared < radius * radius else { return }
+        let falloff = 1 - distanceSquared.squareRoot() / radius
+        velocity += (wake.velocity - velocity) * min(1, falloff * falloff * 4 * dt)
+    }
+
+    private func advanceGrains(dt: Float) {
+        guard !grains.isEmpty else { return }
+        let wake = cursorWake()
+        let damping = exp(-grainDrag * dt)
+        let airDrag = exp(-3.2 * dt)
+        let wind = breeze() + slideWind
+        let time = Float(clock.truncatingRemainder(dividingBy: 1000))
+        var i = grains.count - 1
+        while i >= 0 {
+            var grain = grains[i]
+            if grain.stuck > 0 {
+                grain.stuck -= dt
+                grain.position.y -= 5 * dt
+                grains[i] = grain
+                i -= 1
+                continue
+            }
+            let previousY = grain.position.y
+            if grain.blown {
+                // Light powder: the wind keeps it moving toward the edge it was blown to, and it barely sinks.
+                let speed = grain.velocity.x < 0 ? -gustWind * 1.6 : gustWind * 1.6
+                grain.velocity.x += (speed - grain.velocity.x) * min(1, dt * 2)
+                grain.velocity.y -= gravity * 0.08 * dt
+            } else if grain.kind.leafy {
+                // A leaf catches the air: flung up, it soon loses its speed and flutters down, swinging from side to side.
+                let phase = time * (1.2 + grain.seed) + grain.seed * 40
+                let fall = (35 + 30 * grain.seed) * (0.3 + 1.1 * abs(cos(phase)))
+                grain.velocity.x = (grain.velocity.x - wind) * airDrag + wind
+                grain.velocity.y = (grain.velocity.y + fall) * airDrag - fall
+                // Leaves falling off a window or swept out of a heap ride the cursor's wake as the falling ones do.
+                if let wake, !grain.bulk { stir(&grain.velocity, at: grain.position, in: wake, dt: dt) }
+                // As wide as a falling leaf's swing: tossed up, it glides off to one side and back as it comes down.
+                grain.position.x += cos(phase) * 60 * dt
+            } else {
+                grain.velocity.y -= gravity * dt
+                grain.velocity *= damping
+            }
+            grain.position += grain.velocity * dt
+            let hit = grain.blown || grain.velocity.y > 0 ? nil : landing(x: grain.position.x, from: previousY, to: grain.position.y, here: !crossed(grain.position), ground: groundSettles)
+
+            if grain.position.y >= -10 && crossed(grain.position) {
+                strays.append(StraySnow(piece: .grain(grain)))
+                removeGrain(i)
+            } else if grain.position.x < -10 || grain.position.x > width + 10 || grain.position.y < -10 {
+                removeGrain(i)
+            } else if !grain.blown, !grain.kind.leafy, grain.velocity.y <= 0, landsOnBorrowed(below: hit, x: grain.position.x, from: previousY, to: grain.position.y, area: grain.area) {
+                removeGrain(i)
+            } else if let hit {
+                if grain.lump > 0 {
+                    burst(grain, into: hit.layer)
+                    heightsChanged = true
+                    removeGrain(i)
+                    i -= 1
+                    continue
+                }
+                if grain.kind.leafy && !grain.bulk && hit.layer.agitation > leafShaking {
+                    // A shaken window lets no leaf settle: it hops off again the way the window goes, and so works
+                    // its way off the edges.
+                    grain.position.y = hit.layer.surface(hit.index) + 1
+                    let window = hit.layer.trackVelocity
+                    grain.velocity = SIMD2(window.x * random.range(0.6, 1) + random.range(-120, 120), random.range(80, 180) + max(window.y, 0) * random.range(0.6, 1))
+                    grains[i] = grain
+                    i -= 1
+                    continue
+                }
+                if grain.kind.leafy && !grain.bulk {
+                    lay(size: grain.size >= 5.5 ? grain.size : 6 + grain.seed * 4.5, seed: grain.seed, petal: grain.kind == .blossom, area: grain.area,
+                        at: grain.position.x, on: hit.layer, turn: turn(of: grain), flip: tumble(grain.seed), drift: grain.velocity.x)
+                    removeGrain(i)
+                    i -= 1
+                    continue
+                }
+                let missed = hit.layer.deposit(grain.area, at: grain.position.x, wide: true, blend: grain.kind.blend)
+                dropPast(hit.layer, missed, near: grain.position.x, velocity: grain.velocity.x * 0.5, blend: grain.kind.blend)
+                heightsChanged = true
+                removeGrain(i)
+            } else {
+                grains[i] = grain
+            }
+            i -= 1
+        }
+    }
+
+    private func advanceMotes(dt: Float) {
+        guard !motes.isEmpty else { return }
+        let damping = exp(-3.2 * dt)
+        let drift = windSpeed() * 0.4
+        var i = motes.count - 1
+        while i >= 0 {
+            var mote = motes[i]
+            mote.age += dt
+            if mote.age >= mote.life {
+                motes.swapAt(i, motes.count - 1)
+                motes.removeLast()
+            } else {
+                mote.velocity.y -= 35 * dt
+                mote.velocity *= damping
+                mote.position += (mote.velocity + SIMD2(drift, 0)) * dt
+                motes[i] = mote
+            }
+            i -= 1
+        }
+    }
+
+    /// On Halloween a ghost grows out of a drift now and then; the cursor's touch crumbles it back into snow.
+    private func haunt(dt: Float) {
+        dropSigns(dt: dt)
+        throwSnowballs(dt: dt)
+        if halloween, gust == nil, nextMode == nil, clock >= nextGhost {
+            nextGhost = clock + Double(ghosts.count >= 3 || raiseGhost() ? random.range(20, 40) : 5)
+        }
+        var i = ghosts.count - 1
+        while i >= 0 {
+            var ghost = ghosts[i]
+            ghost.age += dt
+            var gone = !layers.contains { $0 === ghost.layer }
+            if !gone, covered(ghost) {
+                // A window come in front of it: it ducks back into the drift, as the drift itself goes behind the window.
+                pour(&ghost, keeping: 0)
+                gone = true
+            } else if !gone, !(ghost.avenges && !ghost.threw), let cursor, touches(ghost, cursor) {
+                if let sign = sign(of: ghost) {
+                    fallingSigns.append((sign, SIMD2(random.range(-30, 30), 60), random.range(-2.5, 2.5), 0))
+                }
+                crumble(ghost, scared: true)
+                gone = true
+                scares += 1
+                if scares >= 3 {
+                    scares = 0
+                    revengeDue = true
+                    revengeAt = (ghost.layer, ghost.x)
+                    nextGhost = min(nextGhost, clock + 0.4)
+                }
+            } else if !gone {
+                gone = !advance(&ghost, dt: dt)
+                if !gone, !ghost.settling { gather(&ghost, to: ghost.size * ghost.size * 0.04 * ghost.height / 0.425) }
+            }
+            if gone {
+                ghosts.swapAt(i, ghosts.count - 1)
+                ghosts.removeLast()
+            } else {
+                ghosts[i] = ghost
+            }
+            i -= 1
+        }
+    }
+
+    /// Moves the ghost on through its stages; returns false once it has fallen apart.
+    private func advance(_ ghost: inout Ghost, dt: Float) -> Bool {
+        switch ghost.stage {
+        case .rising:
+            // Coming up again, or for revenge, it is quicker.
+            ghost.form = min(1, ghost.form + dt / (ghost.avenges ? 1.2 : ghost.surfaced == 0 ? 3 : 2))
+            if ghost.form > 0, ghost.form < 1, random.next() < dt * 12 { stir(ghost) }
+            if ghost.form >= 1 {
+                ghost.surfaced += 1
+                let first = ghost.surfaced == 1
+                ghost.standAt = ghost.age
+                ghost.stage = .standing(until: ghost.age + (ghost.avenges ? 3 : first ? random.range(4, 6.5) : random.range(2.5, 3.5)))
+                ghost.nextBoo = ghost.age + (first ? random.range(0.6, 2) : 0.3)
+            }
+        case .standing(let until):
+            if ghost.avenges {
+                avenge(&ghost)
+            } else if ghost.age - ghost.booAt > 2.5, ghost.holding == 0, ghost.waving == 0 {
+                let near = cursor.map { simd_distance($0, placement(of: ghost).center) < ghost.size * 1.6 } ?? false
+                if near {
+                    ghost.booAt = ghost.age
+                } else if ghost.age >= ghost.nextBoo {
+                    let pick = random.next()
+                    if ghost.sign == nil, pick < 0.3 {
+                        ghost.sign = nextCaption()
+                        ghost.signAt = ghost.age
+                        ghost.stage = .standing(until: max(until, ghost.age + 4.8))
+                    } else if pick < 0.55 {
+                        ghost.waveAt = ghost.age
+                        ghost.stage = .standing(until: max(until, ghost.age + 3.2))
+                    } else if pick < 0.75 {
+                        ghost.dabAt = ghost.age
+                        ghost.stage = .standing(until: max(until, ghost.age + 2))
+                    } else {
+                        ghost.booAt = ghost.age
+                    }
+                    ghost.nextBoo = ghost.age + random.range(3, 6)
+                }
+            }
+            guard ghost.age >= until else { break }
+            if ghost.returns, let target = creepTarget(for: ghost) {
+                ghost.returns = false
+                ghost.stage = .sinking(toward: target)
+            } else {
+                ghost.stage = .settling
+            }
+        case .sinking(let target):
+            ghost.form = max(0.22, ghost.form - dt / 2.5)
+            if ghost.form <= 0.22 { ghost.stage = .creeping(to: target) }
+        case .creeping(let target):
+            let left = target - ghost.x
+            ghost.x += min(abs(left), 70 * dt) * (left < 0 ? -1 : 1)
+            if random.next() < dt * 14 { stir(ghost) }
+            if abs(target - ghost.x) < 0.01 {
+                level(under: ghost)
+                ghost.stage = .rising
+            }
+        case .settling:
+            ghost.form = max(0, ghost.form - dt / 2)
+            pour(&ghost, keeping: ghost.form > 0 ? ghost.size * ghost.size * 0.04 * ghost.height / 0.425 : 0)
+            if ghost.form > 0, random.next() < dt * 6 { stir(ghost) }
+            return ghost.form > 0
+        }
+        return true
+    }
+
+    /// Lets the snow it holds beyond `keeping` down onto the drift where it stands, heaped up in the middle.
+    private func pour(_ ghost: inout Ghost, keeping: Float) {
+        let amount = ghost.taken - keeping
+        guard amount > 0.01 else { return }
+        let layer = ghost.layer
+        let reach = ghost.reach
+        let under = max(ghost.column - reach, 0)...min(ghost.column + reach, layer.count - 1)
+        let weights = under.map { j -> Float in
+            let off = Float(j - ghost.column) / Float(reach)
+            return max(0, 1 - off * off)
+        }
+        let total = weights.reduce(0, +) * layer.columnWidth
+        guard total > 0 else { return }
+        for (j, weight) in zip(under, weights) { layer.set(j, layer.heights[j] + amount * weight / total) }
+        ghost.taken = keeping
+        heightsChanged = true
+    }
+
+    private func nextCaption() -> Int {
+        var caption = Int(random.next() * Float(HalloweenSign.captions.count - 1))
+        if caption >= lastCaption, lastCaption >= 0 { caption += 1 }
+        lastCaption = min(caption, HalloweenSign.captions.count - 1)
+        return lastCaption
+    }
+
+    /// The sign the ghost holds up, its stick in the raised paw, rising out of the snow beside it as it is pulled up.
+    private func sign(of ghost: Ghost) -> SignSprite? {
+        guard let caption = ghost.sign, ghost.signUp > 0 else { return nil }
+        let (ground, center) = placement(of: ghost)
+        // The paw's tip when raised to hold it, in the ghost's own coordinates.
+        let paw = paw(of: ghost, at: 0.35)
+        return SignSprite(
+            caption: caption,
+            anchor: paw - SIMD2(0, (1 - ghost.signUp) * 100),
+            angle: -0.1 + 0.05 * sin(ghost.age * 2.3 + ghost.seed * 5),
+            ground: ground
+        )
+    }
+
+    private func dropSigns(dt: Float) {
+        var i = fallingSigns.count - 1
+        while i >= 0 {
+            fallingSigns[i].age += dt
+            fallingSigns[i].velocity.y -= 900 * dt
+            fallingSigns[i].sign.anchor += fallingSigns[i].velocity * dt
+            fallingSigns[i].sign.angle += fallingSigns[i].spin * dt
+            if fallingSigns[i].age > 1.5 { fallingSigns.remove(at: i) }
+            i -= 1
+        }
+    }
+
+    /// Picks a deep enough stretch of drift clear of other ghosts and levels the snow it will rise out of.
+    private func raiseGhost() -> Bool {
+        let size = random.range(56, 76)
+        if revengeDue, let spot = revengeAt {
+            revengeAt = nil
+            let reach = Int((size * 0.4 / spot.layer.columnWidth).rounded(.up))
+            let column = spot.layer.clampedIndex(at: spot.layer.base.x + spot.x)
+            if layers.contains(where: { $0 === spot.layer }), column >= reach * 3, column < spot.layer.count - reach * 3,
+               spot.layer.visible[column], onScreen(spot.layer, from: column, to: column) {
+                let ghost = Ghost(layer: spot.layer, x: spot.x, size: size, seed: random.next(), returns: false, avenges: true)
+                level(under: ghost)
+                ghosts.append(ghost)
+                revengeDue = false
+                return true
+            }
+        }
+        let candidates = layers.filter { !$0.isDock }
+        guard !candidates.isEmpty else { return false }
+        for _ in 0..<16 {
+            let layer = candidates[min(Int(random.next() * Float(candidates.count)), candidates.count - 1)]
+            let reach = Int((size * 0.4 / layer.columnWidth).rounded(.up))
+            let room = layer.count - reach * 6
+            guard room > 1 else { continue }
+            let column = reach * 3 + min(Int(random.next() * Float(room)), room - 1)
+            guard layer.heights[column] > 6, ((column - reach)...(column + reach)).allSatisfy({ layer.visible[$0] }),
+                  onScreen(layer, from: column - reach, to: column + reach),
+                  !ghosts.contains(where: { $0.layer === layer && abs($0.column - column) < reach * 4 })
+            else { continue }
+            let ghost = Ghost(
+                layer: layer,
+                x: (Float(column) + 0.5) * layer.columnWidth,
+                size: size,
+                seed: random.next(),
+                returns: !revengeDue && random.next() < 0.5,
+                avenges: revengeDue
+            )
+            guard !covered(ghost) else { continue }
+            revengeDue = false
+            level(under: ghost)
+            ghosts.append(ghost)
+            return true
+        }
+        return false
+    }
+
+    /// Evens out the snow the ghost will rise out of, flat under its middle and easing into the drift either side.
+    private func level(under ghost: Ghost) {
+        let layer = ghost.layer
+        let under = max(ghost.column - ghost.reach, 0)...min(ghost.column + ghost.reach, layer.count - 1)
+        let weights = under.map { 1 - smoothstep(0.5, 1, Float(abs($0 - ghost.column)) / Float(ghost.reach)) }
+        let total = weights.reduce(0, +)
+        guard total > 0 else { return }
+        // Their weighted mean, so evening them out neither adds snow nor takes it.
+        let level = zip(under, weights).reduce(0) { $0 + layer.heights[$1.0] * $1.1 } / total
+        for (j, weight) in zip(under, weights) { layer.set(j, layer.heights[j] + (level - layer.heights[j]) * weight) }
+        heightsChanged = true
+    }
+
+    /// Somewhere a little way along the drift to come up again, through snow deep enough to creep under all the way.
+    private func creepTarget(for ghost: Ghost) -> Float? {
+        let layer = ghost.layer
+        let reach = ghost.reach
+        let distance = random.range(60, 160)
+        let first: Float = random.next() < 0.5 ? -1 : 1
+        for direction in [first, -first] {
+            let target = ghost.x + direction * distance
+            let to = Int(target / layer.columnWidth)
+            guard to >= reach * 3, to < layer.count - reach * 3,
+                  (min(ghost.column, to)...max(ghost.column, to)).allSatisfy({ layer.visible[$0] && layer.heights[$0] > 4 }),
+                  onScreen(layer, from: to - reach, to: to + reach),
+                  !ghosts.contains(where: { $0.layer === layer && $0.x != ghost.x && abs($0.column - to) < reach * 4 })
+            else { continue }
+            return (Float(to) + 0.5) * layer.columnWidth
+        }
+        return nil
+    }
+
+    /// Where a ghost stands: the drift's surface below it, and the middle of its sprite.
+    private func placement(of ghost: Ghost) -> (ground: Float, center: SIMD2<Float>) {
+        let ground = ghost.layer.surface(ghost.column)
+        // Its head's top lies 0.39 of its size above the middle, and stands 0.425 above the drift once formed.
+        return (ground, SIMD2(ghost.layer.base.x + ghost.x, ground + ghost.size * 0.035))
+    }
+
+    /// Whether a window in front of its drift reaches over where the ghost stands, its paws spread or its sign held up.
+    private func covered(_ ghost: Ghost) -> Bool {
+        let (ground, center) = placement(of: ghost)
+        var area = SIMD4(center.x - ghost.size * 0.4, ground - 2, center.x + ghost.size * 0.4, ground + ghost.size * 0.45)
+        if ghost.sign != nil, ghost.holding > 0 {
+            let paw = paw(of: ghost, at: 0.35)
+            area = SIMD4(min(area.x, paw.x - 30), area.y, max(area.z, paw.x + 30), max(area.w, paw.y + 60))
+        }
+        return ghost.layer.occluders.contains { $0.x < area.z && $0.z > area.x && $0.y < area.w && $0.w > area.y }
+    }
+
+    /// The tip of its right paw, held out at `angle`.
+    private func paw(of ghost: Ghost, at angle: Float) -> SIMD2<Float> {
+        placement(of: ghost).center + SIMD2(0.17 + 0.17 * cos(angle), 0.1 + 0.17 * sin(angle)) * ghost.size
+    }
+
+    /// Winds up and throws a snowball anywhere at the screen, then says boo.
+    private func avenge(_ ghost: inout Ghost) {
+        let since = ghost.age - ghost.standAt
+        if !ghost.threw, since >= 1.06 {
+            ghost.threw = true
+            let target = SIMD2(random.range(0.15, 0.85) * width, random.range(0.35, 0.85) * height)
+            snowballs.append((paw(of: ghost, at: 0.6), target, 0))
+        }
+        if ghost.threw, ghost.booAt < ghost.standAt, since >= 2 { ghost.booAt = ghost.age }
+    }
+
+    /// Snowballs fly at the screen and burst against it.
+    private func throwSnowballs(dt: Float) {
+        var i = snowballs.count - 1
+        while i >= 0 {
+            snowballs[i].age += dt
+            if snowballs[i].age >= 0.5 {
+                shatter(at: snowballs[i].to)
+                snowballs.remove(at: i)
+            }
+            i -= 1
+        }
+    }
+
+    /// A snowball smacking into the screen: the scene jolts, the snowfall around is blown back, and the snow
+    /// flattens against the glass and clings there a moment, crumbling from its edge, while the rest flies apart.
+    private func shatter(at point: SIMD2<Float>) {
+        hitAt = clock
+        for i in flakes.indices {
+            let away = flakes[i].position - point
+            let distance = simd_length(away)
+            if distance > 1, distance < 300 { flakes[i].velocity += away / distance * (1 - distance / 300) * 900 }
+        }
+        let reach: Float = 65
+        for _ in 0..<360 where grains.count < maxGrains {
+            let angle = random.range(0, 2 * .pi)
+            let out = sqrt(random.next())
+            let ragged = 1 + 0.18 * sin(angle * 5 + 1.3) + 0.1 * sin(angle * 9)
+            grains.append(Grain(
+                position: point + SIMD2(cos(angle), sin(angle) * 0.85) * out * reach * ragged,
+                velocity: .zero,
+                area: 0.7,
+                size: random.range(2.4, 4.4),
+                stuck: 0.5 + (1 - out) * 1.6 + random.range(0, 0.4)
+            ))
+        }
+        for _ in 0..<90 where grains.count < maxGrains {
+            let angle = random.range(0, 2 * .pi)
+            let direction = SIMD2(cos(angle), sin(angle))
+            grains.append(Grain(
+                position: point + direction * random.range(reach * 0.6, reach),
+                velocity: direction * random.range(150, 600) + SIMD2(0, 120),
+                area: random.range(0.6, 1.4),
+                size: random.range(1.4, 3.2)
+            ))
+        }
+        for _ in 0..<5 {
+            let angle = random.range(0, 2 * .pi)
+            throwLump(random.range(6, 12), at: point + SIMD2(cos(angle), sin(angle)) * reach * 0.8, velocity: SIMD2(cos(angle), sin(angle)) * random.range(150, 350) + SIMD2(0, 150))
+        }
+        for _ in 0..<24 where motes.count < maxMotes {
+            let angle = random.range(0, 2 * .pi)
+            let direction = SIMD2(cos(angle), sin(angle))
+            motes.append(Mote(
+                position: point + direction * random.range(0, reach),
+                velocity: direction * random.range(60, 220),
+                size: random.range(20, 45),
+                alpha: random.range(0.12, 0.22),
+                life: random.range(0.8, 1.6)
+            ))
+        }
+    }
+
+    private func touches(_ ghost: Ghost, _ point: SIMD2<Float>) -> Bool {
+        let (ground, center) = placement(of: ghost)
+        let top = ground + ghost.height * ghost.size
+        return ghost.form > 0.3 && abs(point.x - center.x) < ghost.size * 0.3 && point.y > ground && point.y < top
+    }
+
+    /// Draws snow out of the drift around the ghost, leaving what it stands in, or gives it back, until it holds `target`.
+    private func gather(_ ghost: inout Ghost, to target: Float) {
+        let delta = target - ghost.taken
+        guard abs(delta) > 0.01 else { return }
+        let layer = ghost.layer
+        let reach = ghost.reach
+        let ring = Array(max(ghost.column - reach * 3, 0)..<max(ghost.column - reach, 0))
+            + Array(min(ghost.column + reach + 1, layer.count)..<min(ghost.column + reach * 3 + 1, layer.count))
+        guard !ring.isEmpty else { return }
+        // Most from the middle of the stretch either side, none at its ends, so the drift dips without steps.
+        let weights = ring.map { sin(Float(abs($0 - ghost.column) - reach) / Float(reach * 2) * .pi) }
+        let total = weights.reduce(0, +) * layer.columnWidth
+        guard total > 0 else { return }
+        var moved: Float = 0
+        for (j, weight) in zip(ring, weights) {
+            let height = layer.heights[j]
+            let each = delta * weight / total
+            let change = delta > 0 ? min(each, height * 0.5) : each
+            layer.set(j, height - change)
+            moved += change * layer.columnWidth
+        }
+        ghost.taken += moved
+        heightsChanged = true
+    }
+
+    /// A little powder kicked up where the ghost breaks the drift's surface.
+    private func stir(_ ghost: Ghost) {
+        guard motes.count < maxMotes else { return }
+        let (ground, center) = placement(of: ghost)
+        let side: Float = random.next() < 0.5 ? -1 : 1
+        motes.append(Mote(
+            position: SIMD2(center.x + side * ghost.size * random.range(0.15, 0.3), ground),
+            velocity: SIMD2(side * random.range(10, 50), random.range(15, 60)),
+            size: random.range(6, 12),
+            alpha: random.range(0.08, 0.14),
+            life: random.range(0.6, 1.2)
+        ))
+    }
+
+    /// The ghost falls apart into the snow it was made of, which heaps up on the drift where it stood:
+    /// it slumps straight down when it goes of itself, and bursts a little when scared.
+    private func crumble(_ ghost: Ghost, scared: Bool) {
+        let (ground, center) = placement(of: ghost)
+        let height = ghost.height * ghost.size
+        var left = ghost.taken
+        while left > 0.3, grains.count < maxGrains {
+            let area = min(left, random.range(0.6, 1.6))
+            left -= area
+            let up = random.next()
+            let half = ghost.size * (0.12 + 0.18 * (1 - up))
+            grains.append(Grain(
+                position: SIMD2(center.x + random.range(-half, half), ground + up * height),
+                velocity: scared ? SIMD2(random.range(-40, 40), random.range(-20, 90)) : SIMD2(random.range(-12, 12), random.range(-30, 10)),
+                area: area,
+                size: random.range(1.2, 2.6)
+            ))
+        }
+        if left > 0 { _ = ghost.layer.deposit(left, at: center.x, wide: true) }
+        for _ in 0..<(scared ? 10 : 5) where motes.count < maxMotes {
+            motes.append(Mote(
+                position: SIMD2(center.x + random.range(-0.25, 0.25) * ghost.size, ground + random.next() * height),
+                velocity: SIMD2(random.range(-60, 60), random.range(-10, 60)),
+                size: random.range(8, 16),
+                alpha: random.range(0.08, 0.15),
+                life: random.range(0.6, 1.3)
+            ))
+        }
+        heightsChanged = true
+    }
+
+    /// Turns the pieces into snowflakes that drift down and fade to white; together they leave a small drift.
+    func scatter(_ pieces: [ScatterPiece]) {
+        stirred()
+        scatteredUntil = clock + 8
+        for piece in pieces {
+            let depth = pow(random.next(), 0.7)
+            flakes.append(Flake(
+                position: piece.position,
+                velocity: piece.velocity,
+                fallSpeed: 70 + depth * 170 + random.range(0, 40),
+                size: 1.8 + depth * 2.6,
+                depth: depth,
+                alpha: 0.5 + depth * 0.45,
+                soft: 0.7 - depth * 0.4,
+                phase: random.range(0, phaseWrap),
+                swayRate: random.range(0.6, 1.8),
+                swayAmount: random.range(8, 24),
+                settles: true,
+                mass: 0.06,
+                tint: piece.color,
+                tintAmount: 1
+            ))
+        }
+    }
+
+    private func removeGrain(_ i: Int) {
+        grains.swapAt(i, grains.count - 1)
+        grains.removeLast()
+    }
+
+    /// A flake that has landed or left starts again at the top. Past the snowfall's target, only every target-th of
+    /// the count does, so the top of the screen thins to the new snowfall at once and the change comes down with it.
+    private func recycle(_ i: Int) {
+        let was = flakes[i].kind
+        // One of a kind no longer falling, such as a scattered window's, comes back as one that does.
+        let kind = modes.contains(was) ? was : modes[0]
+        if !holding && random.range(0, Float(airborne[kind.rawValue])) < Float(targets[kind.rawValue]) {
+            flakes[i] = makeFlake(kind: kind, y: height + random.range(4, 40))
+            airborne[was.rawValue] -= 1
+            airborne[kind.rawValue] += 1
+        } else {
+            removeFlake(i)
+            airborne[was.rawValue] -= 1
+        }
+    }
+
+    private func kindCounts() -> [Int] {
+        var counts = [Int](repeating: 0, count: Mode.allCases.count)
+        for flake in flakes { counts[flake.kind.rawValue] += 1 }
+        return counts
+    }
+
+    /// Of the kinds falling, one picked in proportion to how many of each should be.
+    private func pickKind() -> Mode {
+        guard modes.count > 1, targetFlakes > 0 else { return modes[0] }
+        var pick = random.next() * Float(targetFlakes)
+        for mode in modes {
+            pick -= Float(targets[mode.rawValue])
+            if pick < 0 { return mode }
+        }
+        return modes[modes.count - 1]
+    }
+
+    private func removeFlake(_ i: Int) {
+        flakes.swapAt(i, flakes.count - 1)
+        flakes.removeLast()
+    }
+
+    /// Flakes short of the target start above the screen, spread over a screen's height: they come in at the top at
+    /// the new rate from the first frame, and a heavier snowfall comes down the screen as a front. No new snow falls
+    /// until a gust has carried off the last flake, then the snowfall starts again from the top.
+    private func spawnFlakes() {
+        guard flakes.count < targetFlakes || modes.count > 1, !holding else { return }
+        let counts = kindCounts()
+        for mode in modes where counts[mode.rawValue] < targets[mode.rawValue] {
+            for _ in counts[mode.rawValue]..<targets[mode.rawValue] {
+                flakes.append(makeFlake(kind: mode, y: height + random.range(0, height)))
+            }
+        }
+    }
+
+    private func makeFlake(kind: Mode, y: Float) -> Flake {
+        if kind.leafy { return makeLeaf(y: y, petal: kind == .blossom) }
+        if kind == .rain { return makeRaindrop(y: y) }
+        let near = random.next() < 0.02
+        let depth = near ? 1 : pow(random.next(), 1.6)
+        let fallSpeed = near ? random.range(75, 100) : 16 + depth * 50 + random.range(0, 10)
+        return Flake(
+            position: SIMD2(random.range(-30, width + 30), y),
+            velocity: SIMD2(windSpeed() * (0.35 + 0.65 * depth), -fallSpeed),
+            fallSpeed: fallSpeed,
+            size: near ? random.range(8, 13) : 1.4 + depth * 4.4 + random.range(0, 1),
+            depth: depth,
+            alpha: near ? 0.28 : 0.4 + depth * 0.5,
+            soft: near ? 0.95 : 0.75 - depth * 0.45,
+            phase: random.range(0, phaseWrap),
+            swayRate: random.range(0.5, 1.4),
+            swayAmount: near ? random.range(10, 20) : random.range(4, 9) + depth * 10,
+            settles: !near
+        )
+    }
+
+    private func makeLeaf(y: Float, petal: Bool) -> Flake {
+        let depth = pow(random.next(), 1.2)
+        let fallSpeed = 24 + depth * 36 + random.range(0, 12)
+        return Flake(
+            position: SIMD2(random.range(-30, width + 30), y),
+            velocity: SIMD2(windSpeed() * (0.35 + 0.65 * depth), -fallSpeed),
+            fallSpeed: fallSpeed,
+            size: leafLength(depth: depth, petal: petal),
+            depth: depth,
+            alpha: 0.88 + depth * 0.12,
+            soft: 0,
+            phase: random.range(0, phaseWrap),
+            swayRate: random.range(1.1, 2.0),
+            swayAmount: random.range(26, 46) + depth * 20,
+            settles: true,
+            leaf: random.range(0.001, 1),
+            kind: petal ? .blossom : .autumn
+        )
+    }
+
+    /// A raindrop, drawn as the streak it leaves over the exposure: the nearer, the faster, longer and brighter.
+    private func makeRaindrop(y: Float) -> Flake {
+        let depth = pow(random.next(), 1.5)
+        let fallSpeed = 650 + depth * 550 + random.range(0, 80)
+        return Flake(
+            position: SIMD2(random.range(-30, width + 30), y),
+            velocity: SIMD2(windSpeed() * 3 * (0.35 + 0.65 * depth), -fallSpeed),
+            fallSpeed: fallSpeed,
+            size: 0.8 + depth * 0.9,
+            depth: depth,
+            alpha: 0.12 + depth * 0.22,
+            soft: 0.6,
+            phase: 0,
+            swayRate: 0,
+            swayAmount: 0,
+            settles: true,
+            kind: .rain
+        )
+    }
+
+    // MARK: - Rain
+
+    /// A raindrop bursting on a window's edge or the bottom of the screen throws up a droplet or two.
+    private func splash(at point: SIMD2<Float>, depth: Float) {
+        let count = 1 + Int(random.next() * (1 + depth * 2))
+        for _ in 0..<count where splashes.count < maxSplashes {
+            let angle = random.range(0.3, 1.2) * (random.next() < 0.5 ? -1 : 1)
+            let speed = random.range(45, 120) * (0.6 + 0.6 * depth)
+            splashes.append(Splash(
+                position: point,
+                velocity: SIMD2(sin(angle), cos(angle)) * speed,
+                size: random.range(0.8, 1.4) * (0.7 + 0.5 * depth),
+                alpha: 0.25 + 0.3 * depth,
+                life: random.range(0.2, 0.4)
+            ))
+        }
+    }
+
+    private func advanceSplashes(dt: Float) {
+        var i = splashes.count - 1
+        while i >= 0 {
+            splashes[i].age += dt
+            if splashes[i].age >= splashes[i].life {
+                splashes.swapAt(i, splashes.count - 1)
+                splashes.removeLast()
+            } else {
+                splashes[i].velocity.y -= rainGravity * dt
+                splashes[i].position += splashes[i].velocity * dt
+            }
+            i -= 1
+        }
+    }
+
+    /// Now and then rain caught on the top edge of a window or the Dock gathers into a drop that runs down its face.
+    private func runDown(_ ledge: SnowLayer, from x: Float, water: Float = 0) {
+        guard glassDrops.count < maxGlassDrops else { return }
+        let largest = largestRunning(on: ledge.face)
+        var radius: Float
+        if water > 0 {
+            radius = max(water, smallestRunning)
+        } else {
+            let u = random.next()
+            radius = random.next() < 0.1 ? random.range(3.8, 4.6) : 2.2 + 2.2 * u * u
+        }
+        radius = min(radius, largest)
+        // It gathers right under the edge: its top, once it has swelled to its size, at the edge.
+        let along = x - ledge.base.x, edge = -corner(of: ledge, at: x - ledge.base.x)
+        glassDrops.append(GlassDrop(
+            layer: ledge,
+            offset: SIMD2(along, edge - halfWidth(radius, still: false)),
+            face: ledge.face,
+            radius: radius,
+            slope: random.range(-0.12, 0.12),
+            spacing: trailSpacing(for: radius),
+            mark: SIMD2(along, edge),
+            seed: max(random.next(), 0.001)
+        ))
+    }
+
+    /// A drop runs down its window, hurrying over clean patches and hesitating on greasy ones, wandering a little
+    /// from side to side. It leaves a trail of beads behind and shrinks with each, until too little is left to run
+    /// and it holds still as a bead itself; beads dry up. A running drop swallows the beads in its way.
+    private func runGlassDrops(dt: Float) {
+        var i = glassDrops.count - 1
+        while i >= 0 {
+            var drop = glassDrops[i]
+            // Taken in by another drop since it last ran: nothing is left of it. Run on, it would take its water back.
+            if drop.radius <= 0 {
+                glassDrops.swapAt(i, glassDrops.count - 1)
+                glassDrops.removeLast()
+                i -= 1
+                continue
+            }
+            drop.age += dt
+            if !drop.hanging, let cursor, wipes(cursor, drop, dt: dt) {
+                if drop.radius >= 1 { smear(drop, to: cursor) }
+                drop.radius = 0
+            } else if shaken(drop, dt: dt) {
+                // It flies on as the window was going before the jerk.
+                let thrown = drop.layer.trackVelocity - drop.layer.jolt * dt
+                fall(drop, share: 1, below: drop.hanging ? drop.radius * glassScale : 0, thrown: thrown)
+                drop.radius = 0
+            } else if drop.hanging {
+                cling(&drop, index: i, dt: dt)
+            } else if drop.bead {
+                drop.radius -= beadDrying * dt
+            } else {
+                run(&drop, index: i, dt: dt)
+            }
+            let gone = drop.radius < (drop.bead ? 0.15 : 0.25) || (!drop.hanging && -drop.offset.y > drop.face) || drop.offset.x < 0 || drop.offset.x > drop.layer.width
+                || !layers.contains { $0 === drop.layer }
+            if gone {
+                glassDrops.swapAt(i, glassDrops.count - 1)
+                glassDrops.removeLast()
+            } else {
+                glassDrops[i] = drop
+            }
+            i -= 1
+        }
+    }
+
+    private func run(_ drop: inout GlassDrop, index: Int, dt: Float) {
+        let excess = max(drop.radius - 1.2, 0)
+        let pull = min(700, 60 + 45 * pow(excess, 1.4)) * grip(at: drop.offset)
+        if drop.held > 0 {
+            // Caught on a speck, its front holds while its water piles up behind it, until it breaks free with a lurch,
+            // leaving a lump of it behind where its rear was held.
+            drop.held -= dt
+            drop.speed *= max(0, 1 - dt * 25)
+            if drop.held <= 0 {
+                drop.speed = pull * 1.3
+                drop.jiggle = 0.12
+                drop.jolted = drop.age
+                leave(&drop, radius: drop.radius * random.range(0.22, 0.32), heading: simd_normalize(SIMD2(drop.slope, -1)))
+            }
+        } else {
+            drop.speed += (pull - drop.speed) * min(1, dt * 5)
+        }
+        // A window dragged along under it leaves it trailing a little behind; its own wandering stays within less.
+        let trail = -drop.layer.trackVelocity.x * 0.0006
+        let wander = (drop.slope + (random.range(-1, 1) * 1.6 + trail) * dt) * (1 - dt * 0.8)
+        drop.slope = min(max(wander, -0.45), 0.45)
+        let heading = simd_normalize(SIMD2(drop.slope, -1))
+        let advance = drop.speed * dt
+        let from = drop.offset
+        drop.offset += SIMD2(drop.slope, -1) * advance
+        gather(&drop, from: from)
+        catches(&drop)
+
+        // The film behind it breaks up into beads at no even pace: mostly small, now and then a big one, bunched up in
+        // places and gone for a stretch in others. A fast drop leaves fewer and smaller, its film too thin for more.
+        drop.travelled += advance
+        if drop.travelled >= drop.spacing {
+            drop.travelled = 0
+            let haste = smoothstep(80, 450, drop.speed)
+            drop.spacing = trailSpacing(for: drop.radius) * (1 + 0.6 * haste)
+            if random.next() < 0.9 {
+                let kind = random.next()
+                let share = kind < 0.2 ? random.range(0.06, 0.12) : kind < 0.9 ? random.range(0.13, 0.24) : random.range(0.26, 0.34)
+                leave(&drop, radius: drop.radius * share * (1.2 - 0.5 * haste), heading: heading)
+            }
+        }
+
+        // What lies ahead on the same window joins it; its own trail is behind it.
+        var hanging: GlassDrop?
+        for j in glassDrops.indices where j != index && glassDrops[j].layer === drop.layer && glassDrops[j].radius > 0 {
+            let offset = glassDrops[j].offset - drop.offset
+            guard simd_dot(offset, heading) > -drop.radius * 0.2, simd_length(offset) < (drop.radius + glassDrops[j].radius) * 0.9 else { continue }
+            let other = glassDrops[j]
+            if other.hanging { hanging = other }
+            // Joined, the water gathers round the middle of the two and runs on as one: it sets the other's water moving,
+            // or carries on with it if it was running too, and the drop turns a little its way.
+            let area = drop.radius * drop.radius, added = other.radius * other.radius
+            drop.offset += offset * added / (area + added)
+            drop.jiggle = min(0.25, 0.6 * added / (area + added))
+            drop.jolted = drop.age
+            drop.speed = (drop.speed * area + (other.bead || other.hanging ? 0 : other.speed) * added) / (area + added)
+            drop.slope = min(max(drop.slope + offset.x / (drop.radius + other.radius) * added / (area + added) * turning, -0.45), 0.45)
+            drop.radius = min((area + added).squareRoot(), largestDrop)
+            glassDrops[j].radius = 0
+        }
+        // Run into a drop hanging under the edge, it flows down into it.
+        if let hanging {
+            drop.offset = hanging.offset
+            hang(&drop, fill: hanging.fill)
+        } else if -drop.offset.y >= bottom(of: drop) {
+            hang(&drop, fill: 0.35)
+        } else if drop.radius < smallestRunning {
+            drop.bead = true
+        }
+        // Behind it the glass stays wet: a film down to where it is now, or to where it came to rest.
+        let stopped = drop.hanging || drop.bead
+        if simd_distance(drop.mark, drop.offset) >= (stopped ? 0.5 : filmPiece) {
+            let width = halfWidth(drop.radius, still: false) * 2 * filmShare
+            if ledgeList.reduce(0, { $0 + $1.film.count }) < maxFilm {
+                drop.layer.film.append((drop.mark, drop.offset, width, 0, random.range(filmLife.lowerBound, filmLife.upperBound)))
+            }
+            drop.mark = drop.offset
+        }
+    }
+
+    /// Rain bursting on a window's top edge spatters its face with spray: most right under the edge, less and less
+    /// further down. A droplet landing on one already there runs together with it; on a window with all the spray it
+    /// holds, it takes the place of another.
+    private func spray(_ ledge: SnowLayer, from x: Float, depth: Float) {
+        let count = Int(random.next() * (4 + 16 * depth))
+        guard count > 0 else { return }
+        let deepest = min(sprayDeepest, ledge.face * 0.4)
+        let room = ledgeList.reduce(0) { $0 + $1.spray.count } < maxSpray && Float(ledge.spray.count) < ledge.width * sprayAlong
+        for _ in 0..<count {
+            let along = x - ledge.base.x + random.range(-1, 1) * (8 + 16 * depth)
+            let below = -log(1 - random.next() * 0.999) * sprayReach
+            guard along > 2, along < ledge.width - 2, below < deepest else { continue }
+            let u = random.next()
+            let radius = 0.3 + 0.5 * u * u
+            let offset = SIMD2(along, -corner(of: ledge, at: along) - below - radius * glassScale)
+            if let j = ledge.spray.firstIndex(where: { simd_distance($0.offset, offset) < ($0.radius + radius) * glassScale }) {
+                let area = ledge.spray[j].radius * ledge.spray[j].radius, added = radius * radius
+                ledge.spray[j].offset = (ledge.spray[j].offset * area + offset * added) / (area + added)
+                ledge.spray[j].radius = min((area + added).squareRoot(), largestSpray)
+            } else if room {
+                ledge.spray.append((offset, radius))
+            } else if !ledge.spray.isEmpty {
+                ledge.spray[Int(random.next() * Float(ledge.spray.count)) % ledge.spray.count] = (offset, radius)
+            }
+        }
+    }
+
+    /// Spray in a running drop's way joins it as the drop touches it: the drop takes in its water and gathers round
+    /// the middle of it all, so it lurches toward where it joined, slows for the moment it takes to set the water
+    /// moving, and turns a little that way. The more water it gathers, the faster it runs; behind it the glass is
+    /// clear.
+    private func gather(_ drop: inout GlassDrop, from: SIMD2<Float>) {
+        let layer = drop.layer
+        let reach = halfWidth(drop.radius, still: false)
+        guard -drop.offset.y - reach < sprayDeepest + 2, !layer.spray.isEmpty else { return }
+        let path = drop.offset - from
+        let length = max(simd_length_squared(path), 0.0001)
+        let start = drop.radius * drop.radius
+        var area = start
+        var turn: Float = 0
+        var shift: Float = 0
+        layer.spray.removeAll { droplet in
+            let along = min(max(simd_dot(droplet.offset - from, path) / length, 0), 1)
+            let toward = droplet.offset - (from + path * along)
+            guard simd_length(toward) < reach + droplet.radius * glassScale * 0.5 else { return false }
+            let added = droplet.radius * droplet.radius * sprayKept
+            turn += toward.x / reach * added
+            shift += toward.x * added
+            area += added
+            return true
+        }
+        guard area > start else { return }
+        drop.offset.x += shift / area
+        drop.speed *= start / area
+        drop.slope = min(max(drop.slope + turn / area * turning, -0.45), 0.45)
+        drop.radius = max(drop.radius, min(area.squareRoot(), largestRunning(on: layer.face)))
+    }
+
+    /// A running drop come onto a patch of glass with a speck of dust or grease on it is caught there for a moment:
+    /// the smaller the drop, the longer.
+    private func catches(_ drop: inout GlassDrop) {
+        let patch = SIMD2<Int32>(Int32((drop.offset.x / speckSpacing).rounded(.down)), Int32((drop.offset.y / speckSpacing).rounded(.down)))
+        guard patch != drop.patch else { return }
+        drop.patch = patch
+        var n = UInt32(bitPattern: patch.x) &* 2_654_435_761 &+ UInt32(bitPattern: patch.y) &* 2_246_822_519
+        n = (n ^ (n >> 15)) &* 3_266_489_917
+        let speck = Float((n ^ (n >> 13)) & 0xFFFF) / 65536
+        guard speck < speckShare else { return }
+        let hold = speck / speckShare * 0.5 * pow(heavyHanging / drop.radius, 2)
+        if hold > 0.05 { drop.held = min(hold, 0.7) }
+    }
+
+    /// The biggest drop a window's face takes running down it: a short one, like the Dock's, smaller ones, or the
+    /// biggest would loom over it.
+    private func largestRunning(on face: Float) -> Float {
+        min(max(face / 32, heavyHanging), 4.6)
+    }
+
+    /// Spray dries up slowly in the rain and soon once it stops, a running drop's film in a few seconds, and both fast
+    /// once the rain stops. The cursor moving over the glass wipes them off where it passes, as a finger would.
+    private func tendGlass(dt: Float) {
+        let hurry: Float = raining ? 1 : 12
+        let wiping = cursor.flatMap { point in simd_length(cursorVelocity) > 40 ? (from: point - cursorVelocity * dt, to: point) : nil }
+        let reach = cursorRadius * 0.8
+        for ledge in ledgeList where !ledge.spray.isEmpty || !ledge.film.isEmpty {
+            let near = wiping.map { path in
+                min(path.from.y, path.to.y) - reach < ledge.base.y && max(path.from.y, path.to.y) + reach > ledge.base.y - ledge.face
+                    && min(path.from.x, path.to.x) - reach < ledge.base.x + ledge.width && max(path.from.x, path.to.x) + reach > ledge.base.x
+            } ?? false
+            let width = ledge.width, face = ledge.face, base = ledge.base, covers = ledge.faceOccluders
+            func off(_ offset: SIMD2<Float>) -> Bool {
+                offset.x < 0 || offset.x > width || -offset.y > face
+            }
+            func wiped(_ offset: SIMD2<Float>, by margin: Float) -> Bool {
+                guard near, let wiping else { return false }
+                let position = base + offset
+                let path = wiping.to - wiping.from
+                let along = min(max(simd_dot(position - wiping.from, path) / max(simd_length_squared(path), 0.0001), 0), 1)
+                return simd_distance(position, wiping.from + path * along) < reach + margin
+                    && !covers.contains { $0.x < position.x && $0.z > position.x && $0.y < position.y && $0.w > position.y }
+            }
+            var n = 0
+            for i in ledge.spray.indices {
+                var droplet = ledge.spray[i]
+                droplet.radius -= sprayDrying * dt * hurry
+                if droplet.radius >= 0.2 && !off(droplet.offset) && !wiped(droplet.offset, by: 0) {
+                    ledge.spray[n] = droplet
+                    n += 1
+                }
+            }
+            ledge.spray.removeLast(ledge.spray.count - n)
+            n = 0
+            for i in ledge.film.indices {
+                var piece = ledge.film[i]
+                piece.age += dt * hurry
+                let middle = (piece.from + piece.to) * 0.5
+                if piece.age < piece.life && !off(middle) && !wiped(middle, by: piece.width * 0.5) {
+                    ledge.film[n] = piece
+                    n += 1
+                }
+            }
+            ledge.film.removeLast(ledge.film.count - n)
+        }
+    }
+
+    /// How far along a hanging drop is, as the shader draws it: up to one it fills, from a flat cap under the edge to
+    /// a pear; from one to two it lets go.
+    private func hangingStage(of drop: GlassDrop) -> Float {
+        drop.fill + (drop.letsGo.isFinite ? smoothstep(drop.letsGo - pinching, drop.letsGo, drop.hung) : 0)
+    }
+
+    /// Run down to the window's bottom edge, a drop wraps round it and hangs under it, settling into the shape its
+    /// water makes there. Joining one already hanging there, it hangs as that one did.
+    private func hang(_ drop: inout GlassDrop, fill: Float) {
+        let speed = drop.speed
+        drop.hanging = true
+        drop.speed = 0
+        drop.slope = 0
+        drop.offset.y = -bottom(of: drop)
+        drop.hung = 0
+        drop.fill = fill
+        drop.letsGo = .infinity
+        // More water than the edge can hold runs straight on over it and falls; the edge keeps what it can.
+        if drop.radius > heavyHanging {
+            let kept = heavyHanging * 0.8
+            let share = 1 - (kept * kept) / (drop.radius * drop.radius)
+            fall(drop, share: share, below: drop.radius * glassScale, flick: SIMD2(0, -2 * max(speed, 150)))
+            drop.radius = kept
+        }
+    }
+
+    /// A hanging drop sags further the more water it holds. Heavy enough, it pinches off in an instant: the lower
+    /// part falls and a smaller drop stays on the edge to fill again. Until then it dries up slowly, and runs
+    /// together with any other hanging beside it close enough to touch.
+    private func cling(_ drop: inout GlassDrop, index: Int, dt: Float) {
+        drop.hung += dt
+        // Where the bottom edge rounds up into a corner, it is too steep to hang from: the drop runs along it, down
+        // to where it levels out.
+        let x = drop.offset.x
+        let steepness = (corner(of: drop.layer, at: x + 1) - corner(of: drop.layer, at: x - 1)) / 2
+        if abs(steepness) > 0.3 {
+            drop.offset.x += (steepness > 0 ? -1 : 1) * 70 * dt
+            drop.offset.y = -bottom(of: drop)
+        }
+        // The cursor brushing it knocks it off, all of it, flicked along the way the cursor goes.
+        if let cursor, touches(cursor, drop) {
+            fall(drop, share: 1, below: (0.6 + 1.2 * drop.fill) * drop.radius * glassScale, flick: cursorVelocity)
+            drop.radius = 0
+            return
+        }
+        // It stays a flat cap for most of its filling and sags only as it gets close to letting go.
+        let full = min(max((drop.radius - 1.4) / (heavyHanging - 1.4), 0), 1)
+        drop.fill += (full * full * full - drop.fill) * min(1, dt * 6)
+        if drop.letsGo.isFinite {
+            guard drop.hung >= drop.letsGo else { return }
+            fall(drop)
+            drop.radius *= (1 - fallingShare).squareRoot()
+            drop.letsGo = .infinity
+            return
+        }
+        if drop.radius >= heavyHanging {
+            drop.letsGo = drop.hung + pinching
+            return
+        }
+        drop.radius -= hangingDrying * dt
+        for j in glassDrops.indices where j != index && glassDrops[j].hanging && glassDrops[j].layer === drop.layer && glassDrops[j].radius > 0 {
+            let other = glassDrops[j]
+            let reach = (spread(of: drop) + spread(of: other)) * 0.7
+            guard abs(other.offset.x - drop.offset.x) < reach, other.letsGo.isInfinite else { continue }
+            let area = drop.radius * drop.radius, added = other.radius * other.radius
+            drop.offset.x = (drop.offset.x * area + other.offset.x * added) / (area + added)
+            drop.radius = min((area + added).squareRoot(), largestDrop)
+            drop.fill = max(drop.fill, other.fill)
+            glassDrops[j].radius = 0
+        }
+    }
+
+    /// Whether shaking its window back and forth shakes a drop off the glass this step: the harder the shaking and
+    /// the bigger the drop, the likelier. A single start or stop doesn't, nor a switch between Spaces.
+    private func shaken(_ drop: GlassDrop, dt: Float) -> Bool {
+        let layer = drop.layer
+        guard !layer.carried, clock - spaceChangedAt > 0.6 else { return false }
+        let hold = dropShaking * 2.4 / max(drop.radius, 0.3) * (drop.hanging ? 0.7 : 1)
+        guard layer.agitation > hold else { return false }
+        return random.next() < min(0.9, 0.3 * (layer.agitation - hold)) * dt * 10
+    }
+
+    /// Whether the cursor, moving over the glass, passed over a drop on it this step where it shows.
+    private func wipes(_ point: SIMD2<Float>, _ drop: GlassDrop, dt: Float) -> Bool {
+        // What it has just smeared out it passes on over.
+        guard simd_length(cursorVelocity) > 40, drop.age > 0.3 || !drop.bead else { return false }
+        let position = drop.layer.base + drop.offset
+        let from = point - cursorVelocity * dt
+        let path = point - from
+        let along = min(max(simd_dot(position - from, path) / max(simd_length_squared(path), 0.0001), 0), 1)
+        let reach = cursorRadius * 0.8 + max(drop.radius, 1.2) * glassScale
+        guard simd_distance(position, from + path * along) < reach else { return false }
+        return !drop.layer.faceOccluders.contains { $0.x < position.x && $0.z > position.x && $0.y < position.y && $0.w > position.y }
+    }
+
+    /// The cursor drags a drop's water along with it, up to where it is now, in a streak that at once beads up
+    /// into a line of droplets, biggest where the drop was; some of the water it takes away. The tiniest it just
+    /// wipes off.
+    private func smear(_ drop: GlassDrop, to point: SIMD2<Float>) {
+        let speed = simd_length(cursorVelocity)
+        let direction = cursorVelocity / speed
+        let across = SIMD2(-direction.y, direction.x)
+        let length = min(max(simd_dot(point - (drop.layer.base + drop.offset), direction), 6), 45)
+        let count = min(9, max(2, Int(length / 5)))
+        let spots = (0..<count).map { k in (Float(k) + random.range(0.2, 0.8)) / Float(count) }
+        let weights = spots.map { 1.15 - $0 }
+        let total = weights.reduce(0, +)
+        let water = drop.radius * drop.radius * 0.7
+        for (spot, weight) in zip(spots, weights) where glassDrops.count < maxGlassDrops {
+            glassDrops.append(GlassDrop(
+                layer: drop.layer,
+                offset: drop.offset + direction * length * spot + across * random.range(-1.2, 1.2),
+                face: drop.face,
+                radius: max(0.3, (water * weight / total).squareRoot()),
+                bead: true,
+                seed: max(random.next(), 0.001)
+            ))
+        }
+    }
+
+    /// How far the window's rounded corners bring its edges in at `x` along it: its top edge down, its bottom edge up.
+    private func corner(of layer: SnowLayer, at x: Float) -> Float {
+        let f = min(max(x / layer.columnWidth - 0.5, 0), Float(layer.count - 1))
+        let i = Int(f), j = min(i + 1, layer.count - 1)
+        return -(layer.bed[i] + (layer.bed[j] - layer.bed[i]) * (f - Float(i)))
+    }
+
+    /// How far below the window's top edge its bottom edge is, where a drop is on it.
+    private func bottom(of drop: GlassDrop) -> Float {
+        drop.face - corner(of: drop.layer, at: drop.offset.x)
+    }
+
+    /// Whether the cursor, at `point`, brushes a hanging drop where it shows.
+    private func touches(_ point: SIMD2<Float>, _ drop: GlassDrop) -> Bool {
+        let cling = drop.layer.base + drop.offset
+        let depth = (1 + 1.2 * drop.fill) * drop.radius * glassScale
+        guard abs(point.x - cling.x) < spread(of: drop) + cursorRadius * 0.7,
+              point.y < cling.y + cursorRadius * 0.5, point.y > cling.y - depth - cursorRadius else { return false }
+        return !drop.layer.faceOccluders.contains { $0.x < cling.x && $0.z > cling.x && $0.y < cling.y - 1 && $0.w > cling.y - 1 }
+    }
+
+    /// How far a hanging drop reaches along the edge each way, as the shader draws it.
+    private func spread(of drop: GlassDrop) -> Float {
+        (1.52 - 0.38 * min(drop.fill, 1)) * drop.radius * glassScale
+    }
+
+    /// The part of a hanging drop that lets go falls like any raindrop, to burst on whatever is below, and runs on down
+    /// a window it lands on.
+    private func fall(_ drop: GlassDrop, share: Float? = nil, below: Float? = nil, flick: SIMD2<Float> = .zero, thrown: SIMD2<Float>? = nil) {
+        let position = drop.layer.base + drop.offset - SIMD2(0, below ?? 2.6 * drop.radius * glassScale)
+        guard raining, position.y > 2 else { return }
+        var velocity = thrown ?? flick * 0.5
+        let speed = simd_length(velocity)
+        let fastest: Float = thrown == nil ? 600 : 1200
+        if speed > fastest { velocity *= fastest / speed }
+        // Free of the edge, it is falling fast within a few hundredths of a second.
+        flakes.append(Flake(
+            position: position,
+            velocity: velocity + SIMD2(0, thrown != nil ? -60 : flick == .zero ? -300 : -120),
+            fallSpeed: random.range(850, 1100),
+            size: 1.4 + drop.radius * (share ?? fallingShare).squareRoot() * 0.25,
+            depth: 1,
+            alpha: 0.45,
+            soft: 0.6,
+            phase: 0,
+            swayRate: 0,
+            swayAmount: 0,
+            settles: true,
+            kind: .rain,
+            water: drop.radius * (share ?? fallingShare).squareRoot()
+        ))
+    }
+
+    private func trailSpacing(for radius: Float) -> Float {
+        (2 - 4 * log(1 - random.next() * 0.98)) * radius / 4
+    }
+
+    /// A bead of `left` a running drop leaves behind it, from the rear of the drop, off to one side or the other.
+    private func leave(_ drop: inout GlassDrop, radius left: Float, heading: SIMD2<Float>) {
+        drop.radius = max(0, drop.radius * drop.radius - left * left).squareRoot()
+        guard glassDrops.count < maxGlassDrops, left >= 0.15 else { return }
+        let across = SIMD2(-heading.y, heading.x) * random.range(-0.4, 0.4) * halfWidth(drop.radius, still: false)
+        glassDrops.append(GlassDrop(
+            layer: drop.layer,
+            offset: drop.offset - heading * (drop.radius * 0.95 + left * 0.4) + across,
+            face: drop.face,
+            radius: left,
+            bead: true,
+            seed: max(random.next(), 0.001)
+        ))
+    }
+
+    /// How far a bead reaches each way as drawn: a small one bigger than its water, or it would be lost, the
+    /// smallest smaller still and a big one bigger, up to the size of a drop of its water.
+    private func beadWidth(_ radius: Float) -> Float {
+        max(radius, min(radius * 2.4, 1.2 + (radius - 0.5) * 0.5)) * glassScale * glassy
+    }
+
+    /// Clean and greasy patches on a window: drops hurry across some and hesitate on others.
+    private func grip(at point: SIMD2<Float>) -> Float {
+        let q = point * 0.045
+        let base = SIMD2(q.x.rounded(.down), q.y.rounded(.down))
+        let f = q - base
+        let u = f * f * (3 - 2 * f)
+        func hash(_ x: Float, _ y: Float) -> Float {
+            var n = UInt32(truncatingIfNeeded: Int(x)) &* 374_761_393 &+ UInt32(truncatingIfNeeded: Int(y)) &* 668_265_263
+            n = (n ^ (n >> 13)) &* 1_274_126_177
+            return Float(n & 0xFFFF) / 65535
+        }
+        let bottom = hash(base.x, base.y) + (hash(base.x + 1, base.y) - hash(base.x, base.y)) * u.x
+        let top = hash(base.x, base.y + 1) + (hash(base.x + 1, base.y + 1) - hash(base.x, base.y + 1)) * u.x
+        return 0.35 + 0.65 * (bottom + (top - bottom) * u.y)
+    }
+
+    private func windSpeed() -> Float {
+        breeze() + gustSpeed() + slideWind
+    }
+
+    private func breeze() -> Float {
+        let t = clock
+        return Float(10 * sin(t * 0.07) + 6 * sin(t * 0.19 + 1.7) + 3 * sin(t * 0.43 + 4.1))
+    }
+
+    private func gustSpeed() -> Float {
+        guard let gust, !gust.calm else { return 0 }
+        let age = Float(clock - gust.start)
+        return gust.direction * gustWind * smoothstep(0, 0.12, age) * (1 - smoothstep(0.9, gustLength, age))
+    }
+
+    /// In case none of the scattered snow makes it to the bottom, say because it all came to rest on windows.
+    private func releaseScattered() {
+        if snowfallHeld && scatteredUntil > 0 && clock > scatteredUntil {
+            snowfallHeld = false
+            snowfallReleased()
+        }
+    }
+
+    // MARK: - Gust
+
+    /// The way the breeze blows now: 1 to the right, -1 to the left.
+    var breezeDirection: Float { breeze() < 0 ? -1 : 1 }
+
+    /// Clears all the snow: a gust in `direction` lifts it off the ground and the windows and blows it off the screen,
+    /// or, `calm`, it melts away where it lies.
+    func blowAway(direction: Float, calm: Bool) {
+        gust = (clock, direction < 0 ? -1 : 1, calm)
+        // Snow kept for windows on other Spaces goes too, out of sight.
+        dormant.removeAll()
+        for entry in parking {
+            for i in 0..<entry.ledge.count { entry.ledge.set(i, 0) }
+        }
+    }
+
+    /// Clears the screen first and lets the other kinds fall only after, from the top. Another kind only joining what
+    /// falls already starts falling at once, with nothing to clear.
+    func switchMode(to modes: [Mode], direction: Float, calm: Bool) {
+        guard modes != self.modes else {
+            nextMode = nil
+            return
+        }
+        // Already clearing for another mode: the gust under way clears it for this one.
+        guard nextMode == nil else {
+            nextMode = modes
+            return
+        }
+        if Set(self.modes).isSubset(of: modes) {
+            self.modes = modes
+            return
+        }
+        nextMode = modes
+        switchedAt = clock
+        blowAway(direction: direction, calm: calm)
+        stirred()
+    }
+
+    private var holding: Bool { nextMode != nil || gust.map { !$0.calm } ?? false }
+
+    private func blow(dt: Float) {
+        guard let gust else { return }
+        let age = Float(clock - gust.start)
+        guard age < gustLength || flakes.contains(where: { $0.blown != 0 }) else {
+            self.gust = nil
+            return
+        }
+        let margin: Float = 40
+        let front = gustFront(age: age, direction: gust.direction, margin: margin)
+        // Whatever the front has long passed is gone by now, however deep it was.
+        let finish = age > gustSweep + (gust.calm ? 0.6 : 0.8)
+        if !gust.calm {
+            let trailing = gustFront(age: age - gustLag, direction: gust.direction, margin: margin)
+            for i in flakes.indices where flakes[i].blown == 0 {
+                // Each flake is caught a little further behind, so the snowfall doesn't go as one straight line.
+                let stagger = flakes[i].phase / phaseWrap * 240
+                if finish || (trailing - flakes[i].position.x) * gust.direction > stagger {
+                    flakes[i].blown = gust.direction
+                }
+            }
+            // Whatever else is in the air, like the snow off a window just closed, goes along with the snowfall.
+            for i in grains.indices where !grains[i].blown && grains[i].stuck <= 0
+                && (finish || (trailing - grains[i].position.x) * gust.direction > 0) {
+                grains[i].blown = true
+                grains[i].area = 0
+                grains[i].velocity = grains[i].kind.leafy
+                    ? SIMD2(gust.direction * random.range(500, 1100), random.range(60, 260))
+                    : SIMD2(gust.direction * random.range(800, 1600), random.range(60, 300))
+            }
+        }
+        // Ghosts the front reaches come apart and go with the rest, and snow stuck on the screen is torn off.
+        for i in ghosts.indices.reversed() where finish || gust.calm || (front - placement(of: ghosts[i]).center.x) * gust.direction > 0 {
+            if !gust.calm { blowApart(ghosts[i], direction: gust.direction) }
+            ghosts.remove(at: i)
+        }
+        for i in grains.indices where grains[i].stuck > 0 && (finish || gust.calm || (front - grains[i].position.x) * gust.direction > 0) {
+            grains[i].stuck = 0
+            guard !gust.calm else { continue }
+            grains[i].blown = true
+            grains[i].area = 0
+            grains[i].velocity = SIMD2(gust.direction * random.range(800, 1600), random.range(60, 300))
+        }
+        for k in lying.indices.reversed() {
+            let leaf = lying[k]
+            guard finish || gust.calm || (front - leaf.layer.heapX - leaf.x) * gust.direction > 0 else { continue }
+            if gust.calm {
+                lying.remove(at: k)
+            } else {
+                fly(k, velocity: SIMD2(gust.direction * random.range(500, 1100), random.range(60, 260)), blown: true)
+            }
+        }
+        for layer in layers {
+            var dust: Float = 0
+            for i in 0..<layer.count {
+                let height = layer.heights[i]
+                guard height > 0 else { continue }
+                let x = layer.centerX(i)
+                guard gust.calm || (front - x) * gust.direction > 0 else { continue }
+                let surface = layer.surface(i)
+                let loss = finish ? height : min(height, (gust.calm ? height * 2.5 + 6 : height * 8 + 50) * dt)
+                // Of a heap of leaves only the lying ones fly off; the bulk under them just goes.
+                let snow = 1 - layer.blend(i).leaves
+                layer.set(i, height - loss)
+                heightsChanged = true
+                guard !gust.calm, layer.visible[i] else { continue }
+                dust += loss * layer.columnWidth * snow
+                while dust >= 3.5 {
+                    lift(at: SIMD2(x, surface), direction: gust.direction)
+                    dust -= 3.5
+                }
+            }
+        }
+    }
+
+    /// The wind of a sliding Space skims the drifts, most off the crests that stand above the snow around them:
+    /// a little powder flies a short way downwind and settles again.
+    private func skim(dt: Float) {
+        let share = abs(slideWind) / slideWindMax
+        guard share > 0.1 else { return }
+        // Of leaves it lifts some of those lying on top, never the mass under them.
+        let shown = markShown()
+        for k in lying.indices.reversed() where random.next() < share * dt {
+            let leaf = lying[k]
+            guard leaf.layer.shown == shown, let i = leaf.layer.index(at: leaf.layer.heapX + leaf.x),
+                  leaf.layer.visible[i], leaf.layer.surface(i) - leaf.layer.base.y < leaf.top + 2 else { continue }
+            fly(k, velocity: SIMD2(slideWind * random.range(1.5, 3), random.range(30, 120)))
+        }
+        for layer in layers {
+            let count = layer.count
+            var dust: Float = 0
+            for i in 0..<count where layer.visible[i] {
+                let height = layer.heights[i]
+                let snow = height - layer.leaves[i]
+                guard snow > 1.5 else { continue }
+                let around = (layer.heights[max(i - 12, 0)] + layer.heights[min(i + 12, count - 1)]) / 2
+                let loss = min(snow * 0.2, (0.2 + max(0, height - around) * 1.5) * share * dt)
+                layer.remove(snow: loss, from: i)
+                heightsChanged = true
+                dust += loss * layer.columnWidth
+                while dust >= 1.5 {
+                    puff(at: SIMD2(layer.centerX(i), layer.surface(i)), area: 1.5)
+                    dust -= 1.5
+                }
+            }
+        }
+    }
+
+    /// A pinch of powder off a crest, thrown downwind by a sliding Space's wind; it lands again where it falls.
+    private func puff(at position: SIMD2<Float>, area: Float) {
+        guard grains.count < maxGrains else { return }
+        grains.append(Grain(
+            position: position + SIMD2(random.range(-1, 1), random.range(-2, 0)),
+            velocity: SIMD2(slideWind * random.range(1.5, 3), random.range(60, 260)),
+            area: area,
+            size: random.range(1.1, 2.4)
+        ))
+        guard random.next() < 0.3, motes.count < maxMotes else { return }
+        motes.append(Mote(
+            position: position,
+            velocity: SIMD2(slideWind * random.range(0.8, 2), random.range(20, 90)),
+            size: random.range(6, 13),
+            alpha: random.range(0.06, 0.12),
+            life: random.range(0.5, 1)
+        ))
+    }
+
+    /// Where the gust's front is `age` seconds in, coming in from `margin` past the windward edge.
+    /// It hits at full speed and eases off as it crosses.
+    private func gustFront(age: Float, direction: Float, margin: Float) -> Float {
+        let t = min(max(age / gustSweep, 0), 1)
+        let travel = (width + 2 * margin) * (1 - (1 - t) * (1 - t))
+        return direction > 0 ? -margin + travel : width + margin - travel
+    }
+
+    /// A pinch of snow torn off by the gust: a grain of powder, now and then with a faint puff around it.
+    /// A ghost caught by the gust clearing the snow: it comes apart into powder that rides the wind away, sign and all.
+    private func blowApart(_ ghost: Ghost, direction: Float) {
+        if let sign = sign(of: ghost) {
+            fallingSigns.append((sign, SIMD2(direction * random.range(500, 800), random.range(100, 250)), direction * random.range(3, 6), 0))
+        }
+        let (ground, center) = placement(of: ghost)
+        let height = ghost.height * ghost.size
+        for _ in 0..<70 {
+            let up = random.next()
+            let half = ghost.size * (0.1 + 0.15 * (1 - up))
+            lift(at: SIMD2(center.x + random.range(-half, half), ground + up * height), direction: direction)
+        }
+    }
+
+    private func lift(at position: SIMD2<Float>, direction: Float) {
+        guard grains.count < maxGrains else { return }
+        grains.append(Grain(
+            position: position + SIMD2(random.range(-1, 1), random.range(-3, 0)),
+            velocity: SIMD2(direction * random.range(800, 1800), random.range(60, 420)),
+            area: 0,
+            size: random.range(1.1, 2.6),
+            blown: true
+        ))
+        guard random.next() < 0.35, motes.count < maxMotes else { return }
+        motes.append(Mote(
+            position: position,
+            velocity: SIMD2(direction * random.range(200, 600), random.range(20, 120)),
+            size: random.range(6, 14),
+            alpha: random.range(0.06, 0.14),
+            life: random.range(0.6, 1.3)
+        ))
+    }
+
+    // MARK: - Piles
+
+    private func spin(_ rate: Float) -> Float {
+        Float((clock * Double(rate)).truncatingRemainder(dividingBy: 2 * .pi))
+    }
+
+    /// How a leaf in the air tumbles about its length.
+    private func tumble(_ seed: Float) -> Float {
+        cos(spin(0.5 + seed * 1.1) + seed * 50)
+    }
+
+    /// How a flake actually moves: carried along, swaying from side to side, and for a leaf, swinging like a
+    /// pendulum, dropping fastest through the middle of each swing.
+    private func motion(of flake: Flake) -> SIMD2<Float> {
+        if isFlower(flake.leaf, petal: flake.kind == .blossom) {
+            // A whole flower falls cup up and steadier than a leaf, rocking only a little as it spins.
+            let sway = cos(flake.phase) * flake.swayAmount * 0.3
+            return SIMD2(flake.velocity.x + sway, flake.velocity.y * (1 + 0.1 * sin(flake.phase * 2)))
+        }
+        let sway = (cos(flake.phase) + 0.3 * cos(flake.phase * 2.3)) * flake.swayAmount
+        let flutter = flake.leaf > 0 ? 0.3 + 1.1 * abs(cos(flake.phase)) : 1 + 0.12 * sin(flake.phase * 1.3)
+        return SIMD2(flake.velocity.x + sway, flake.velocity.y * flutter)
+    }
+
+    private func tumbleSpeed(_ seed: Float) -> Float {
+        -sin(spin(0.5 + seed * 1.1) + seed * 50) * (0.5 + seed * 1.1)
+    }
+
+    private func turn(of flake: Flake) -> Float {
+        flake.leaf * 40 + sin(flake.phase) * 0.6 + spin(spinRate(flake.leaf, petal: flake.kind == .blossom))
+    }
+
+    private func turn(of grain: Grain) -> Float {
+        grain.seed * 40 + spin((grain.seed - 0.5) * 9)
+    }
+
+    /// A lying leaf follows the slope under it.
+    private func restingTurn(of leaf: LyingLeaf, on layer: SnowLayer, at i: Int) -> Float {
+        let left = max(i - 2, 0)
+        let right = min(i + 2, layer.count - 1)
+        let slope = (layer.surface(right) - layer.surface(left)) / (Float(max(right - left, 1)) * layer.columnWidth)
+        return atan(slope) + leaf.tilt + leaf.around
+    }
+
+    /// A leaf comes down, slides a little the way it was going and settles flat on whatever lies there, adding its
+    /// bulk to the heap under it so the next one lands on top.
+    private func lay(size: Float, seed: Float, petal: Bool, area: Float, at x: Float, on layer: SnowLayer, turn: Float, flip: Float, drift: Float) {
+        let slide = max(-8, min(8, drift * 0.06))
+        let spot = x + slide
+        let i = layer.clampedIndex(at: spot)
+        let rest = layer.surface(i) - layer.base.y
+        let steps = max(1, Int(size / 5))
+        let blend: Blend = petal ? .blossom : .autumn
+        for step in 0..<steps where area > 0 {
+            let along = (Float(step) + 0.5) / Float(steps) - 0.5
+            let missed = layer.deposit(area / Float(steps), at: spot + along * size * 0.8, wide: true, blend: blend)
+            dropPast(layer, missed, near: spot, velocity: 0, blend: blend)
+        }
+        let tilt = random.range(-0.2, 0.2)
+        let left = max(i - 2, 0)
+        let right = min(i + 2, layer.count - 1)
+        let flat = atan((layer.surface(right) - layer.surface(left)) / (Float(max(right - left, 1)) * layer.columnWidth)) + tilt
+        let toward = wrapped(flat - turn)
+        let around: Float = abs(toward) <= .pi / 2 ? 0 : .pi
+        let target = flat + around
+        lying.append(LyingLeaf(
+            layer: layer,
+            x: spot - layer.heapX,
+            rest: rest,
+            top: layer.surface(i) - layer.base.y,
+            size: size,
+            seed: seed,
+            petal: petal,
+            tilt: tilt,
+            around: around,
+            fromTurn: target - wrapped(target - turn),
+            fromFlip: flip,
+            slide: slide,
+            settling: 0.45 + abs(slide) / 90,
+            life: random.range(90, 180)
+        ))
+        if lying.count > maxLying { lying.removeFirst() }
+        heightsChanged = true
+    }
+
+    /// Now and then a whole cherry blossom falls instead of a petal: the shader picks it by its seed, the same way.
+    private func isFlower(_ seed: Float, petal: Bool) -> Bool {
+        petal && (seed * 23.3).truncatingRemainder(dividingBy: 1) < 0.035
+    }
+
+    /// How a falling flower is tilted: cup up with its stalk hanging below, turned toward us more often than not, and
+    /// rocking a little as it falls. How far its face looks toward us, and which way on the screen its normal points.
+    private func flowerTilt(seed: Float, phase: Float) -> (face: Float, direction: Float) {
+        let tilt = 0.8 + 0.25 * sin(phase)
+        let around = Float.pi / 2 + 0.7 * sin(spin(0.35) + seed * 20)
+        let normal = SIMD3(sin(tilt) * cos(around), cos(tilt), sin(tilt) * sin(around))
+        return (normal.z, atan2(normal.y, normal.x))
+    }
+
+    /// A whole flower is drawn bigger than the petal it stands in for, though it heaps up the same.
+    /// The leaves cut from photos fill less of their sprite than a drawn oval did, and showed too small.
+    private func drawnSize(_ size: Float, seed: Float, petal: Bool) -> Float {
+        isFlower(seed, petal: petal) ? size * 2.1 : petal ? size : size * 1.2
+    }
+
+    /// How fast a falling leaf turns, a second; a whole flower spins round like a propeller.
+    private func spinRate(_ seed: Float, petal: Bool) -> Float {
+        isFlower(seed, petal: petal) ? (seed < 0.5 ? -2.5 : 2.5) : seed - 0.5
+    }
+
+    /// A cherry blossom petal is drawn about as big as a small leaf: any smaller and its notch would not show.
+    private func leafLength(depth: Float, petal: Bool) -> Float {
+        petal ? 8.5 + depth * 5 + random.range(0, 1.5) : 7 + depth * 7 + random.range(0, 2.5)
+    }
+
+    private func wrapped(_ angle: Float) -> Float {
+        var a = angle.truncatingRemainder(dividingBy: 2 * .pi)
+        if a > .pi { a -= 2 * .pi } else if a < -.pi { a += 2 * .pi }
+        return a
+    }
+
+    /// A leaf the cursor sweeps along: it goes the cursor's way a little slower, barely lifting, and the air soon
+    /// slows it down, so it lands a short way off.
+    private func swept(by velocity: SIMD2<Float>) -> SIMD2<Float> {
+        var v = velocity * random.range(0.5, 0.9)
+        let speed = simd_length(v)
+        if speed > 450 { v *= 450 / speed }
+        return v + SIMD2(random.range(-20, 20), random.range(10, 35) + speed * random.range(0.03, 0.1))
+    }
+
+    /// A lying leaf taken up into the air; its bulk stays in the heap, whatever takes the heap takes it.
+    private func fly(_ k: Int, velocity: SIMD2<Float>, blown: Bool = false, from position: SIMD2<Float>? = nil) {
+        let leaf = lying.remove(at: k)
+        heightsChanged = true
+        guard grains.count < maxGrains else { return }
+        grains.append(Grain(
+            position: position ?? SIMD2(leaf.layer.heapX + leaf.x, leaf.layer.base.y + leaf.rest + 1),
+            velocity: velocity,
+            area: 0,
+            size: leaf.size,
+            blown: blown,
+            seed: leaf.seed,
+            kind: leaf.petal ? .blossom : .autumn
+        ))
+    }
+
+    /// Lying leaves fly up when the cursor kicks them or the heap under them comes off, sink with it as it settles,
+    /// sink out of sight deep under the leaves that land on them, and wither away while the snow melts.
+    /// Stamps every layer on the screen with a new mark, so a leaf can tell whether its layer is there without a lookup.
+    private func markShown() -> Int {
+        shownMark += 1
+        for layer in layers { layer.shown = shownMark }
+        return shownMark
+    }
+
+    private func tendLeaves(dt: Float) {
+        guard !lying.isEmpty else { return }
+        let shown = markShown()
+        lazy var kept = Set(dormant.values.map(ObjectIdentifier.init) + parking.map { ObjectIdentifier($0.ledge) })
+        let speed = simd_length(cursorVelocity)
+        for k in lying.indices.reversed() {
+            var leaf = lying[k]
+            let layer = leaf.layer
+            guard layer.shown == shown else {
+                if !kept.contains(ObjectIdentifier(layer)) { fly(k, velocity: .zero) }
+                continue
+            }
+            let x = layer.heapX + leaf.x
+            guard let i = layer.index(at: x) else {
+                fly(k, velocity: SIMD2(layer.trackVelocity.x, 0))
+                continue
+            }
+            let surface = layer.surface(i) - layer.base.y
+            let point = SIMD2(x, layer.base.y + leaf.rest)
+            if let cursor, speed > 8, simd_length(point - cursor) < cursorRadius + leaf.size * 0.4 {
+                fly(k, velocity: swept(by: cursorVelocity))
+                lastCursorPush = clock
+                continue
+            }
+            // Shaken, the leaves on top go as often as the columns of the heap under them do.
+            if random.next() < leafShakeRate(layer.agitation) * 2 * dt {
+                fly(k, velocity: layer.trackVelocity + layer.offsetVelocity + SIMD2(random.range(-80, 80), random.range(20, 80)))
+                continue
+            }
+            if surface < leaf.rest - 3 {
+                // It goes the way the heap under it went, not the window.
+                let carried = layer.trackVelocity + layer.offsetVelocity
+                let tossed = layer.agitation > leafShaking ? SIMD2(random.range(-40, 40), random.range(20, 80)) : SIMD2(random.range(-15, 15), 0)
+                fly(k, velocity: carried + tossed)
+                continue
+            }
+            // Deep in a heap a leaf is hidden by the ones above it and the mass drawn under them.
+            let buried = surface > leaf.top + 10
+            if surface < leaf.top {
+                let sink = min(leaf.top - surface, 20 * dt)
+                leaf.top -= sink
+                leaf.rest -= sink
+                heightsChanged = true
+            }
+            if leaf.settled < 1 {
+                leaf.settled = min(1, leaf.settled + dt / leaf.settling)
+                heightsChanged = true
+            }
+            if buried {
+                leaf.fade -= dt * 2
+                heightsChanged = true
+            } else if thaws {
+                leaf.age += dt
+                if leaf.age > leaf.life {
+                    leaf.fade -= dt / 4
+                    heightsChanged = true
+                }
+            }
+            if leaf.fade <= 0 {
+                lying.remove(at: k)
+            } else {
+                lying[k] = leaf
+            }
+        }
+    }
+
+    private func settle(dt: Float) {
+        // Melting nearly keeps pace with the snowfall, so heavier snowfall builds drifts only a little higher, and the
+        // far sparser leaves wither as slowly.
+        let heaping = modes.filter { $0 != .rain }.reduce(Float(0)) { $0 + share(of: $1) } / Float(modes.count)
+        let falling = Self.flakesPerMegapoint(intensity) * density * (modes == [.rain] ? 1 : heaping)
+        let meltPace = falling > 0 ? pow(falling / thawBalance, thawExponent) : 1
+        for ledge in ledgeList { ledge.outside = (outside(of: ledge, left: true), outside(of: ledge, left: false)) }
+        for layer in layers {
+            let bare = layer === ground && !groundSettles
+            if !accumulates || thaws || bare {
+                // Withered leaves leave nothing behind.
+                let floor = !accumulates || bare ? 0 : (layer === ground ? thawDepth : ledgeThawDepth)
+                if layer.thaw(dt: dt * meltPace, down: floor, rate: thawRate, settle: thawTime) { heightsChanged = true }
+            }
+            // Shaken harder than gravity, a granular pile fluidizes and slumps to a flatter slope.
+            // Leaves catch on one another and heap up steeper than snow.
+            let steepest = repose * (1 + 0.8 * layer.blend.leaves)
+            if layer.relax(repose: layer.agitation > shaking ? steepest * 0.35 : steepest, rounding: rounding) { heightsChanged = true }
+            if layer.spill.left > 1.5 {
+                release(layer.spill.left, at: edgePoint(of: layer, left: true), velocity: layer.trackVelocity + SIMD2(-6, -15), spread: SIMD2(0.25, 1),
+                        blend: layer.blend(0))
+                layer.spill.left = 0
+            }
+            if layer.spill.right > 1.5 {
+                release(layer.spill.right, at: edgePoint(of: layer, left: false), velocity: layer.trackVelocity + SIMD2(6, -15), spread: SIMD2(0.25, 1),
+                        blend: layer.blend(layer.count - 1))
+                layer.spill.right = 0
+            }
+        }
+    }
+
+    private func updateTarget() {
+        let falling = snowfallHeld ? 0 : Self.flakesPerMegapoint(intensity) * density * width * height / 1_000_000
+        targets = targets.map { _ in 0 }
+        for mode in modes { targets[mode.rawValue] = Int(falling * share(of: mode) / Float(modes.count)) }
+        targetFlakes = targets.reduce(0, +)
+    }
+
+    /// How many of a kind are in sight at once, against snow.
+    private func share(of mode: Mode) -> Float {
+        mode.leafy ? leafShare : mode == .rain ? rainShare : 1
+    }
+
+    private static func columnCount(for width: Float, columnWidth: Float) -> Int {
+        Int((width / columnWidth).rounded(.up)) + 1
+    }
+}
+
+// MARK: - Neighbouring displays
+
+/// Snow between displays that each have snow of their own. A window's snow lies on one of them, and goes along when
+/// the window moves to another. Where windows span displays, the one keeping a window's snow lends it to the others
+/// the window reaches over: they draw it, the snow falling on it there goes back to the one keeping it, and snow
+/// thrown past an edge two displays share goes on falling on the other side.
+extension SnowSimulation {
+    /// The windows with snow here, the Dock's shelf aside.
+    var windowIDs: [CGWindowID] { ledges.filter { !$0.value.isDock }.map(\.key) }
+
+    func keeps(_ id: CGWindowID) -> Bool {
+        ledges[id] != nil
+    }
+
+    /// Takes the snow off a window that moved to another display, so it can lie on there instead of falling here,
+    /// with the leaves lying on it and the rain on its glass. Its ghosts crumble away as if leaving.
+    func takeWindow(_ id: CGWindowID) -> CarriedSnow? {
+        guard let ledge = ledges.removeValue(forKey: id) else { return nil }
+        for ghost in ghosts where ghost.layer === ledge {
+            if let sign = sign(of: ghost) {
+                fallingSigns.append((sign, SIMD2(random.range(-30, 30), 60), random.range(-2.5, 2.5), 0))
+            }
+            crumble(ghost, scared: false)
+        }
+        ghosts.removeAll { $0.layer === ledge }
+        if heldLayers.contains(where: { $0 === ledge }) {
+            ledge.releaseSupport()
+            heldLayers.removeAll { $0 === ledge }
+        }
+        ledgeList = Array(ledges.values)
+        layers = [ground] + ledgeList
+        windowsChanged = true
+        ledge.movedAt -= clock
+        ledge.trimmedAt -= clock
+        let leaves = lying.filter { $0.layer === ledge }
+        lying.removeAll { $0.layer === ledge }
+        let drops = glassDrops.filter { $0.layer === ledge }
+        glassDrops.removeAll { $0.layer === ledge }
+        return CarriedSnow(layer: ledge, leaves: leaves, drops: drops)
+    }
+
+    /// Puts snow taken off another display onto its window here. `shift` takes the other display's coordinates to
+    /// these; the snow keeps its motion, so a drag across displays goes on as one.
+    func adoptWindow(_ id: CGWindowID, _ carried: CarriedSnow, shift: SIMD2<Float>) {
+        if let old = ledges[id] {
+            heldLayers.removeAll { $0 === old }
+            ghosts.removeAll { $0.layer === old }
+            lying.removeAll { $0.layer === old }
+            glassDrops.removeAll { $0.layer === old }
+        }
+        dormant[id] = nil
+        parking.removeAll { $0.id == id }
+        let ledge = carried.layer
+        ledge.movedAt += clock
+        ledge.trimmedAt += clock
+        ledge.origin += shift
+        ledge.track += shift
+        ledge.previousBaseY += shift.y
+        ledge.occluders = ledge.occluders.map { $0 + SIMD4(shift.x, shift.y, shift.x, shift.y) }
+        ledges[id] = ledge
+        lying += carried.leaves
+        glassDrops += carried.drops
+        ledgeList = Array(ledges.values)
+        layers = [ground] + ledgeList
+        windowsChanged = true
+    }
+
+    /// The snow on a window kept here, to lend to a display it reaches over: `shift` takes these coordinates to that
+    /// display's, and `area` is that display's. Nil unless the snow reaches over it.
+    func lend(_ id: CGWindowID, shift: SIMD2<Float>, within area: CGRect) -> BorrowedSnow? {
+        guard let ledge = ledges[id], !ledge.isDock else { return nil }
+        let base = ledge.base + shift
+        let reach = CGRect(x: CGFloat(base.x), y: CGFloat(base.y - ledge.bedDepth), width: CGFloat(ledge.width), height: CGFloat(ledge.top + 2 + ledge.bedDepth))
+        guard reach.intersects(area) else { return nil }
+        var columns = [Float](repeating: 0, count: SnowLayer.rows * ledge.count)
+        columns.withUnsafeMutableBufferPointer { ledge.writeSmoothed(into: $0.baseAddress!) }
+        return BorrowedSnow(
+            id: id,
+            origin: base,
+            count: ledge.count,
+            columnWidth: ledge.columnWidth,
+            columns: columns,
+            visible: ledge.visible,
+            top: ledge.top,
+            bottom: -ledge.bedDepth,
+            occluders: ledge.occluders.map { $0 + SIMD4(shift.x, shift.y, shift.x, shift.y) },
+            drift: ledge.drift
+        )
+    }
+
+    /// The snow neighbouring displays lend this one where their windows reach over it, in its coordinates.
+    func setBorrowed(_ lent: [BorrowedSnow]) {
+        guard lent != borrowed else { return }
+        // A window being dragged in from a neighbour moves at the rate of one dragged here.
+        if lent.contains(where: { new in borrowed.contains { $0.id == new.id && $0.origin != new.origin } }) {
+            lastWindowMotion = clock
+        }
+        borrowed = lent
+        borrowedChanged = true
+    }
+
+    /// The snow that fell on borrowed snow since the last call, for the displays keeping it.
+    func takeCaught() -> [CaughtSnow] {
+        defer { caught.removeAll() }
+        return caught
+    }
+
+    /// Lays snow caught on a neighbouring display onto the window it fell on; `shift` takes that display's x to this one's.
+    func receive(_ snow: CaughtSnow, shift: Float) {
+        guard let ledge = ledges[snow.id] else { return }
+        let x = snow.x + shift
+        let fill = ledge.index(at: x).map { ledge.fill($0) } ?? 1
+        _ = ledge.deposit(snow.area * fill, at: x, wide: true)
+        heightsChanged = true
+    }
+
+    /// The snow thrown past a shared edge since the last call, in this display's coordinates.
+    func takeStrays() -> [StraySnow] {
+        defer { strays.removeAll() }
+        return strays
+    }
+
+    /// Goes on with snow thrown in from a neighbouring display; `shift` takes its coordinates to these.
+    func adoptStrays(_ thrown: [StraySnow], shift: SIMD2<Float>) {
+        for stray in thrown {
+            switch stray.piece {
+            case .flake(var flake):
+                flake.position += shift
+                flakes.append(flake)
+            case .grain(var grain):
+                guard grains.count < maxGrains else { continue }
+                grain.position += shift
+                grains.append(grain)
+            }
+        }
+    }
+
+    /// From where, left to right, a window's snow can be seen: the screen, and the displays beside it.
+    private var seenSpan: ClosedRange<Float> {
+        (neighbours.left ? -.greatestFiniteMagnitude : 0)...(neighbours.right ? .greatestFiniteMagnitude : width)
+    }
+
+    /// Whether `point` lies past an edge shared with another display.
+    private func crossed(_ point: SIMD2<Float>) -> Bool {
+        (openSides.left && point.x < 0) || (openSides.right && point.x > width)
+    }
+
+    /// Whether columns `from` to `to` of `layer` lie on this screen: a window's snow reaching over a neighbouring
+    /// display is drawn there, but its ghosts aren't.
+    private func onScreen(_ layer: SnowLayer, from: Int, to: Int) -> Bool {
+        layer.centerX(from) >= 0 && layer.centerX(to) <= width
+    }
+
+    /// Hands snow falling from `from` to `to` at `x` to the display keeping a borrowed window's snow, when that lies
+    /// above `hit`, where it would land here. Returns whether it did.
+    private func landsOnBorrowed(below hit: (layer: SnowLayer, index: Int)?, x: Float, from: Float, to: Float, area: Float) -> Bool {
+        guard !borrowed.isEmpty, !crossed(SIMD2(x, to)) else { return false }
+        var highest = hit.map { $0.layer.surface($0.index) } ?? -.greatestFiniteMagnitude
+        var catcher: CGWindowID?
+        for lent in borrowed {
+            if let surface = lent.surface(crossedAt: x, from: from, to: to), surface > highest {
+                highest = surface
+                catcher = lent.id
+            }
+        }
+        guard let catcher else { return false }
+        caught.append(CaughtSnow(id: catcher, x: x, area: area))
+        return true
+    }
+}
+
+/// A window's snow taken off one display to lie on another. Its times are kept as ages, since each simulation keeps
+/// its own clock.
+struct CarriedSnow {
+    fileprivate let layer: SnowLayer
+    /// Kept along the window's edge, so they go along as they are.
+    fileprivate let leaves: [LyingLeaf]
+    fileprivate let drops: [GlassDrop]
+}
+
+/// A window's snow as the display keeping it lends it to a neighbour the window reaches over.
+struct BorrowedSnow: Equatable {
+    let id: CGWindowID
+    fileprivate let origin: SIMD2<Float>
+    fileprivate let count: Int
+    fileprivate let columnWidth: Float
+    /// What `SnowLayer.writeSmoothed` writes: the smoothed surface of each column, then the bed under it, up from
+    /// `origin`, then what the snow is made of, as drawn.
+    fileprivate let columns: [Float]
+    fileprivate let visible: [Bool]
+    fileprivate let top: Float
+    fileprivate let bottom: Float
+    fileprivate let occluders: [SIMD4<Float>]
+    fileprivate let drift: Float
+
+    /// The surface of the column under `x`, when snow falling from `from` to `to` there comes down on it.
+    fileprivate func surface(crossedAt x: Float, from: Float, to: Float) -> Float? {
+        let i = Int(((x - origin.x) / columnWidth).rounded(.down))
+        guard i >= 0, i < count, visible[i] else { return nil }
+        let surface = origin.y + columns[i]
+        return from >= origin.y + columns[count + i] && to <= surface ? surface : nil
+    }
+}
+
+/// Snow that fell on a borrowed window's snow, at `x` in the coordinates of the display it fell on.
+struct CaughtSnow {
+    let id: CGWindowID
+    fileprivate let x: Float
+    fileprivate let area: Float
+}
+
+/// Snow thrown past an edge shared with another display, for that display to go on with.
+struct StraySnow {
+    fileprivate let piece: Piece
+
+    fileprivate enum Piece {
+        case flake(Flake)
+        case grain(Grain)
+    }
+
+    var position: SIMD2<Float> {
+        switch piece {
+        case .flake(let flake): flake.position
+        case .grain(let grain): grain.position
+        }
+    }
+}
+
+/// Critically damped follow of `target` (the SmoothDamp approximation), stable at any time step.
+private func smoothDamp(_ current: inout SIMD2<Float>, _ velocity: inout SIMD2<Float>, toward target: SIMD2<Float>, time: Float, dt: Float) {
+    let omega = 2 / time
+    let x = omega * dt
+    let decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x)
+    let change = current - target
+    let temp = (velocity + omega * change) * dt
+    velocity = (velocity - omega * temp) * decay
+    current = target + (change + temp) * decay
+}
+
+private func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
+    let t = min(max((x - edge0) / (edge1 - edge0), 0), 1)
+    return t * t * (3 - 2 * t)
+}
