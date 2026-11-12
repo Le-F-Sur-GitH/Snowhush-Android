@@ -164,9 +164,10 @@ impl Gpu {
         unsafe {
             let adapter = format!("{} ({})", gl.get_parameter_string(glow::RENDERER), gl.get_parameter_string(glow::VERSION));
             let included = |source: &str| source.replace("#include \"drop.glsl\"", DROP).replace("#include \"leaves.glsl\"", LEAVES);
+            let sprite_vertex = packed(SPRITE_VERTEX);
             let sprite = program(
                 &gl,
-                SPRITE_VERTEX,
+                &sprite_vertex,
                 &included(SPRITE_FRAGMENT),
                 &[
                     "viewSize",
@@ -186,7 +187,7 @@ impl Gpu {
                 ],
             )?;
             let field =
-                program(&gl, SPRITE_VERTEX, &included(FIELD_FRAGMENT), &["viewSize", "scale", "time", "lantern", "pumpkins", "shake", "panel"])?;
+                program(&gl, &sprite_vertex, &included(FIELD_FRAGMENT), &["viewSize", "scale", "time", "lantern", "pumpkins", "shake", "panel"])?;
             let glass = program(&gl, GLASS_VERTEX, GLASS_FRAGMENT, &["field", "light", "scale"])?;
             let extensions = gl.supported_extensions();
             let fields_drawable = extensions.contains("GL_EXT_color_buffer_float") || extensions.contains("GL_EXT_color_buffer_half_float");
@@ -239,15 +240,12 @@ impl Gpu {
             gl.bind_vertex_array(Some(sprite_array));
             gl.bind_buffer(glow::ARRAY_BUFFER, Some(sprite_buffer));
             let stride = size_of::<Sprite>() as i32;
-            // Position, velocity, size, alpha, soft, tint amount, tint, lump, ghost, pose, mood, leaf, spin, rain, drop,
-            // petal: see `Sprite`.
+            // Position, velocity, then size, alpha, soft and tint amount as one, see `packed`, tint, lump, ghost, pose,
+            // mood, leaf, spin, rain, drop, petal: see `Sprite`.
             for (location, components, offset) in [
                 (0, 2, 0),
                 (1, 2, 8),
-                (2, 1, 16),
-                (3, 1, 20),
-                (4, 1, 24),
-                (5, 1, 28),
+                (2, 4, 16),
                 (6, 3, 32),
                 (7, 1, 44),
                 (8, 4, 48),
@@ -713,6 +711,27 @@ impl Gpu {
     }
 }
 
+/// A sprite's size, alpha, softness and tint amount, as the Linux shader takes them: an attribute each.
+const LONE: &str = "layout(location = 2) in float size;
+layout(location = 3) in float alpha;
+layout(location = 4) in float soft;
+layout(location = 5) in float tintAmount;
+";
+/// The same four, one after another in a `Sprite`, as one attribute, the way the Windows renderer takes them.
+const PACKED: &str = "layout(location = 2) in vec4 body;
+#define size body.x
+#define alpha body.y
+#define soft body.z
+#define tintAmount body.w
+";
+
+/// The sprite's vertex shader taking sixteen numbers' worth of attributes as thirteen. A phone's graphics driver need
+/// have no more than sixteen attributes, and some count the vertex's own index among them: with sixteen of the
+/// shader's own the program then fails to link, and nothing of the snow is drawn.
+pub fn packed(vertex: &str) -> String {
+    vertex.replace(LONE, PACKED)
+}
+
 /// The part of a picture `picture` wide for its height that fills a surface `surface` wide for its height: where it
 /// starts and how far it reaches, across and down, in shares of the picture. A picture wider than the surface is seen
 /// `slide` of the way along, from 0 to 1.
@@ -812,6 +831,19 @@ mod tests {
     fn a_tall_picture_is_cropped_top_and_bottom() {
         let [x, y, w, h] = crop(0.25, 0.5, 0.3);
         assert!(x == 0.0 && w == 1.0 && (h - 0.5).abs() < 1e-6 && (y - 0.25).abs() < 1e-6);
+    }
+
+    #[test]
+    fn the_sprite_shader_leaves_room_among_the_attributes() {
+        assert_eq!(SPRITE_VERTEX.matches("layout(location").count(), 16);
+        let vertex = packed(SPRITE_VERTEX);
+        assert!(vertex.contains("in vec4 body;") && !vertex.contains("in float size;"));
+        // Sixteen is all a driver must have, the vertex's index may be one of them, and two are to spare.
+        assert_eq!(vertex.matches("layout(location").count(), 13);
+        for taken in ["size", "alpha", "soft", "tintAmount"] {
+            // Nothing else in the shader goes by a name the four are now only other words for.
+            assert!(!vertex.contains(&format!(".{taken}")) && !vertex.contains(&format!("float {taken} ")), "{taken}");
+        }
     }
 
     #[test]

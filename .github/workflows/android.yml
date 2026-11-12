@@ -69,8 +69,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Two ways the emulator can draw without a graphics card: what one of them can't, the other may.
-        gpu: [swiftshader_indirect, swangle_indirect]
+        # How the emulator draws without a graphics card. Its older way, swiftshader_indirect, falls over as soon as
+        # the snow is drawn, taking the whole emulator with it.
+        gpu: [swangle_indirect]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
@@ -159,7 +160,9 @@ jobs:
           cp jobs.txt results/logs/jobs.txt
           while read -r id name; do
             file="results/logs/$(echo "$name" | tr -c 'A-Za-z0-9\n' '-').log"
-            if gh api "repos/$GH_REPO/actions/jobs/$id/logs" > full.log 2> error.log; then
+            # Asked for with curl: gh keeps to itself a log with colours in it.
+            if curl -sSfL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$GH_REPO/actions/jobs/$id/logs" -o full.log 2> error.log; then
               tail -c 250000 full.log > "$file"
             else
               { echo "no log for job $id:"; cat error.log; } > "$file"
