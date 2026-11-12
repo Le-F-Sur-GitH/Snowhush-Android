@@ -62,10 +62,15 @@ jobs:
           if-no-files-found: error
 
   emulator:
-    name: On an emulator
+    name: On an emulator (${{ matrix.gpu }})
     needs: apk
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # Two ways the emulator can draw without a graphics card: what one of them can't, the other may.
+        gpu: [swiftshader_indirect, swangle_indirect]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
@@ -88,12 +93,12 @@ jobs:
           cores: 4
           ram-size: 4096M
           disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu ${{ matrix.gpu }} -noaudio -no-boot-anim -camera-back none
           script: sh android/tools/smoke.sh apk smoke
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: emulator
+          name: emulator-${{ matrix.gpu }}
           path: smoke
           if-no-files-found: ignore
 
@@ -129,8 +134,8 @@ jobs:
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
-          name: emulator
-          path: results/emulator
+          pattern: emulator-*
+          path: results
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
@@ -150,11 +155,15 @@ jobs:
             echo "emulator: ${{ needs.emulator.result }}"
           } > results/summary.txt
           # The end of each finished job's log: a failed build's errors are there, and what the emulator said.
-          gh api "repos/$GH_REPO/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.status == "completed") | "\(.id) \(.name)"' > jobs.txt || true
+          gh api "repos/$GH_REPO/actions/runs/$GITHUB_RUN_ID/jobs" --jq '.jobs[] | select(.status == "completed") | "\(.id) \(.name)"' > jobs.txt 2> results/logs/jobs-error.txt || true
+          cp jobs.txt results/logs/jobs.txt
           while read -r id name; do
             file="results/logs/$(echo "$name" | tr -c 'A-Za-z0-9\n' '-').log"
-            gh api "repos/$GH_REPO/actions/jobs/$id/logs" > full.log 2> /dev/null || continue
-            tail -c 250000 full.log > "$file"
+            if gh api "repos/$GH_REPO/actions/jobs/$id/logs" > full.log 2> error.log; then
+              tail -c 250000 full.log > "$file"
+            else
+              { echo "no log for job $id:"; cat error.log; } > "$file"
+            fi
           done < jobs.txt
           cat results/summary.txt
       - name: Push
