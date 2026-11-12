@@ -89,6 +89,7 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     private TextView deepStatus;
     private View liftRow;
     private SeekBar lift;
+    private SeekBar wide;
     private Switch motionSwitch;
     private Switch performanceSwitch;
 
@@ -369,6 +370,16 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
                 if (fromUser) prefs.edit().putInt(Prefs.ICON_LIFT, progress).apply();
             }
         });
+        nudge.addView(ui.title(getString(R.string.icon_width)), ui.spaced(6));
+        wide = ui.slider(-Prefs.ICON_WIDTH_REACH, Prefs.ICON_WIDTH_REACH);
+        wide.setContentDescription(getString(R.string.icon_width));
+        nudge.addView(wide, ui.fill());
+        wide.setOnSeekBarChangeListener(new Slid() {
+            @Override
+            public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                if (fromUser) prefs.edit().putInt(Prefs.ICON_WIDTH, progress).apply();
+            }
+        });
         nudge.setPadding(0, ui.dp(6), 0, ui.dp(4));
         liftRow = nudge;
         card.addView(nudge, ui.fill());
@@ -466,6 +477,7 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         deepStatus.setText(deep ? getString(R.string.on) : "\u203A");
         ui.show(liftRow, icons);
         lift.setProgress(Prefs.iconLift(prefs));
+        wide.setProgress(Prefs.iconWidth(prefs));
         motionSwitch.setChecked(prefs.getBoolean(Prefs.MOTION, true));
         performanceSwitch.setChecked(prefs.getBoolean(Prefs.PERFORMANCE, false));
     }

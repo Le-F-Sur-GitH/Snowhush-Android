@@ -21,6 +21,7 @@
 "open_settings" = "Open Settings";
 "icon_lift" = "Snow Height on Apps";
 "icon_lift_summary" = "Nudge it until the snow sits right on top of your icons.";
+"icon_width" = "Snow Width on Apps";
 "motion" = "Tilt and Shake";
 "motion_summary" = "Tilt your phone and the snowfall drifts that way. Shake it to blow the drift away.";
 "performance_summary" = "Draws every frame at your display's full rate. Uses more battery.";

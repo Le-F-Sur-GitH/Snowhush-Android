@@ -46,6 +46,7 @@
     <string name="open_settings">Einstellungen öffnen</string>
     <string name="icon_lift">Schneehöhe auf Apps</string>
     <string name="icon_lift_summary">Verschiebe ihn, bis der Schnee genau auf deinen Symbolen liegt.</string>
+    <string name="icon_width">Schneebreite auf Apps</string>
     <string name="motion">Neigen und Schütteln</string>
     <string name="motion_summary">Neige dein Handy, und der Schnee treibt in diese Richtung. Schüttle es, um die Schneewehe wegzublasen.</string>
     <string name="performance_summary">Zeichnet jedes Bild mit der vollen Bildrate des Displays. Braucht mehr Akku.</string>

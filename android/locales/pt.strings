@@ -19,6 +19,7 @@
 "open_settings" = "Abrir Ajustes";
 "icon_lift" = "Altura da neve sobre os apps";
 "icon_lift_summary" = "Ajuste até a neve ficar bem em cima dos seus ícones.";
+"icon_width" = "Largura da neve sobre os apps";
 "motion" = "Inclinar e sacudir";
 "motion_summary" = "Incline o celular e a nevada vai para esse lado. Sacuda para soprar a neve acumulada.";
 "performance_summary" = "Desenha cada quadro na taxa máxima da tela. Gasta mais bateria.";

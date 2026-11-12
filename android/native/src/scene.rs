@@ -43,6 +43,9 @@ const SLIDE_DRAG: f32 = 0.025;
 const WIND_FELT: f32 = 2.0;
 /// The step the snow is taken on by while no one sees it, in seconds: as long as the simulation stays steady at.
 const UNSEEN_STEP: f32 = 0.05;
+/// How long it has been snowing on a home screen's widgets and icons when they are first seen, in seconds: a page
+/// never looked at before isn't bare while the ones beside it are white.
+const HEAD_START: f32 = 150.0;
 
 /// What the app's settings say.
 #[derive(Clone, Debug, PartialEq)]
@@ -224,6 +227,8 @@ pub struct Scene {
     windows_stale: bool,
     windows_changed_at: i64,
     surfaces: Vec<WindowSurface>,
+    /// How many times new windows were given the snow they had missed.
+    head_starts: u32,
     panel: Option<[f32; 4]>,
     covered: bool,
     /// How much of the snow shows, from 0 to 1.
@@ -268,6 +273,7 @@ impl Scene {
             windows_stale: true,
             windows_changed_at: 0,
             surfaces: Vec::new(),
+            head_starts: 0,
             panel: None,
             covered: false,
             opacity: 1.0,
@@ -675,10 +681,24 @@ impl Scene {
             .map(|surface| surface.id)
             .filter(|id| !placed.surfaces.iter().any(|surface| surface.id == *id) && placed.away.contains(id))
             .collect();
+        let unmet: Vec<WindowId> = if self.falls_behind {
+            placed.surfaces.iter().map(|surface| surface.id).filter(|id| !simulation.holds(*id)).collect()
+        } else {
+            Vec::new()
+        };
         simulation.update_windows(&placed.surfaces, interval, &HashSet::new(), &elsewhere, false);
         self.surfaces = placed.surfaces;
         self.windows_changed_at = now;
         self.stirred = true;
+        // A wallpaper is seen a moment at a time, and a page of the home screen only once it is turned to: what is
+        // new there has been snowed on for a while already, as everything beside it has.
+        if unmet.iter().any(|id| simulation.holds(*id)) {
+            for _ in 0..(HEAD_START / UNSEEN_STEP) as usize {
+                simulation.step(UNSEEN_STEP, AWAY);
+            }
+            self.last_step = None;
+            self.head_starts += 1;
+        }
     }
 
     /// What the scene is and how it is doing, for the log.
@@ -691,8 +711,9 @@ impl Scene {
             format!("{}x{} points, {} sprites, {:?}", simulation.width(), simulation.height(), simulation.sprite_count(), simulation.pace())
         });
         format!(
-            "{adapter}; {target}; {snow}; {} windows; {:?}; {} Hz; {} frames, {} drawn",
+            "{adapter}; {target}; {snow}; {} windows, {} head starts; {:?}; {} Hz; {} frames, {} drawn",
             self.surfaces.len(),
+            self.head_starts,
             self.budget,
             self.interactive_rate,
             self.frames,
@@ -841,6 +862,35 @@ mod tests {
         assert!(!scene.halloween());
         scene.set_modes(&[Mode::Snow], false, false);
         assert!(scene.halloween());
+    }
+
+    #[test]
+    fn an_icon_first_seen_has_been_snowed_on_already() {
+        let mut scene = Scene::new();
+        scene.set_intensity(0.5);
+        scene.set_falls_behind(true);
+        scene.place(1080, 2340, 0, 0, 0, 3.0);
+        let icon = Reported { small: true, radius: 50.0, exponent: 2.6, ..window(2, 450.0, 1200.0, 630.0, 1380.0) };
+        scene.set_windows(vec![icon], false);
+        scene.advance(0.05);
+        let simulation = scene.simulation().unwrap();
+        let mut columns = vec![0.0; simulation.column_count()];
+        let piles = simulation.write_layers(&mut columns);
+        assert!(piles.iter().any(|pile| pile.origin.y > 100.0), "the icon should have snow on it from the first");
+
+        // Told of again, or back from another page, it is no newer than it was: no time passes at once.
+        assert_eq!(scene.head_starts, 1);
+        scene.set_windows(vec![Reported { away: true, ..icon }], false);
+        scene.advance(0.05);
+        scene.set_windows(vec![icon], false);
+        scene.advance(0.05);
+        assert_eq!(scene.head_starts, 1);
+        // Gone for good, its snow fell: back, it is new.
+        scene.set_windows(Vec::new(), false);
+        scene.advance(1.0);
+        scene.set_windows(vec![icon], false);
+        scene.advance(0.05);
+        assert_eq!(scene.head_starts, 2);
     }
 
     #[test]

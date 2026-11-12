@@ -15,7 +15,7 @@ android {
         minSdk 26
         targetSdk 36
         // Follows the Snowhush it is built from; the code goes up with every build handed out.
-        versionCode 2
+        versionCode 3
         versionName '0.13.1'
         setProperty('archivesBaseName', "Snowhush-${versionName}")
         ndk {

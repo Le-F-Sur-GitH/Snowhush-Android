@@ -46,6 +46,7 @@
     <string name="open_settings">設定を開く</string>
     <string name="icon_lift">アプリ上の雪の高さ</string>
     <string name="icon_lift_summary">雪がアイコンのちょうど上にのるように調整します。</string>
+    <string name="icon_width">アプリ上の雪の幅</string>
     <string name="motion">傾きとシェイク</string>
     <string name="motion_summary">スマートフォンを傾けると、雪がそちらへ流れます。振ると、積もった雪が吹き飛びます。</string>
     <string name="performance_summary">ディスプレイの最大レートですべてのフレームを描画します。バッテリーを多く使います。</string>

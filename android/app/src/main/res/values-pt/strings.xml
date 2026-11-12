@@ -46,6 +46,7 @@
     <string name="open_settings">Abrir Ajustes</string>
     <string name="icon_lift">Altura da neve sobre os apps</string>
     <string name="icon_lift_summary">Ajuste até a neve ficar bem em cima dos seus ícones.</string>
+    <string name="icon_width">Largura da neve sobre os apps</string>
     <string name="motion">Inclinar e sacudir</string>
     <string name="motion_summary">Incline o celular e a nevada vai para esse lado. Sacuda para soprar a neve acumulada.</string>
     <string name="performance_summary">Desenha cada quadro na taxa máxima da tela. Gasta mais bateria.</string>

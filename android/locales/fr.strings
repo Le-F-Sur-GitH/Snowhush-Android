@@ -19,6 +19,7 @@
 "open_settings" = "Ouvrir les réglages";
 "icon_lift" = "Hauteur de la neige sur les apps";
 "icon_lift_summary" = "Ajustez jusqu'à ce que la neige repose pile sur vos icônes.";
+"icon_width" = "Largeur de la neige sur les apps";
 "motion" = "Incliner et secouer";
 "motion_summary" = "Inclinez le téléphone, la neige dérive de ce côté. Secouez-le pour souffler les congères.";
 "performance_summary" = "Dessine chaque image à la fréquence maximale de l'écran. Consomme plus de batterie.";

@@ -19,6 +19,7 @@
 "open_settings" = "Abrir Ajustes";
 "icon_lift" = "Altura de la nieve sobre las apps";
 "icon_lift_summary" = "Ajústala hasta que la nieve quede justo encima de tus iconos.";
+"icon_width" = "Anchura de la nieve sobre las apps";
 "motion" = "Inclinar y agitar";
 "motion_summary" = "Inclina el teléfono y la nevada se va hacia ese lado. Agítalo para que la nieve acumulada salga volando.";
 "performance_summary" = "Dibuja cada fotograma a la frecuencia máxima de la pantalla. Gasta más batería.";

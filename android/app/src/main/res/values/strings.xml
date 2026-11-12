@@ -47,6 +47,7 @@
     <string name="open_settings">Open Settings</string>
     <string name="icon_lift">Snow Height on Apps</string>
     <string name="icon_lift_summary">Nudge it until the snow sits right on top of your icons.</string>
+    <string name="icon_width">Snow Width on Apps</string>
     <string name="motion">Tilt and Shake</string>
     <string name="motion_summary">Tilt your phone and the snowfall drifts that way. Shake it to blow the drift away.</string>
     <string name="performance_summary">Draws every frame at your display\'s full rate. Uses more battery.</string>

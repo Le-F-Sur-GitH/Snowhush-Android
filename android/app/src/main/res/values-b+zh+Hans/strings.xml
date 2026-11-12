@@ -46,6 +46,7 @@
     <string name="open_settings">打开设置</string>
     <string name="icon_lift">应用上积雪的高度</string>
     <string name="icon_lift_summary">调整到积雪正好落在图标顶上。</string>
+    <string name="icon_width">应用上积雪的宽度</string>
     <string name="motion">倾斜与摇晃</string>
     <string name="motion_summary">倾斜手机，雪会朝那一边飘。摇一摇，就能把积雪吹走。</string>
     <string name="performance_summary">以显示屏的最高刷新率绘制每一帧。更耗电。</string>

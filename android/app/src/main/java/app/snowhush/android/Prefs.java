@@ -25,6 +25,8 @@ final class Prefs {
     /** How much higher than worked out the snow lies on the icons, in density-independent pixels, to fit a launcher. */
     static final String ICON_LIFT = "iconLift";
     static final int ICON_LIFT_REACH = 24;
+    static final String ICON_WIDTH = "iconWidth";
+    static final int ICON_WIDTH_REACH = 20;
     static final String MELT = "meltSnow";
     /** What falls: the kind picked last. */
     static final String MODE = "mode";
@@ -65,6 +67,10 @@ final class Prefs {
 
     static int iconLift(SharedPreferences prefs) {
         return clamp(prefs.getInt(ICON_LIFT, 0), -ICON_LIFT_REACH, ICON_LIFT_REACH);
+    }
+
+    static int iconWidth(SharedPreferences prefs) {
+        return clamp(prefs.getInt(ICON_WIDTH, 0), -ICON_WIDTH_REACH, ICON_WIDTH_REACH);
     }
 
     static int opacity(SharedPreferences prefs) {

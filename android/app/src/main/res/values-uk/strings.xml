@@ -46,6 +46,7 @@
     <string name="open_settings">Відкрити налаштування</string>
     <string name="icon_lift">Висота снігу на застосунках</string>
     <string name="icon_lift_summary">Посуньте, щоб сніг лежав точно на значках.</string>
+    <string name="icon_width">Ширина снігу на застосунках</string>
     <string name="motion">Нахил і струшування</string>
     <string name="motion_summary">Нахиліть телефон — снігопад понесе в той бік. Струсніть його, щоб здути замет.</string>
     <string name="performance_summary">Малює кожен кадр із повною частотою екрана. Витрачає більше заряду.</string>

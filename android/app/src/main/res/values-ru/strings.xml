@@ -46,6 +46,7 @@
     <string name="open_settings">Открыть настройки</string>
     <string name="icon_lift">Высота снега на приложениях</string>
     <string name="icon_lift_summary">Подвиньте, чтобы снег лежал точно на значках.</string>
+    <string name="icon_width">Ширина снега на приложениях</string>
     <string name="motion">Наклон и встряхивание</string>
     <string name="motion_summary">Наклоните телефон — снегопад понесёт в ту сторону. Встряхните его, чтобы сдуть сугроб.</string>
     <string name="performance_summary">Рисует каждый кадр с полной частотой экрана. Расходует больше заряда.</string>

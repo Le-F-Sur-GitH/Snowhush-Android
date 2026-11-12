@@ -769,6 +769,11 @@ impl SnowSimulation {
         self.resize(width, height);
     }
 
+    /// Whether the window with this id has snow of its own here, in sight or kept for when it is back.
+    pub fn holds(&self, id: WindowId) -> bool {
+        self.ids.iter().skip(1).any(|held| *held == id) || self.dormant.contains_key(&id) || self.parking.iter().any(|parked| parked.0 == id)
+    }
+
     /// The window with this id, when it next comes, comes back over the ground and takes up the drift lying under it, as
     /// a panel does that a full-screen app gave back, instead of hiding it.
     pub fn lift_onto(&mut self, id: WindowId) {

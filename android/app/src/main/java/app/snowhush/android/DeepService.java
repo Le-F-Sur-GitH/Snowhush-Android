@@ -164,7 +164,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences changed, String key) {
-        if (Prefs.WIDGETS.equals(key) || Prefs.ICONS.equals(key) || Prefs.ICON_LIFT.equals(key)) {
+        if (Prefs.WIDGETS.equals(key) || Prefs.ICONS.equals(key) || Prefs.ICON_LIFT.equals(key) || Prefs.ICON_WIDTH.equals(key)) {
             reader.post(known::clear);
             look();
         }
@@ -194,7 +194,18 @@ public final class DeepService extends AccessibilityService implements SharedPre
         StringBuilder notes = new StringBuilder();
         nodes = 0;
         try {
-            collect(root, 0, metrics, seen, notes);
+            collect(root, 0, metrics, seen, notes, false);
+            if (seen.isEmpty()) {
+                // A launcher that lets on nothing of what can be held down: an icon is what can be tapped and has a name.
+                nodes = 0;
+                notes.setLength(0);
+                collect(root, 0, metrics, seen, notes, true);
+            }
+            if (seen.isEmpty()) {
+                // Nothing to go by: how the screen is built, for whoever fits this launcher.
+                nodes = 0;
+                outline(root, 0, notes);
+            }
         } catch (RuntimeException gone) {
             // The screen changed under the reading: the next look gets it whole.
         }
@@ -218,7 +229,11 @@ public final class DeepService extends AccessibilityService implements SharedPre
         main.post(() -> {
             if (running != this) return;
             sliding = false;
-            if (!noted.equals(report)) Log.i("Snowhush", "home screen: " + noted.substring(0, noted.indexOf('\n')));
+            if (!noted.equals(report)) {
+                String[] lines = noted.split("\n");
+                Log.i("Snowhush", "home screen: " + lines[0]);
+                for (int line = 1; line < lines.length; line++) Log.d("Snowhush", lines[line]);
+            }
             report = noted;
             Snow.setItems(numbers, count, false);
         });
@@ -228,23 +243,25 @@ public final class DeepService extends AccessibilityService implements SharedPre
      * Finds the home screen's items under {@code node}. A launcher lets every widget, icon and folder be held down
      * and dragged, so an item is whatever can be long-pressed and is neither tiny nor most of the screen.
      */
-    private void collect(AccessibilityNodeInfo node, int depth, DisplayMetrics metrics, ArrayList<float[]> seen, StringBuilder notes) {
+    private void collect(AccessibilityNodeInfo node, int depth, DisplayMetrics metrics, ArrayList<float[]> seen, StringBuilder notes, boolean tapped) {
         if (node == null || depth > 40 || ++nodes > MOST_NODES || !node.isVisibleToUser()) return;
         Rect bounds = new Rect();
         node.getBoundsInScreen(bounds);
         float density = metrics.density;
         int width = bounds.width();
         int height = bounds.height();
-        boolean item = node.isLongClickable()
+        boolean icon = width <= 130 * density && height <= 150 * density;
+        boolean held = node.isLongClickable()
+                || (tapped && icon && node.isClickable() && (node.getContentDescription() != null || node.getText() != null));
+        boolean item = held
                 && width >= 28 * density
                 && height >= 28 * density
                 && width <= metrics.widthPixels * 0.96f
                 && height <= metrics.heightPixels * 0.6f;
         if (!item) {
-            for (int i = 0; i < node.getChildCount(); i++) collect(node.getChild(i), depth + 1, metrics, seen, notes);
+            for (int i = 0; i < node.getChildCount(); i++) collect(node.getChild(i), depth + 1, metrics, seen, notes, tapped);
             return;
         }
-        boolean icon = width <= 130 * density && height <= 150 * density;
         if (icon ? !prefs.getBoolean(Prefs.ICONS, true) : !prefs.getBoolean(Prefs.WIDGETS, true)) return;
         float[] numbers = icon ? icon(node, bounds, density, notes) : widget(node, bounds, density, notes);
         CharSequence label = node.getContentDescription() != null ? node.getContentDescription() : node.getText();
@@ -252,6 +269,19 @@ public final class DeepService extends AccessibilityService implements SharedPre
         int hash = Objects.hash(label == null ? "" : label.toString(), width, height, bounds.left, bounds.top, icon);
         numbers[0] = (hash & 0x3FFFFF) + 1;
         seen.add(numbers);
+    }
+
+    /** Notes how the screen is built, down to where it gets small: what each part is and where, and nothing it says. */
+    private void outline(AccessibilityNodeInfo node, int depth, StringBuilder notes) {
+        if (node == null || depth > 12 || ++nodes > 120 || !node.isVisibleToUser()) return;
+        Rect bounds = new Rect();
+        node.getBoundsInScreen(bounds);
+        CharSequence kind = node.getClassName();
+        String name = kind == null ? "?" : kind.toString();
+        notes.append("part ").append(depth).append(' ').append(name.substring(name.lastIndexOf('.') + 1)).append(' ').append(bounds.toShortString())
+                .append(node.isClickable() ? " taps" : "").append(node.isLongClickable() ? " holds" : "").append(node.isScrollable() ? " scrolls" : "")
+                .append(" children ").append(node.getChildCount()).append('\n');
+        for (int i = 0; i < node.getChildCount(); i++) outline(node.getChild(i), depth + 1, notes);
     }
 
     /**
@@ -280,11 +310,16 @@ public final class DeepService extends AccessibilityService implements SharedPre
         if (!told) {
             boolean named = bounds.height() - bounds.width() > 12 * density || bounds.height() > bounds.width() * 1.12f;
             float name = named ? 24 * density : 0f;
-            size = Math.max(28 * density, Math.min(Math.min(bounds.width() - 8 * density, bounds.height() - name - 4 * density), 62 * density));
+            // A launcher draws its icons smaller the more of them it fits across.
+            float room = Math.min(bounds.width() * 0.7f, bounds.height() - name - 4 * density);
+            size = Math.max(28 * density, Math.min(room, 62 * density));
             top = bounds.top + Math.max(0f, (bounds.height() - size - name) / 2f);
             left = bounds.exactCenterX() - size / 2f;
         }
-        // The person's own nudge, for a launcher that lays its icons out another way.
+        // The person's own nudges, for a launcher that lays its icons out another way.
+        float wider = Math.max(Prefs.iconWidth(prefs) * density, 24 * density - size);
+        size += wider;
+        left -= wider / 2f;
         top -= Prefs.iconLift(prefs) * density;
         notes.append("icon ").append(node.getClassName()).append(' ').append(bounds.toShortString()).append(told ? " picture " : " guessed ")
                 .append(Math.round(left)).append(',').append(Math.round(top)).append(' ').append(Math.round(size)).append(" children ")

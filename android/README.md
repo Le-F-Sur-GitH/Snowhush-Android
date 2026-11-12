@@ -24,7 +24,7 @@ Two things are a wallpaper's own:
   leaves its snow there and falls on, and the icon under it gets its share too (`falls_behind` in the core).
 - A wallpaper is out of sight most of the time. While the screen is on, the snow goes on falling unseen behind
   whatever app is in front, so what settled meanwhile is there when the home screen is back. With the screen off,
-  nothing falls and nothing runs.
+  nothing falls and nothing runs. A page turned to for the first time has been snowed on as long as the others.
 
 What stands in for the rest of a desktop:
 
@@ -41,9 +41,9 @@ What stands in for the rest of a desktop:
 The app's own screen snows too, as a taste of the wallpaper: its cards are the snow's windows.
 
 Launchers lay their icons out each their own way, and most say only where an icon and its name are together, not
-where the picture is. Snowhush works that out, and *Snow Height on Apps* nudges the snow up or down until it sits
-right. To fit a launcher it misreads, hold the last line of the app's screen down: it hands over what Deep
-Interaction found on the home screen, sizes and places and nothing of what it shows.
+where the picture is. Snowhush works that out, and *Snow Height on Apps* and *Snow Width on Apps* nudge the snow
+until it sits right. To fit a launcher it misreads, hold the last line of the app's screen down: it hands over what
+Deep Interaction found on the home screen, sizes and places and nothing of what it shows.
 
 Not here: snow over other apps. Android only lets touches through a window over another app while that window is
 mostly see-through, and a phone's screen is for the app in front. Hiding from screenshots and checking for updates

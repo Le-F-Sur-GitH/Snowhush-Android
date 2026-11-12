@@ -19,6 +19,7 @@
 "open_settings" = "打开设置";
 "icon_lift" = "应用上积雪的高度";
 "icon_lift_summary" = "调整到积雪正好落在图标顶上。";
+"icon_width" = "应用上积雪的宽度";
 "motion" = "倾斜与摇晃";
 "motion_summary" = "倾斜手机，雪会朝那一边飘。摇一摇，就能把积雪吹走。";
 "performance_summary" = "以显示屏的最高刷新率绘制每一帧。更耗电。";

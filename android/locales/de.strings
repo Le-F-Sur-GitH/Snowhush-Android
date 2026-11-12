@@ -19,6 +19,7 @@
 "open_settings" = "Einstellungen öffnen";
 "icon_lift" = "Schneehöhe auf Apps";
 "icon_lift_summary" = "Verschiebe ihn, bis der Schnee genau auf deinen Symbolen liegt.";
+"icon_width" = "Schneebreite auf Apps";
 "motion" = "Neigen und Schütteln";
 "motion_summary" = "Neige dein Handy, und der Schnee treibt in diese Richtung. Schüttle es, um die Schneewehe wegzublasen.";
 "performance_summary" = "Zeichnet jedes Bild mit der vollen Bildrate des Displays. Braucht mehr Akku.";
