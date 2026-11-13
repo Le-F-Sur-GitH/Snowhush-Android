@@ -14,8 +14,8 @@
 "surface_apps" = "Apps";
 "melt_summary" = "Die Schneewehe taut langsam und nimmt nie den Bildschirm ein.";
 "deep_summary" = "Schnee legt sich auf die Widgets und App-Symbole deines Startbildschirms.";
-"deep_explained" = "Tiefe Interaktion ist ein Android-Bedienungshilfendienst. Er sagt Snowhush, wo die Widgets und App-Symbole deines Startbildschirms sind, damit Schnee sich darauf legen kann.\n\nSnowhush liest nur, wie dein Startbildschirm aufgebaut ist. Nie eine andere App, und es hat keinen Netzwerkzugriff.\n\nWähle auf dem nächsten Bildschirm Snowhush und schalte es ein. Falls Android das eine eingeschränkte Einstellung nennt, öffne die App-Info, tippe auf ⋮ und dann auf Eingeschränkte Einstellungen zulassen.";
-"deep_description" = "Lässt Schnee auf den Widgets und App-Symbolen deines Startbildschirms liegen. Snowhush liest nur, wie der Startbildschirm aufgebaut ist, nie eine andere App, und hat keinen Netzwerkzugriff.";
+"deep_explained" = "Tiefe Interaktion ist ein Android-Bedienungshilfendienst. Er sagt Snowhush, wo die Widgets und App-Symbole deines Startbildschirms sind, damit Schnee sich darauf legen kann.\n\nSnowhush liest nur, wie dein Startbildschirm aufgebaut ist, und macht ab Android 14 ein Bild der Symbole und Widgets des Startbildschirms, um ihre Umrisse zu finden. Das Bild wird sofort verwendet und nie gespeichert. Nie eine andere App, und es hat keinen Netzwerkzugriff.\n\nWähle auf dem nächsten Bildschirm Snowhush und schalte es ein. Falls Android das eine eingeschränkte Einstellung nennt, öffne die App-Info, tippe auf ⋮ und dann auf Eingeschränkte Einstellungen zulassen.";
+"deep_description" = "Lässt Schnee auf den Widgets und App-Symbolen deines Startbildschirms liegen. Snowhush liest nur, wie der Startbildschirm aufgebaut ist, und macht ab Android 14 ein Bild seiner Symbole und Widgets, um ihre Umrisse zu finden; es wird sofort verwendet und nie gespeichert. Nie eine andere App, und kein Netzwerkzugriff.";
 "open_settings" = "Einstellungen öffnen";
 "icon_lift" = "Schneehöhe auf Apps";
 "icon_lift_summary" = "Verschiebe ihn, bis der Schnee genau auf deinen Symbolen liegt.";

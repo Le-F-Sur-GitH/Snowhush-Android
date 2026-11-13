@@ -145,6 +145,8 @@ else
 fi
 if grep -q "home screen:" "$out/logcat.txt"; then
     grep "home screen:" "$out/logcat.txt" | tail -n 1 | tee -a "$out/verdict.txt"
+    # Where the snow was told to lie, to hold against the screenshot.
+    grep "snow lies at" "$out/logcat.txt" | tail -n 12 | sed 's/.*Snowhush: //' | tee -a "$out/verdict.txt"
 else
     echo "Deep Interaction read no home screen" | tee -a "$out/verdict.txt"
 fi

@@ -18,6 +18,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,10 +30,20 @@ import java.util.Objects;
  * accessibility service. This one reads how the home screen is laid out, and nothing else: it only listens to the
  * launcher, only while the live wallpaper is in sight, and the app has no way to send anything anywhere.
  *
+ * <p>The layout says which items there are and roughly where. Exactly where each begins, the snow's ledge, comes
+ * from a picture of the home screen's own layer, which Android 14 and later hand over: see {@link HomePicture} and
+ * {@link Outline}. Without one, on an older Android, the picture in an icon is guessed at from how launchers build
+ * them, and two sliders in the app move the guess.
+ *
  * <p>What it finds goes to the wallpaper as the snow's windows. An item out of sight for now, on another page or
  * behind the app drawer, keeps its snow for when it is back, as a window on another desktop does.
  */
 public final class DeepService extends AccessibilityService implements SharedPreferences.OnSharedPreferenceChangeListener {
+    /** How long a picture of the home screen is waited for, and how long one is gone by before another is taken. */
+    private static final long PICTURE_WAIT = 900;
+    private static final long PICTURE_KEPT = 20_000;
+    /** The least Android leaves between two pictures, and a little more. */
+    private static final long PICTURE_REST = 420;
     /** How long the home screen is left to settle before it is read, in milliseconds: after a change, after a slide. */
     private static final long SETTLE = 220;
     private static final long SETTLE_SLIDE = 380;
@@ -55,8 +66,18 @@ public final class DeepService extends AccessibilityService implements SharedPre
 
     // The reading thread's.
     private final LinkedHashMap<Integer, float[]> known = new LinkedHashMap<>(64, 0.75f, true);
+    /** Where a picture showed each item to be, by the item: left, top, right, bottom, radius and curve, or null for nothing. */
+    private final HashMap<Integer, float[]> fits = new HashMap<>();
     private long readAt;
+    private long pictureAt;
     private int nodes;
+    /** Counts the looks, so an answer that comes late knows a newer look has taken over. */
+    private int turn;
+    private int awaiting;
+    /** Whether Android's pictures of the home screen are any use here: until one comes back solid all over. */
+    private boolean pictures = Build.VERSION.SDK_INT >= 34;
+    private int refusals;
+    private String pictured = "";
 
     /** The service while Android has it running, or null. */
     static DeepService running() {
@@ -170,9 +191,28 @@ public final class DeepService extends AccessibilityService implements SharedPre
         }
     }
 
+    /** Something on the home screen that holds snow: what the snow is told of it, where its room is, and what it is. */
+    private static final class Item {
+        final float[] numbers;
+        final Rect room;
+        final boolean icon;
+
+        Item(float[] numbers, Rect room, boolean icon) {
+            this.numbers = numbers;
+            this.room = room;
+            this.icon = icon;
+        }
+
+        int id() {
+            return (int) numbers[0];
+        }
+    }
+
     /** Looks the home screen over, on the reading thread, and hands what it found to the main one. */
     private void read() {
         readAt = SystemClock.uptimeMillis();
+        final int look = ++turn;
+        awaiting = 0;
         AccessibilityNodeInfo root;
         try {
             root = getRootInActiveWindow();
@@ -189,11 +229,15 @@ public final class DeepService extends AccessibilityService implements SharedPre
             });
             return;
         }
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        ArrayList<float[]> seen = new ArrayList<>();
-        StringBuilder notes = new StringBuilder();
+        final DisplayMetrics metrics = getResources().getDisplayMetrics();
+        final ArrayList<Item> seen = new ArrayList<>();
+        final StringBuilder notes = new StringBuilder();
+        final Rect window = new Rect();
+        int windowId = -1;
         nodes = 0;
         try {
+            root.getBoundsInScreen(window);
+            windowId = root.getWindowId();
             collect(root, 0, metrics, seen, notes, false);
             if (seen.isEmpty()) {
                 // A launcher that lets on nothing of what can be held down: an icon is what can be tapped and has a name.
@@ -209,9 +253,146 @@ public final class DeepService extends AccessibilityService implements SharedPre
         } catch (RuntimeException gone) {
             // The screen changed under the reading: the next look gets it whole.
         }
+        final String launcher = root.getPackageName().toString();
+        final int read = nodes;
+        boolean stale = readAt - pictureAt > PICTURE_KEPT || seen.isEmpty();
+        for (Item item : seen) stale |= !fits.containsKey(item.id());
+        if (!pictures || !stale || window.isEmpty() || windowId < 0) {
+            tell(launcher, metrics, read, seen, notes);
+            return;
+        }
+        // Exactly where each item begins is in a picture of the home screen's own layer. Android takes its time over
+        // one, and now and then never answers.
+        awaiting = look;
+        reader.postDelayed(() -> {
+            if (awaiting != look) return;
+            awaiting = 0;
+            pictured = "no picture came";
+            tell(launcher, metrics, read, seen, notes);
+        }, PICTURE_WAIT);
+        HomePicture.take(this, windowId, reader::post, (picture, error) -> {
+            if (awaiting != look) return;
+            awaiting = 0;
+            if (picture == null && error == HomePicture.TOO_SOON) {
+                // What shows stays as it is until Android will take another.
+                schedule(PICTURE_REST);
+                return;
+            }
+            if (picture == null) {
+                pictured = "no picture, " + error;
+                if (++refusals >= 3) pictures = false;
+            } else {
+                refusals = 0;
+                fit(picture, window, metrics, seen, notes);
+            }
+            tell(launcher, metrics, read, seen, notes);
+        });
+    }
+
+    /**
+     * Finds in a picture of the home screen's own layer where each item begins, and remembers it. With no item told
+     * of by the launcher, whatever the picture shows that could be one is an item.
+     */
+    private void fit(Outline.Picture picture, Rect window, DisplayMetrics metrics, ArrayList<Item> seen, StringBuilder notes) {
+        float share = Outline.solidShare(picture);
+        if (share > 0.9f) {
+            // Solid all over: no layer of its own but a whole screen, wallpaper and all. Nothing to be made out, ever.
+            pictures = false;
+            pictured = "pictures are solid";
+            return;
+        }
+        if (share < 0.002f) {
+            // Nothing drawn at all: the home screen is on its way in or out.
+            pictured = "an empty picture";
+            return;
+        }
+        pictureAt = SystemClock.uptimeMillis();
+        pictured = "";
+        if (fits.size() > 600) fits.clear();
+        // The picture is the window's, and may be drawn at another size than the window is shown at.
+        float across = picture.width / (float) window.width();
+        float down = picture.height / (float) window.height();
+        float dp = metrics.density * across;
+        if (seen.isEmpty()) {
+            for (int[] thing : Outline.things(picture, dp)) {
+                float[] shape = Outline.within(picture, thing[0], thing[1], thing[2], thing[3], dp);
+                if (shape == null) continue;
+                Rect room = new Rect(
+                        window.left + Math.round(thing[0] / across),
+                        window.top + Math.round(thing[1] / down),
+                        window.left + Math.round(thing[2] / across),
+                        window.top + Math.round(thing[3] / down));
+                boolean icon = room.width() <= 130 * metrics.density && room.height() <= 150 * metrics.density;
+                if (icon ? !prefs.getBoolean(Prefs.ICONS, true) : !prefs.getBoolean(Prefs.WIDGETS, true)) continue;
+                float[] numbers = new float[Native.WINDOW_NUMBERS];
+                // No name to know it by: where it sits, to within a few pixels.
+                int grain = Math.max(1, Math.round(4 * metrics.density));
+                numbers[0] = (Objects.hash(room.left / grain, room.top / grain, room.width() / grain, icon) & 0x3FFFFF) + 1;
+                Item item = new Item(numbers, room, icon);
+                fits.put(item.id(), onScreen(shape, window, across, down));
+                seen.add(item);
+            }
+            notes.append("found by picture alone: ").append(seen.size()).append('\n');
+            return;
+        }
+        for (Item item : seen) {
+            // A little past the item's room: an icon may reach to the very edge of it.
+            int margin = Math.round(2 * metrics.density);
+            float[] shape = Outline.within(
+                    picture,
+                    Math.round((item.room.left - window.left - margin) * across),
+                    Math.round((item.room.top - window.top - margin) * down),
+                    Math.round((item.room.right - window.left + margin) * across),
+                    Math.round((item.room.bottom - window.top + margin) * down),
+                    dp);
+            fits.put(item.id(), shape == null ? null : onScreen(shape, window, across, down));
+        }
+    }
+
+    /** What {@link Outline} made out in the picture, in the screen's pixels. */
+    private static float[] onScreen(float[] shape, Rect window, float across, float down) {
+        return new float[] {
+            window.left + shape[Outline.LEFT] / across,
+            window.top + shape[Outline.TOP] / down,
+            window.left + shape[Outline.RIGHT] / across,
+            window.top + shape[Outline.BOTTOM] / down,
+            shape[Outline.RADIUS] / across,
+            shape[Outline.EXPONENT],
+        };
+    }
+
+    /** Hands the wallpaper what the home screen holds: each item where a picture showed it, or where it was guessed. */
+    private void tell(String launcher, DisplayMetrics metrics, int read, ArrayList<Item> seen, StringBuilder notes) {
+        float density = metrics.density;
+        ArrayList<float[]> shown = new ArrayList<>();
+        int fitted = 0;
+        for (Item item : seen) {
+            float[] numbers = item.numbers;
+            if (fits.containsKey(item.id())) {
+                float[] fit = fits.get(item.id());
+                // The launcher tells of it, and nothing is drawn there: nothing for snow to lie on.
+                if (fit == null) continue;
+                System.arraycopy(fit, 0, numbers, 1, 5);
+                numbers[7] = fit[5];
+                boolean small = item.icon || fit[2] - fit[0] < 84 * density || fit[3] - fit[1] < 44 * density;
+                numbers[6] = Native.WINDOW_SETTLES | (small ? Native.WINDOW_SMALL : 0);
+                fitted++;
+            }
+            if (item.icon) {
+                // The person's own nudges, for a launcher that lays its icons out another way.
+                float size = numbers[3] - numbers[1];
+                float wider = Math.max(Prefs.iconWidth(prefs) * density, 24 * density - size);
+                float lift = Prefs.iconLift(prefs) * density;
+                numbers[1] -= wider / 2f;
+                numbers[3] += wider / 2f;
+                numbers[2] -= lift;
+                numbers[4] -= lift;
+            }
+            shown.add(numbers);
+        }
         // Every item known is told of: the ones in sight where they are, the others as away, with their snow kept.
         for (float[] item : known.values()) item[6] = Native.WINDOW_AWAY;
-        for (float[] item : seen) known.put((int) item[0], item);
+        for (float[] item : shown) known.put((int) item[0], item);
         Iterator<Map.Entry<Integer, float[]>> oldest = known.entrySet().iterator();
         while (known.size() > KNOWN && oldest.hasNext()) {
             oldest.next();
@@ -224,8 +405,15 @@ public final class DeepService extends AccessibilityService implements SharedPre
             System.arraycopy(item, 0, numbers, at, Native.WINDOW_NUMBERS);
             at += Native.WINDOW_NUMBERS;
         }
-        final String noted = "launcher " + root.getPackageName() + ", Android " + Build.VERSION.SDK_INT + ", " + metrics.widthPixels + "x"
-                + metrics.heightPixels + " at " + metrics.density + ", " + nodes + " nodes, " + seen.size() + " in sight of " + count + "\n" + notes;
+        String outlines = fitted > 0 ? fitted + " outlines from a picture" : pictured.isEmpty() ? "outlines guessed" : "outlines guessed, " + pictured;
+        StringBuilder places = new StringBuilder();
+        for (float[] item : shown) {
+            places.append("snow lies at ").append(Math.round(item[1])).append(',').append(Math.round(item[2])).append(' ')
+                    .append(Math.round(item[3] - item[1])).append('x').append(Math.round(item[4] - item[2])).append(" corners ")
+                    .append(Math.round(item[5])).append(" curve ").append(item[7]).append('\n');
+        }
+        final String noted = "launcher " + launcher + ", Android " + Build.VERSION.SDK_INT + ", " + metrics.widthPixels + "x" + metrics.heightPixels
+                + " at " + density + ", " + read + " nodes, " + shown.size() + " in sight of " + count + ", " + outlines + "\n" + notes + places;
         main.post(() -> {
             if (running != this) return;
             sliding = false;
@@ -243,7 +431,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
      * Finds the home screen's items under {@code node}. A launcher lets every widget, icon and folder be held down
      * and dragged, so an item is whatever can be long-pressed and is neither tiny nor most of the screen.
      */
-    private void collect(AccessibilityNodeInfo node, int depth, DisplayMetrics metrics, ArrayList<float[]> seen, StringBuilder notes, boolean tapped) {
+    private void collect(AccessibilityNodeInfo node, int depth, DisplayMetrics metrics, ArrayList<Item> seen, StringBuilder notes, boolean tapped) {
         if (node == null || depth > 40 || ++nodes > MOST_NODES || !node.isVisibleToUser()) return;
         Rect bounds = new Rect();
         node.getBoundsInScreen(bounds);
@@ -268,7 +456,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
         // The same item is the same window to the snow each time it is found: what it is called and where it sits.
         int hash = Objects.hash(label == null ? "" : label.toString(), width, height, bounds.left, bounds.top, icon);
         numbers[0] = (hash & 0x3FFFFF) + 1;
-        seen.add(numbers);
+        seen.add(new Item(numbers, bounds, icon));
     }
 
     /** Notes how the screen is built, down to where it gets small: what each part is and where, and nothing it says. */
@@ -285,9 +473,10 @@ public final class DeepService extends AccessibilityService implements SharedPre
     }
 
     /**
-     * An app's icon, or a folder's: the snow lies on the picture, not on the name under it. A launcher that builds
-     * the item from parts says where the picture is; one that draws both in a single view doesn't, and the picture
-     * is taken to be as big as launchers draw it, in the middle of the item above its name.
+     * An app's icon, or a folder's, as well as it can be told without a picture of it: the snow lies on the picture,
+     * not on the name under it. A launcher that builds the item from parts says where the picture is; one that draws
+     * both in a single view doesn't, and the picture is taken to be as big as launchers draw it, in the middle of the
+     * item above its name.
      */
     private float[] icon(AccessibilityNodeInfo node, Rect bounds, float density, StringBuilder notes) {
         float size = 0f;
@@ -316,11 +505,6 @@ public final class DeepService extends AccessibilityService implements SharedPre
             top = bounds.top + Math.max(0f, (bounds.height() - size - name) / 2f);
             left = bounds.exactCenterX() - size / 2f;
         }
-        // The person's own nudges, for a launcher that lays its icons out another way.
-        float wider = Math.max(Prefs.iconWidth(prefs) * density, 24 * density - size);
-        size += wider;
-        left -= wider / 2f;
-        top -= Prefs.iconLift(prefs) * density;
         notes.append("icon ").append(node.getClassName()).append(' ').append(bounds.toShortString()).append(told ? " picture " : " guessed ")
                 .append(Math.round(left)).append(',').append(Math.round(top)).append(' ').append(Math.round(size)).append(" children ")
                 .append(node.getChildCount()).append('\n');

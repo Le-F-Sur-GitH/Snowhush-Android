@@ -18,6 +18,11 @@ page as it waits for a window on another desktop. Deep Interaction is an accessi
 one thing Android tells where the widgets and icons are. It listens to the launcher alone, only while the
 wallpaper is in sight, and reads how the home screen is laid out and nothing else.
 
+On Android 14 and later the snow sits exactly on each icon and widget, whatever the launcher and whatever their
+shape: Android hands the service a picture of the launcher's own layer, the icons and widgets without the
+wallpaper, and the outlines are found in it. Only how opaque each pixel is gets looked at, on the spot; nothing
+of the picture is kept.
+
 Two things are a wallpaper's own:
 
 - The home screen draws its icons over the wallpaper, so the snow falls behind them. A flake crossing an icon's top
@@ -40,9 +45,9 @@ What stands in for the rest of a desktop:
 
 The app's own screen snows too, as a taste of the wallpaper: its cards are the snow's windows.
 
-Launchers lay their icons out each their own way, and most say only where an icon and its name are together, not
-where the picture is. Snowhush works that out, and *Snow Height on Apps* and *Snow Width on Apps* nudge the snow
-until it sits right. To fit a launcher it misreads, hold the last line of the app's screen down: it hands over what
+Before Android 14 there is no such picture. Launchers lay their icons out each their own way, and most say only
+where an icon and its name are together, not where the icon is drawn. Snowhush works that out, and *Snow Height on
+Apps* and *Snow Width on Apps* nudge the snow until it sits right. To fit a launcher it misreads, hold the last line of the app's screen down: it hands over what
 Deep Interaction found on the home screen, sizes and places and nothing of what it shows.
 
 Not here: snow over other apps. Android only lets touches through a window over another app while that window is
@@ -86,7 +91,8 @@ real, point `SNOWHUSH_KEYSTORE` and its companions (see `app/build.gradle`) at a
   `lib.rs` is the handful of calls Java makes. It builds for a desktop too.
 - `app/` is the app. `SnowEngine` owns a surface's thread, its EGL context and its scene, and tells the scene what
   Android knows. `SnowWallpaper` is the live wallpaper, `DeepService` the accessibility service that reads the home
-  screen, `MainActivity` the screen.
+  screen, `HomePicture` and `Outline` what find the icons' and widgets' outlines in a picture of it, `MainActivity`
+  the screen.
 - `locales/` has the words only Android needs, in the nine languages of `../locales`; `tools/strings.py` turns both
   into string resources, and `tools/icon.py` draws the adaptive icon after `../scripts/make-icon.swift`.
 

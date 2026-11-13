@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Deep Interaction: Android tells the service when the home screen changes or its pages slide, and lets it read
-     how the screen is laid out. DeepService narrows what it hears to the launcher alone as soon as it starts, and
-     reads no other app. It is no accessibility tool, and says so. -->
+<!-- Deep Interaction: Android tells the service when the home screen changes or its pages slide, lets it read how
+     the screen is laid out and, from Android 14, hands it a picture of the launcher's own window, in which the
+     icons' and widgets' outlines are found. DeepService narrows what it hears to the launcher alone as soon as it
+     starts, and reads and pictures no other app. It is no accessibility tool, and says so. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeViewScrolled"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagIncludeNotImportantViews"
     android:canRetrieveWindowContent="true"
+    android:canTakeScreenshot="true"
     android:description="@string/deep_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="120"

@@ -41,8 +41,8 @@
     <string name="surface_apps">应用</string>
     <string name="melt_summary">积雪会慢慢融化，不会占满你的屏幕。</string>
     <string name="deep_summary">雪会落在主屏幕的小组件和应用图标上。</string>
-    <string name="deep_explained">深度交互是一项 Android 无障碍服务。它告诉 Snowhush 主屏幕上的小组件和应用图标在哪里，让雪可以落在上面。\n\nSnowhush 只读取主屏幕的布局。它从不读取其他任何应用，也没有网络访问权限。\n\n在下一个界面中选择 Snowhush 并将其打开。如果 Android 提示这是受限设置，请打开应用信息，点按 ⋮，然后选择“允许受限设置”。</string>
-    <string name="deep_description">让雪落在主屏幕的小组件和应用图标上。Snowhush 只读取主屏幕的布局，从不读取其他任何应用，也没有网络访问权限。</string>
+    <string name="deep_explained">深度交互是一项 Android 无障碍服务。它告诉 Snowhush 主屏幕上的小组件和应用图标在哪里，让雪可以落在上面。\n\nSnowhush 只读取主屏幕的布局；在 Android 14 及更高版本上，还会拍下主屏幕图标和小组件的图像，用来找出它们的轮廓。图像即拍即用，绝不保存。它从不读取其他任何应用，也没有网络访问权限。\n\n在下一个界面中选择 Snowhush 并将其打开。如果 Android 提示这是受限设置，请打开应用信息，点按 ⋮，然后选择“允许受限设置”。</string>
+    <string name="deep_description">让雪落在主屏幕的小组件和应用图标上。Snowhush 只读取主屏幕的布局；在 Android 14 及更高版本上，还会拍下其图标和小组件的图像来找出轮廓，即拍即用，绝不保存。它从不读取其他任何应用，也没有网络访问权限。</string>
     <string name="open_settings">打开设置</string>
     <string name="icon_lift">应用上积雪的高度</string>
     <string name="icon_lift_summary">调整到积雪正好落在图标顶上。</string>

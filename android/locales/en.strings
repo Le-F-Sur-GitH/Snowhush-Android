@@ -16,8 +16,8 @@
 "surface_apps" = "Apps";
 "melt_summary" = "The drift thaws slowly, so it never takes over your screen.";
 "deep_summary" = "Snow settles on the widgets and app icons of your home screen.";
-"deep_explained" = "Deep Interaction is an Android accessibility service. It tells Snowhush where the widgets and app icons of your home screen are, so snow can settle on them.\n\nSnowhush reads only how your home screen is laid out. It never reads any other app, and it has no network access.\n\nOn the next screen, choose Snowhush and turn it on. If Android calls it a restricted setting, open the app's info page, tap ⋮, then Allow restricted settings.";
-"deep_description" = "Lets snow settle on the widgets and app icons of your home screen. Snowhush reads only how the home screen is laid out, never any other app, and has no network access.";
+"deep_explained" = "Deep Interaction is an Android accessibility service. It tells Snowhush where the widgets and app icons of your home screen are, so snow can settle on them.\n\nSnowhush reads only how your home screen is laid out and, on Android 14 and later, takes a picture of the home screen's own icons and widgets to find their outlines. The picture is used at once and never kept. It never reads any other app, and it has no network access.\n\nOn the next screen, choose Snowhush and turn it on. If Android calls it a restricted setting, open the app's info page, tap ⋮, then Allow restricted settings.";
+"deep_description" = "Lets snow settle on the widgets and app icons of your home screen. Snowhush reads only how the home screen is laid out and, on Android 14 and later, takes a picture of its icons and widgets to find their outlines, used at once and never kept. It never reads any other app, and has no network access.";
 "open_settings" = "Open Settings";
 "icon_lift" = "Snow Height on Apps";
 "icon_lift_summary" = "Nudge it until the snow sits right on top of your icons.";

@@ -14,8 +14,8 @@
 "surface_apps" = "Apps";
 "melt_summary" = "A neve acumulada derrete devagar e nunca toma conta da tela.";
 "deep_summary" = "A neve pousa nos widgets e nos ícones da sua tela inicial.";
-"deep_explained" = "A interação profunda é um serviço de acessibilidade do Android. Ele diz ao Snowhush onde estão os widgets e os ícones da sua tela inicial, para a neve pousar neles.\n\nO Snowhush lê apenas como a sua tela inicial está organizada. Nunca lê nenhum outro app, e não tem acesso à rede.\n\nNa próxima tela, escolha Snowhush e ative. Se o Android disser que é uma configuração restrita, abra as informações do app, toque em ⋮ e depois em Permitir configurações restritas.";
-"deep_description" = "Permite que a neve pouse nos widgets e nos ícones da sua tela inicial. O Snowhush lê apenas como a tela inicial está organizada, nunca nenhum outro app, e não tem acesso à rede.";
+"deep_explained" = "A interação profunda é um serviço de acessibilidade do Android. Ele diz ao Snowhush onde estão os widgets e os ícones da sua tela inicial, para a neve pousar neles.\n\nO Snowhush lê apenas como a sua tela inicial está organizada e, no Android 14 e posteriores, tira uma imagem dos ícones e widgets da tela inicial para encontrar os contornos deles. A imagem é usada na hora e nunca é guardada. Nunca lê nenhum outro app, e não tem acesso à rede.\n\nNa próxima tela, escolha Snowhush e ative. Se o Android disser que é uma configuração restrita, abra as informações do app, toque em ⋮ e depois em Permitir configurações restritas.";
+"deep_description" = "Permite que a neve pouse nos widgets e nos ícones da sua tela inicial. O Snowhush lê apenas como a tela inicial está organizada e, no Android 14 e posteriores, tira uma imagem dos ícones e widgets dela para encontrar os contornos, usada na hora e nunca guardada. Nunca lê nenhum outro app, e não tem acesso à rede.";
 "open_settings" = "Abrir Ajustes";
 "icon_lift" = "Altura da neve sobre os apps";
 "icon_lift_summary" = "Ajuste até a neve ficar bem em cima dos seus ícones.";
