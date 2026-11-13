@@ -1,0 +1,9 @@
+List of devices attached
+emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:1
+
+google/sdk_gphone64_x86_64/emu64xa:14/UE1A.230829.050/12077443:userdebug/dev-keys
+emulation
+Physical size: 768x1280
+Physical density: 320
+priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+com.google.android.apps.nexuslauncher/.NexusLauncherActivity

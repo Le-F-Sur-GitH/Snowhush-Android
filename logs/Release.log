@@ -1,0 +1,66 @@
+﻿2026-11-13T11:13:42.5893999Z Current runner version: '2.338.2'
+2026-11-13T11:13:42.5934770Z ##[group]Runner Image Provisioner
+2026-11-13T11:13:42.5936237Z Hosted Compute Agent
+2026-11-13T11:13:42.5937256Z Version: 20261103.629
+2026-11-13T11:13:42.5938781Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-13T11:13:42.5940107Z Build Date: 2026-11-03T17:26:59Z
+2026-11-13T11:13:42.5941289Z Worker ID: {9c8fa2bc-7cc3-4718-a216-65116ce08ccd}
+2026-11-13T11:13:42.5942648Z Region: eastus
+2026-11-13T11:13:42.5943546Z Cloud: Azure
+2026-11-13T11:13:42.5944560Z ##[endgroup]
+2026-11-13T11:13:42.5947152Z ##[group]Operating System
+2026-11-13T11:13:42.5948521Z Ubuntu
+2026-11-13T11:13:42.5949500Z 24.04.5
+2026-11-13T11:13:42.5950405Z LTS
+2026-11-13T11:13:42.5951213Z ##[endgroup]
+2026-11-13T11:13:42.5952238Z ##[group]Runner Image
+2026-11-13T11:13:42.5953258Z Image: ubuntu-24.04
+2026-11-13T11:13:42.5954215Z Version: 20261111.370.1
+2026-11-13T11:13:42.5956533Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.370/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-13T11:13:42.5960181Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.370
+2026-11-13T11:13:42.5961977Z ##[endgroup]
+2026-11-13T11:13:42.5964184Z ##[group]GITHUB_TOKEN Permissions
+2026-11-13T11:13:42.5967648Z Actions: read
+2026-11-13T11:13:42.5968727Z Contents: write
+2026-11-13T11:13:42.5969678Z Metadata: read
+2026-11-13T11:13:42.5970697Z ##[endgroup]
+2026-11-13T11:13:42.5974190Z Secret source: Actions
+2026-11-13T11:13:42.5975799Z Cache mode: write
+2026-11-13T11:13:42.5977581Z Prepare workflow directory
+2026-11-13T11:13:42.6499202Z Prepare all required actions
+2026-11-13T11:13:42.6576609Z Getting action download info
+2026-11-13T11:13:42.8744027Z Download action repository 'actions/download-artifact@v8' (SHA:9000827ccba6bdab643e8b6fd33ac0654aef8333)
+2026-11-13T11:13:43.2119812Z Complete job name: Release
+2026-11-13T11:13:43.3162137Z ##[group]Run actions/download-artifact@v8
+2026-11-13T11:13:43.3163168Z with:
+2026-11-13T11:13:43.3163647Z   name: Snowhush-Android
+2026-11-13T11:13:43.3164146Z   path: apk
+2026-11-13T11:13:43.3164579Z   merge-multiple: false
+2026-11-13T11:13:43.3165111Z   repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:13:43.3165709Z   run-id: 43414673810
+2026-11-13T11:13:43.3166201Z   skip-decompress: false
+2026-11-13T11:13:43.3166701Z   digest-mismatch: error
+2026-11-13T11:13:43.3167892Z ##[endgroup]
+2026-11-13T11:13:43.8662387Z Downloading single artifact
+2026-11-13T11:13:43.9928350Z Preparing to download the following artifacts:
+2026-11-13T11:13:43.9930911Z - Snowhush-Android (ID: 14031566077, Size: 1861639, Expected Digest: sha256:5f21cf48d02f5c71ef8127517238aff2528163edfdad3bf2ee74a54877726b98)
+2026-11-13T11:13:44.1613109Z Redirecting to blob download url: https://productionresultssa1.blob.core.windows.net/actions-results/5aad7d3b-4232-890c-b135-de82e886903f/workflow-job-run-03e387bd-c63c-54c9-a4d4-f1879c48f815/artifacts/4797b2a5c05c01808a0634792793667ad698b5be1ebacb7f5cb484df3c490382.zip
+2026-11-13T11:13:44.1618756Z Starting download of artifact to: /home/runner/work/Snowhush-Android/Snowhush-Android/apk
+2026-11-13T11:13:44.2220148Z (node:2195) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+2026-11-13T11:13:44.2223800Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-13T11:13:44.2959761Z SHA256 digest of downloaded artifact is 5f21cf48d02f5c71ef8127517238aff2528163edfdad3bf2ee74a54877726b98
+2026-11-13T11:13:44.2963366Z Artifact download completed successfully.
+2026-11-13T11:13:44.2964856Z Total of 1 artifact(s) downloaded
+2026-11-13T11:13:44.2966493Z Download artifact has finished successfully
+2026-11-13T11:13:44.3247576Z ##[group]Run gh release delete latest --yes --cleanup-tag || true
+2026-11-13T11:13:44.3249328Z [36;1mgh release delete latest --yes --cleanup-tag || true[0m
+2026-11-13T11:13:44.3251019Z [36;1mgh release create latest apk/*.apk --target "$GITHUB_SHA" --prerelease \[0m
+2026-11-13T11:13:44.3252960Z [36;1m  --title "Snowhush for Android, latest build" \[0m
+2026-11-13T11:13:44.3256428Z [36;1m  --notes "Built from $GITHUB_SHA. Unofficial Android port of Snowhush by Mykhailo Bezruchko, free for noncommercial use under the PolyForm Noncommercial License 1.0.0. Install the APK on Android 8 or later."[0m
+2026-11-13T11:13:44.3285599Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:13:44.3286357Z env:
+2026-11-13T11:13:44.3296371Z   GH_TOKEN: ***
+2026-11-13T11:13:44.3297031Z   GH_REPO: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:13:44.3298017Z ##[endgroup]
+2026-11-13T11:13:49.0713816Z https://github.com/Le-F-Sur-GitH/Snowhush-Android/releases/tag/latest
+2026-11-13T11:13:49.0836888Z Cleaning up orphan processes

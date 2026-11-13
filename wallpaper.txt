@@ -1,0 +1,40 @@
+mDefaultWallpaperComponent=null
+mImageWallpaper=ComponentInfo{com.android.systemui/com.android.systemui.wallpapers.ImageWallpaper}
+System wallpaper state:
+ User 0: id=2: mWhich=3: mSystemWasBoth=false
+ Display state:
+  displayId=0
+  mWidth=2560  mHeight=1280
+  mPadding=Rect(0, 0 - 0, 0)
+  mCropHint=Rect(0, 0 - 0, 0)
+  mName=
+  mAllowBackup=true
+  mWallpaperComponent=ComponentInfo{app.snowhush.android/app.snowhush.android.SnowWallpaper}
+  mWallpaperDimAmount=0.0
+  isColorExtracted=false
+  mUidToDimAmount:
+  Wallpaper connection com.android.server.wallpaper.WallpaperManagerService$WallpaperConnection@2df69ab:
+    mInfo.component=ComponentInfo{app.snowhush.android/app.snowhush.android.SnowWallpaper}
+     mDisplayId=0
+     mToken=android.os.Binder@5b3e452
+     mEngine=android.service.wallpaper.IWallpaperEngine$Stub$Proxy@2ca622
+    mService=android.service.wallpaper.IWallpaperService$Stub$Proxy@ded48b3
+    mLastDiedTime=-141773
+Lock wallpaper state:
+Fallback wallpaper state:
+ User 0: id=1: mWhich=1: mSystemWasBoth=false
+ Display state:
+  displayId=0
+  mWidth=2560  mHeight=1280
+  mPadding=Rect(0, 0 - 0, 0)
+  mCropHint=Rect(0, 0 - 0, 0)
+  mName=
+  mAllowBackup=false
+  mWallpaperComponent=ComponentInfo{com.android.systemui/com.android.systemui.wallpapers.ImageWallpaper}
+  mWallpaperDimAmount=0.0
+  isColorExtracted=false
+  mUidToDimAmount:
+  Wallpaper connection com.android.server.wallpaper.WallpaperManagerService$WallpaperConnection@865b053:
+    mService=android.service.wallpaper.IWallpaperService$Stub$Proxy@7a0ae70
+    mLastDiedTime=-141773
+mIsLockscreenLiveWallpaperEnabled=false

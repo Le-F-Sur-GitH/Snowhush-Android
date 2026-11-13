@@ -1,0 +1,155 @@
++ logcat=2717
++ alive before anything
++ command adb logcat -v threadtime
++ adb get-state
++ [ device = device ]
++ return 0
++ adb devices -l
++ timeout 120 adb devices -l
++ adb shell getprop ro.build.fingerprint
++ timeout 120 adb shell getprop ro.build.fingerprint
++ adb shell getprop ro.hardware.egl
++ timeout 120 adb shell getprop ro.hardware.egl
++ adb shell wm size
++ timeout 120 adb shell wm size
++ adb shell wm density
++ timeout 120 adb shell wm density
++ adb shell cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN
++ timeout 120 adb shell cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN
++ adb install -r apk/Snowhush-0.13.1-release.apk
++ timeout 120 adb install -r apk/Snowhush-0.13.1-release.apk
++ alive once the app was installed
++ adb get-state
++ [ device = device ]
++ return 0
++ shot 0-before
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/0-before.png ]
++ adb shell am start -W -n app.snowhush.android/.MainActivity
++ timeout 120 adb shell am start -W -n app.snowhush.android/.MainActivity
++ sleep 5
++ alive once the app's screen opened
++ adb get-state
++ [ device = device ]
++ return 0
++ sleep 25
++ shot 1-app
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/1-app.png ]
++ adb shell input swipe 300 900 300 400 300
++ timeout 120 adb shell input swipe 300 900 300 400 300
++ sleep 4
++ shot 2-app-scrolled
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/2-app-scrolled.png ]
++ alive with the app's screen open
++ adb get-state
++ [ device = device ]
++ return 0
++ adb shell am start -W -a android.service.wallpaper.CHANGE_LIVE_WALLPAPER --ecn android.service.wallpaper.extra.LIVE_WALLPAPER_COMPONENT app.snowhush.android/.SnowWallpaper
++ timeout 120 adb shell am start -W -a android.service.wallpaper.CHANGE_LIVE_WALLPAPER --ecn android.service.wallpaper.extra.LIVE_WALLPAPER_COMPONENT app.snowhush.android/.SnowWallpaper
++ sleep 25
++ alive previewing the wallpaper
++ adb get-state
++ [ device = device ]
++ return 0
++ shot 3-wallpaper-preview
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/3-wallpaper-preview.png ]
++ tap ^ *set wallpaper
++ adb shell uiautomator dump /sdcard/ui.xml
++ adb pull /sdcard/ui.xml smoke/ui.xml
++ python3 - smoke/ui.xml ^ *set wallpaper
++ at=383 1165
++ [ -n 383 1165 ]
++ adb shell input tap 383 1165
++ timeout 120 adb shell input tap 383 1165
++ sleep 3
++ tap home screen and lock screen|home and lock
++ adb shell uiautomator dump /sdcard/ui.xml
++ adb pull /sdcard/ui.xml smoke/ui.xml
++ python3 - smoke/ui.xml home screen and lock screen|home and lock
++ at=383 733
++ [ -n 383 733 ]
++ adb shell input tap 383 733
++ timeout 120 adb shell input tap 383 733
++ sleep 3
++ adb pull /sdcard/ui.xml smoke/ui-preview.xml
++ adb shell input keyevent KEYCODE_HOME
++ timeout 120 adb shell input keyevent KEYCODE_HOME
++ sleep 30
++ alive with the wallpaper on the home screen
++ adb get-state
++ [ device = device ]
++ return 0
++ shot 4-home
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/4-home.png ]
++ adb shell dumpsys wallpaper
++ timeout 120 adb shell dumpsys wallpaper
++ adb shell settings put secure enabled_accessibility_services app.snowhush.android/app.snowhush.android.DeepService
++ timeout 120 adb shell settings put secure enabled_accessibility_services app.snowhush.android/app.snowhush.android.DeepService
++ adb shell settings put secure accessibility_enabled 1
++ timeout 120 adb shell settings put secure accessibility_enabled 1
++ sleep 8
++ adb shell am start -W -n app.snowhush.android/.MainActivity
++ timeout 120 adb shell am start -W -n app.snowhush.android/.MainActivity
++ sleep 4
++ shot 5-app-deep
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/5-app-deep.png ]
++ adb shell input keyevent KEYCODE_HOME
++ timeout 120 adb shell input keyevent KEYCODE_HOME
++ sleep 45
++ alive with Deep Interaction on
++ adb get-state
++ [ device = device ]
++ return 0
++ shot 6-home-deep
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/6-home-deep.png ]
++ adb shell uiautomator dump /sdcard/home.xml
++ adb pull /sdcard/home.xml smoke/ui-home.xml
++ adb shell input keyevent KEYCODE_POWER
++ timeout 120 adb shell input keyevent KEYCODE_POWER
++ sleep 3
++ adb shell input keyevent KEYCODE_WAKEUP
++ timeout 120 adb shell input keyevent KEYCODE_WAKEUP
++ sleep 8
++ shot 7-lock
++ adb exec-out screencap -p
++ timeout 120 adb exec-out screencap -p
++ [ -s smoke/7-lock.png ]
++ alive at the end
++ adb get-state
++ [ device = device ]
++ return 0
++ sleep 2
++ kill 2717
++ grep -E  (Snowhush|AndroidRuntime) *: smoke/logcat-all.txt
++ status=0
++ grep -q no picture of smoke/verdict.txt
++ grep -q Process: app.snowhush.android smoke/logcat-all.txt
++ grep -q the snow can't be drawn\|the snow stopped smoke/logcat.txt
++ grep -q app.snowhush.android smoke/wallpaper.txt
++ echo the snow is the wallpaper
++ tee -a smoke/verdict.txt
++ grep -q home screen: smoke/logcat.txt
++ grep home screen: smoke/logcat.txt
++ tail -n 1
++ tee -a smoke/verdict.txt
++ grep snow lies at smoke/logcat.txt
++ sed s/.*Snowhush: //
++ tail -n 12
++ tee -a smoke/verdict.txt
++ [ 0 -eq 0 ]
++ echo the app runs
++ tee -a smoke/verdict.txt
++ exit 0

@@ -1,0 +1,452 @@
+﻿2026-11-13T11:08:47.8173764Z Current runner version: '2.338.2'
+2026-11-13T11:08:47.8201835Z ##[group]Runner Image Provisioner
+2026-11-13T11:08:47.8202652Z Hosted Compute Agent
+2026-11-13T11:08:47.8203353Z Version: 20261103.629
+2026-11-13T11:08:47.8204048Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-13T11:08:47.8204825Z Build Date: 2026-11-03T17:26:59Z
+2026-11-13T11:08:47.8205531Z Worker ID: {67328125-3216-4b9c-8763-fe650a45788c}
+2026-11-13T11:08:47.8206235Z Region: eastus2
+2026-11-13T11:08:47.8206893Z Cloud: Azure
+2026-11-13T11:08:47.8207432Z ##[endgroup]
+2026-11-13T11:08:47.8209491Z ##[group]Operating System
+2026-11-13T11:08:47.8210173Z Ubuntu
+2026-11-13T11:08:47.8210949Z 24.04.5
+2026-11-13T11:08:47.8211572Z LTS
+2026-11-13T11:08:47.8212121Z ##[endgroup]
+2026-11-13T11:08:47.8212663Z ##[group]Runner Image
+2026-11-13T11:08:47.8213342Z Image: ubuntu-24.04
+2026-11-13T11:08:47.8213921Z Version: 20261111.370.1
+2026-11-13T11:08:47.8215234Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.370/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-13T11:08:47.8216821Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.370
+2026-11-13T11:08:47.8217875Z ##[endgroup]
+2026-11-13T11:08:47.8219057Z ##[group]GITHUB_TOKEN Permissions
+2026-11-13T11:08:47.8222085Z Actions: read
+2026-11-13T11:08:47.8222752Z Contents: write
+2026-11-13T11:08:47.8223438Z Metadata: read
+2026-11-13T11:08:47.8224037Z ##[endgroup]
+2026-11-13T11:08:47.8226068Z Secret source: Actions
+2026-11-13T11:08:47.8227139Z Cache mode: write
+2026-11-13T11:08:47.8228084Z Prepare workflow directory
+2026-11-13T11:08:47.8577900Z Prepare all required actions
+2026-11-13T11:08:47.8648221Z Getting action download info
+2026-11-13T11:08:48.1126683Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-13T11:08:48.2232043Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+2026-11-13T11:08:48.4084918Z Complete job name: Engine
+2026-11-13T11:08:48.4946256Z ##[group]Run actions/checkout@v7
+2026-11-13T11:08:48.4947159Z with:
+2026-11-13T11:08:48.4947633Z   repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:48.4951636Z   token: ***
+2026-11-13T11:08:48.4952064Z   ssh-strict: true
+2026-11-13T11:08:48.4952507Z   ssh-user: git
+2026-11-13T11:08:48.4952949Z   persist-credentials: true
+2026-11-13T11:08:48.4953427Z   clean: true
+2026-11-13T11:08:48.4953877Z   sparse-checkout-cone-mode: true
+2026-11-13T11:08:48.4954386Z   fetch-depth: 1
+2026-11-13T11:08:48.4954811Z   fetch-tags: false
+2026-11-13T11:08:48.4955255Z   show-progress: true
+2026-11-13T11:08:48.4955699Z   lfs: false
+2026-11-13T11:08:48.4956106Z   submodules: false
+2026-11-13T11:08:48.4956549Z   set-safe-directory: true
+2026-11-13T11:08:48.4957040Z   allow-unsafe-pr-checkout: false
+2026-11-13T11:08:48.4957808Z ##[endgroup]
+2026-11-13T11:08:48.7726096Z Syncing repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:48.7728803Z ##[group]Getting Git version info
+2026-11-13T11:08:48.7730491Z Working directory is '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:08:48.7732367Z [command]/usr/bin/git version
+2026-11-13T11:08:48.7816917Z git version 2.56.1
+2026-11-13T11:08:48.7843661Z ##[endgroup]
+2026-11-13T11:08:48.7869158Z Temporarily overriding HOME='/home/runner/work/_temp/5b2d9d28-6455-41ed-b238-b4ba179058c9' before making global git config changes
+2026-11-13T11:08:48.7872843Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:08:48.7879885Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:08:48.7953613Z Deleting the contents of '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:08:48.7956323Z ##[group]Determining repository object format
+2026-11-13T11:08:48.7958331Z ##[endgroup]
+2026-11-13T11:08:48.7960130Z ##[group]Initializing the repository
+2026-11-13T11:08:48.7968734Z [command]/usr/bin/git init /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:08:48.8083883Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-13T11:08:48.8085953Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-13T11:08:48.8088218Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-13T11:08:48.8089896Z hint: call:
+2026-11-13T11:08:48.8091554Z hint:
+2026-11-13T11:08:48.8093397Z hint: 	git config --global init.defaultBranch <name>
+2026-11-13T11:08:48.8095405Z hint:
+2026-11-13T11:08:48.8096973Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-13T11:08:48.8099339Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-13T11:08:48.8121584Z hint:
+2026-11-13T11:08:48.8151585Z hint: 	git branch -m <name>
+2026-11-13T11:08:48.8163337Z hint:
+2026-11-13T11:08:48.8173540Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-13T11:08:48.8182283Z Initialized empty Git repository in /home/runner/work/Snowhush-Android/Snowhush-Android/.git/
+2026-11-13T11:08:48.8186407Z [command]/usr/bin/git remote add origin https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:48.8197197Z ##[endgroup]
+2026-11-13T11:08:48.8199653Z ##[group]Disabling automatic garbage collection
+2026-11-13T11:08:48.8201728Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-13T11:08:48.8219503Z ##[endgroup]
+2026-11-13T11:08:48.8221674Z ##[group]Setting up auth
+2026-11-13T11:08:48.8224380Z Removing SSH command configuration
+2026-11-13T11:08:48.8226414Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:08:48.8269762Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:08:48.8699191Z Removing HTTP extra header
+2026-11-13T11:08:48.8707717Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:08:48.8786445Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:08:48.9040287Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:08:48.9047719Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:08:48.9094779Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:08:48.9349823Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-13T11:08:48.9399256Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path /home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:08:48.9449499Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:08:48.9500895Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:08:48.9550884Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:08:48.9591923Z ##[endgroup]
+2026-11-13T11:08:48.9597762Z ##[group]Fetching the repository
+2026-11-13T11:08:48.9599283Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d82a8c573085f6828dfde2b770b3a04efa22b97b:refs/remotes/origin/main
+2026-11-13T11:08:49.2494350Z From https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:49.2496433Z  * [new ref]         d82a8c573085f6828dfde2b770b3a04efa22b97b -> origin/main
+2026-11-13T11:08:49.2506026Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-13T11:08:49.2554074Z   origin/main
+2026-11-13T11:08:49.2562238Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-13T11:08:49.2596602Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:08:49.2602245Z ##[endgroup]
+2026-11-13T11:08:49.2603765Z ##[group]Determining the checkout info
+2026-11-13T11:08:49.2605872Z ##[endgroup]
+2026-11-13T11:08:49.2607358Z [command]/usr/bin/git sparse-checkout disable
+2026-11-13T11:08:49.2690271Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-13T11:08:49.2737473Z ##[group]Checking out the ref
+2026-11-13T11:08:49.2742453Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-13T11:08:49.3092079Z Switched to a new branch 'main'
+2026-11-13T11:08:49.3100503Z branch 'main' set up to track 'origin/main'.
+2026-11-13T11:08:49.3108629Z ##[endgroup]
+2026-11-13T11:08:49.3163915Z [command]/usr/bin/git log -1 --format=%H
+2026-11-13T11:08:49.3201973Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:08:49.3471554Z ##[group]Run cargo test --locked --manifest-path core/Cargo.toml
+2026-11-13T11:08:49.3473645Z [36;1mcargo test --locked --manifest-path core/Cargo.toml[0m
+2026-11-13T11:08:49.3498463Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:08:49.3499583Z ##[endgroup]
+2026-11-13T11:08:51.7673295Z    Compiling snowhush-core v0.0.0 (/home/runner/work/Snowhush-Android/Snowhush-Android/core)
+2026-11-13T11:09:06.2406008Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 16.27s
+2026-11-13T11:09:06.2409051Z      Running unittests src/lib.rs (core/target/debug/deps/snowhush_core-0589ee18c6d7c5a9)
+2026-11-13T11:09:06.2421298Z 
+2026-11-13T11:09:06.2421637Z running 58 tests
+2026-11-13T11:09:06.2875502Z test simulation::ghosts::tests::ghosts_hold_up_signs ... ok
+2026-11-13T11:09:06.2880033Z test simulation::ghosts::tests::a_ghost_takes_shape_out_of_a_drift ... ok
+2026-11-13T11:09:06.2945400Z test simulation::ghosts::tests::a_window_in_front_sends_a_ghost_back_into_the_drift ... ok
+2026-11-13T11:09:06.3031994Z test simulation::pumpkins::tests::pumpkins_over_a_panels_shelf_sit_in_its_snow ... ok
+2026-11-13T11:09:06.3341595Z test simulation::ghosts::tests::the_cursor_crumbles_a_ghost_back_into_snow ... ok
+2026-11-13T11:09:06.3511605Z test simulation::pumpkins::tests::pumpkins_sit_in_the_drift_and_hide_from_a_window_over_them ... ok
+2026-11-13T11:09:06.7041499Z test simulation::ghosts::tests::every_third_scare_brings_a_snowball ... ok
+2026-11-13T11:09:09.4531450Z test tests::a_closed_window_drops_only_its_own_leaves ... ok
+2026-11-13T11:09:09.8581420Z test tests::a_calm_gust_melts_the_drifts_where_they_lie ... ok
+2026-11-13T11:09:09.9621504Z test tests::a_drift_lent_to_a_display_of_other_pixels_meets_the_rest_at_the_edge ... ok
+2026-11-13T11:09:10.7511425Z test tests::a_kind_joining_the_fall_starts_at_once_and_one_leaving_clears_the_screen ... ok
+2026-11-13T11:09:12.6791323Z test tests::a_panel_given_back_takes_up_the_drift_under_it ... ok
+2026-11-13T11:09:13.7391422Z test tests::a_screen_rests_only_once_its_snow_is_gone_and_none_is_coming ... ok
+2026-11-13T11:09:17.4151511Z test tests::a_gust_blows_all_the_snow_away ... ok
+2026-11-13T11:09:17.7101409Z test tests::a_sliding_desktop_skims_the_drifts_without_blowing_them_away ... ok
+2026-11-13T11:09:17.7751253Z test simulation::ghosts::tests::haunting_for_a_while_stays_sound ... ok
+2026-11-13T11:09:20.9571430Z test tests::a_window_dragged_to_a_display_of_other_pixels_keeps_its_snow ... ok
+2026-11-13T11:09:21.4161566Z test tests::a_window_handed_to_a_display_with_a_clock_of_its_own_keeps_its_snow_in_sight ... ok
+2026-11-13T11:09:22.0811332Z test tests::a_heap_jerked_off_its_window_comes_off_as_leaves ... ok
+2026-11-13T11:09:22.0841079Z test tests::compare_with_swift ... ignored
+2026-11-13T11:09:23.1295191Z test tests::a_window_dragged_to_the_next_display_takes_its_snow_along ... ok
+2026-11-13T11:09:25.8231878Z test tests::cherry_blossom_petals_fall_and_lie_as_leaves_do ... ok
+2026-11-13T11:09:25.8281539Z test tests::every_language_has_every_text ... ok
+2026-11-13T11:09:25.8292385Z test tests::halloween_comes_with_its_season_and_whenever_turned_on ... ok
+2026-11-13T11:09:25.8304346Z test tests::halloween_moonlight_only_shows_on_halloween ... ok
+2026-11-13T11:09:25.8321673Z test tests::halloween_runs_from_october_30_to_dawn_on_november_1 ... ok
+2026-11-13T11:09:26.8641171Z test tests::leaves_lie_where_they_land ... ok
+2026-11-13T11:09:27.2671158Z test tests::cursor_sweeps_the_drift_aside ... ok
+2026-11-13T11:09:28.5261156Z test tests::dragged_window_sheds_its_snow ... ok
+2026-11-13T11:09:28.5731381Z test tests::off_stops_the_snowfall ... ok
+2026-11-13T11:09:28.5732208Z test tests::picks_a_language_from_system_tags ... ok
+2026-11-13T11:09:28.7399548Z test tests::mixed_snow_and_leaves_fall_together_and_heap_up_mixed ... ok
+2026-11-13T11:09:29.8701206Z test tests::leaves_stay_put_as_their_window_is_resized ... ok
+2026-11-13T11:09:29.8730990Z test tests::reads_strings_tables ... ok
+2026-11-13T11:09:30.6611659Z test tests::scattered_window_starts_the_held_snowfall ... ok
+2026-11-13T11:09:32.1151389Z test tests::a_window_slid_past_the_screen_edge_leaves_its_snow_heaped_against_it ... ok
+2026-11-13T11:09:33.9561557Z test tests::snow_back_from_another_desktop_grows_into_shape ... ok
+2026-11-13T11:09:36.2941342Z test tests::rain_spatters_the_glass_and_leaves_wet_uneven_trails ... ok
+2026-11-13T11:09:37.0581415Z test tests::snow_falling_off_a_window_shows_at_the_falling_opacity ... ok
+2026-11-13T11:09:38.3811317Z test tests::rain_runs_down_a_window_and_hangs_under_its_bottom_edge ... ok
+2026-11-13T11:09:38.5981359Z test tests::snow_falls_and_settles_on_the_ground ... ok
+2026-11-13T11:09:40.2021640Z test tests::snow_falls_off_a_lowered_ground_and_rides_up_on_a_raised_one ... ok
+2026-11-13T11:09:41.1161365Z test tests::snow_falling_behind_windows_reaches_the_ones_below ... ok
+2026-11-13T11:09:41.5811451Z test tests::snow_passes_the_ground_it_may_not_settle_on_and_still_settles_on_a_window ... ok
+2026-11-13T11:09:42.5071905Z test tests::snow_on_a_ground_switched_off_melts_away ... ok
+2026-11-13T11:09:46.4951467Z test tests::snow_settles_on_a_window_and_drops_when_it_closes ... ok
+2026-11-13T11:09:48.3851383Z test tests::snow_settles_on_both_sides_of_a_window_across_two_displays ... ok
+2026-11-13T11:09:48.3852102Z test tests::step_cost ... ignored
+2026-11-13T11:09:49.6882726Z test tests::snow_settles_on_a_window_across_displays_of_other_pixels ... ok
+2026-11-13T11:09:50.3641141Z test tests::switching_modes_clears_the_screen_first ... ok
+2026-11-13T11:09:50.9681416Z test tests::switching_to_rain_clears_the_snow_first ... ok
+2026-11-13T11:09:54.6001547Z test tests::snow_shaken_off_over_the_next_display_falls_there ... ok
+2026-11-13T11:10:10.0761650Z test tests::unwithered_leaves_heap_no_deeper_than_snow ... ok
+2026-11-13T11:10:10.0791475Z test version::tests::compares_versions ... ok
+2026-11-13T11:10:10.0801475Z test version::tests::reads_a_field ... ok
+2026-11-13T11:10:24.7972399Z test tests::snow_pouring_off_a_window_heaps_up_no_higher_than_it_pours_from ... ok
+2026-11-13T11:10:27.4729439Z test tests::the_ground_under_windows_snowed_on_from_behind_keeps_to_its_depth ... ok
+2026-11-13T11:10:35.9600044Z test tests::survives_a_long_chaotic_session ... ok
+2026-11-13T11:10:35.9601394Z 
+2026-11-13T11:10:35.9601950Z test result: ok. 56 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 89.72s
+2026-11-13T11:10:35.9602563Z 
+2026-11-13T11:10:35.9609502Z    Doc-tests snowhush_core
+2026-11-13T11:10:37.1709517Z 
+2026-11-13T11:10:37.1710053Z running 0 tests
+2026-11-13T11:10:37.1710714Z 
+2026-11-13T11:10:37.1976701Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+2026-11-13T11:10:37.1977210Z 
+2026-11-13T11:10:37.3013356Z ##[group]Run cargo test --locked --manifest-path android/native/Cargo.toml
+2026-11-13T11:10:37.3014088Z [36;1mcargo test --locked --manifest-path android/native/Cargo.toml[0m
+2026-11-13T11:10:37.3034585Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:10:37.3034833Z ##[endgroup]
+2026-11-13T11:10:37.3852898Z     Updating crates.io index
+2026-11-13T11:10:37.9672329Z  Downloading crates ...
+2026-11-13T11:10:38.0703075Z   Downloaded bytes v1.12.1
+2026-11-13T11:10:38.0758335Z   Downloaded bitflags v1.3.2
+2026-11-13T11:10:38.0792374Z   Downloaded jni v0.21.1
+2026-11-13T11:10:38.0873204Z   Downloaded cesu8 v1.1.0
+2026-11-13T11:10:38.0881656Z   Downloaded adler2 v2.0.1
+2026-11-13T11:10:38.0897943Z   Downloaded cfg-if v1.0.5
+2026-11-13T11:10:38.0916951Z   Downloaded fdeflate v0.3.7
+2026-11-13T11:10:38.0933091Z   Downloaded miniz_oxide v0.9.1
+2026-11-13T11:10:38.0955908Z   Downloaded thiserror-impl v1.0.69
+2026-11-13T11:10:38.0968223Z   Downloaded jni-sys v0.4.1
+2026-11-13T11:10:38.0977815Z   Downloaded jni-sys v0.3.1
+2026-11-13T11:10:38.0987660Z   Downloaded jni-sys-macros v0.4.1
+2026-11-13T11:10:38.0994216Z   Downloaded same-file v1.0.6
+2026-11-13T11:10:38.1007070Z   Downloaded libloading v0.8.9
+2026-11-13T11:10:38.1028936Z   Downloaded simd-adler32 v0.3.10
+2026-11-13T11:10:38.1046601Z   Downloaded thiserror v1.0.69
+2026-11-13T11:10:38.1098659Z   Downloaded unicode-ident v1.0.27
+2026-11-13T11:10:38.1125156Z   Downloaded walkdir v2.5.0
+2026-11-13T11:10:38.1142564Z   Downloaded quote v1.0.47
+2026-11-13T11:10:38.1167599Z   Downloaded combine v4.6.9
+2026-11-13T11:10:38.1201375Z   Downloaded crc32fast v1.5.5
+2026-11-13T11:10:38.1223457Z   Downloaded log v0.4.35
+2026-11-13T11:10:38.1247705Z   Downloaded miniz_oxide v0.8.9
+2026-11-13T11:10:38.1271222Z   Downloaded proc-macro2 v1.0.107
+2026-11-13T11:10:38.1298549Z   Downloaded memchr v2.8.3
+2026-11-13T11:10:38.1350733Z   Downloaded flate2 v1.1.11
+2026-11-13T11:10:38.1400248Z   Downloaded png v0.17.16
+2026-11-13T11:10:38.1437665Z   Downloaded zlib-rs v0.6.8
+2026-11-13T11:10:38.1488941Z   Downloaded glow v0.18.0
+2026-11-13T11:10:38.1532611Z   Downloaded syn v2.0.119
+2026-11-13T11:10:38.2198059Z    Compiling proc-macro2 v1.0.107
+2026-11-13T11:10:38.2198796Z    Compiling quote v1.0.47
+2026-11-13T11:10:38.2199279Z    Compiling unicode-ident v1.0.27
+2026-11-13T11:10:38.2199929Z    Compiling simd-adler32 v0.3.10
+2026-11-13T11:10:38.4342132Z    Compiling cfg-if v1.0.5
+2026-11-13T11:10:38.4515421Z    Compiling crc32fast v1.5.5
+2026-11-13T11:10:38.5678803Z    Compiling adler2 v2.0.1
+2026-11-13T11:10:38.5952177Z    Compiling thiserror v1.0.69
+2026-11-13T11:10:38.6296147Z    Compiling jni-sys v0.3.1
+2026-11-13T11:10:38.9903380Z    Compiling miniz_oxide v0.9.1
+2026-11-13T11:10:39.1408744Z    Compiling memchr v2.8.3
+2026-11-13T11:10:39.5569577Z    Compiling bytes v1.12.1
+2026-11-13T11:10:39.5633730Z    Compiling flate2 v1.1.11
+2026-11-13T11:10:39.8441900Z    Compiling fdeflate v0.3.7
+2026-11-13T11:10:39.9701854Z    Compiling miniz_oxide v0.8.9
+2026-11-13T11:10:40.0161739Z    Compiling syn v2.0.119
+2026-11-13T11:10:40.2181820Z    Compiling combine v4.6.9
+2026-11-13T11:10:40.2781355Z    Compiling log v0.4.35
+2026-11-13T11:10:40.3981769Z    Compiling bitflags v1.3.2
+2026-11-13T11:10:40.4362149Z    Compiling cesu8 v1.1.0
+2026-11-13T11:10:40.6131662Z    Compiling png v0.17.16
+2026-11-13T11:10:40.6382072Z    Compiling libloading v0.8.9
+2026-11-13T11:10:40.7721554Z    Compiling glow v0.18.0
+2026-11-13T11:10:41.8091930Z    Compiling snowhush-core v0.0.0 (/home/runner/work/Snowhush-Android/Snowhush-Android/core)
+2026-11-13T11:10:43.3233039Z    Compiling jni-sys-macros v0.4.1
+2026-11-13T11:10:43.4310923Z    Compiling thiserror-impl v1.0.69
+2026-11-13T11:10:43.7741622Z    Compiling jni-sys v0.4.1
+2026-11-13T11:10:44.2347483Z    Compiling jni v0.21.1
+2026-11-13T11:10:45.4966716Z    Compiling snowhush-android v0.13.1 (/home/runner/work/Snowhush-Android/Snowhush-Android/android/native)
+2026-11-13T11:10:46.2577584Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 8.94s
+2026-11-13T11:10:46.2718073Z      Running unittests src/lib.rs (android/native/target/debug/deps/snowhush-02448d4a8a846768)
+2026-11-13T11:10:46.2730997Z 
+2026-11-13T11:10:46.2731285Z running 23 tests
+2026-11-13T11:10:46.2734227Z test light::tests::a_dark_wallpaper_still_shades_the_snow_lightly ... ok
+2026-11-13T11:10:46.2735242Z test render::tests::a_tall_picture_is_cropped_top_and_bottom ... ok
+2026-11-13T11:10:46.2736099Z test light::tests::noon_is_white_and_night_is_blue ... ok
+2026-11-13T11:10:46.2737031Z test render::tests::a_wide_picture_is_cropped_at_its_sides_and_slides ... ok
+2026-11-13T11:10:46.2740056Z test render::tests::the_sprite_shader_leaves_room_among_the_attributes ... ok
+2026-11-13T11:10:46.2741219Z test scene::tests::a_card_scrolled_away_keeps_its_snow_waiting ... ok
+2026-11-13T11:10:46.2761635Z test scene::tests::a_navigation_bar_coming_and_going_moves_the_ground ... ok
+2026-11-13T11:10:46.2762872Z test scene::tests::a_point_is_measured_up_from_the_snows_bottom_left ... ok
+2026-11-13T11:10:46.2764221Z test scene::tests::a_window_filling_the_screen_or_touching_its_top_holds_none ... ok
+2026-11-13T11:10:46.2778252Z test scene::tests::a_window_in_front_hides_the_snow_of_one_behind ... ok
+2026-11-13T11:10:46.2779333Z test scene::tests::an_icon_holds_snow_where_a_window_that_small_would_not ... ok
+2026-11-13T11:10:46.2780346Z test scene::tests::halloween_haunts_only_snow_falling_alone ... ok
+2026-11-13T11:10:46.2781493Z test scene::tests::numbers_tell_of_a_window ... ok
+2026-11-13T11:10:46.2782401Z test scene::tests::settings_made_before_the_surface_come_with_the_snow ... ok
+2026-11-13T11:10:46.2783432Z test scene::tests::the_keyboard_holds_snow_and_hides_what_is_behind_it ... ok
+2026-11-13T11:10:46.2784342Z test scene::tests::unseen_snow_is_cheap ... ignored
+2026-11-13T11:10:46.2785159Z test scene::tests::without_graphics_a_frame_only_waits ... ok
+2026-11-13T11:10:46.2785959Z test tests::a_panic_breaks_only_its_scene ... ok
+2026-11-13T11:10:46.2786698Z test tests::modes_come_in_the_order_picked ... ok
+2026-11-13T11:10:46.2787404Z test tests::settings_reach_the_scene ... ok
+2026-11-13T11:10:46.3264252Z test render::tests::the_signs_and_the_pumpkin_decode ... ok
+2026-11-13T11:10:46.8590367Z test scene::tests::an_icon_first_seen_has_been_snowed_on_already ... ok
+2026-11-13T11:10:49.2287238Z test scene::tests::snow_settles_unseen_on_every_icon_of_a_home_screen ... ok
+2026-11-13T11:10:49.2287928Z 
+2026-11-13T11:10:49.2288448Z test result: ok. 22 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.96s
+2026-11-13T11:10:49.2289146Z 
+2026-11-13T11:10:49.2292077Z    Doc-tests snowhush
+2026-11-13T11:10:49.2666616Z 
+2026-11-13T11:10:49.2667101Z running 0 tests
+2026-11-13T11:10:49.2667361Z 
+2026-11-13T11:10:49.2667640Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-13T11:10:49.2668006Z 
+2026-11-13T11:10:49.2798032Z ##[group]Run sudo apt-get update -q
+2026-11-13T11:10:49.2798371Z [36;1msudo apt-get update -q[0m
+2026-11-13T11:10:49.2798718Z [36;1msudo apt-get install -y -q libegl1 libgles2 libgl1-mesa-dri[0m
+2026-11-13T11:10:49.2799098Z [36;1mandroid/hosttest/run.sh[0m
+2026-11-13T11:10:49.2818989Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:10:49.2819239Z ##[endgroup]
+2026-11-13T11:10:49.3586872Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-13T11:10:49.3907270Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-13T11:10:49.4519565Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [697 kB]
+2026-11-13T11:10:49.4713914Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-13T11:10:49.4741702Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-13T11:10:49.4790808Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-13T11:10:49.4816554Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [767 kB]
+2026-11-13T11:10:49.4883025Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-13T11:10:49.5961789Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1450 kB]
+2026-11-13T11:10:49.6042285Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [315 kB]
+2026-11-13T11:10:49.6061407Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1713 kB]
+2026-11-13T11:10:49.6152000Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [345 kB]
+2026-11-13T11:10:49.6211348Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1883 kB]
+2026-11-13T11:10:49.6312086Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [430 kB]
+2026-11-13T11:10:49.6341773Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
+2026-11-13T11:10:49.7066029Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1195 kB]
+2026-11-13T11:10:49.7119037Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [238 kB]
+2026-11-13T11:10:49.7137958Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1228 kB]
+2026-11-13T11:10:49.7606582Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
+2026-11-13T11:10:49.7627644Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1788 kB]
+2026-11-13T11:10:49.7714504Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [411 kB]
+2026-11-13T11:10:52.9333350Z Fetched 13.1 MB in 1s (10.0 MB/s)
+2026-11-13T11:10:54.0865132Z Reading package lists...
+2026-11-13T11:10:54.1250029Z Reading package lists...
+2026-11-13T11:10:54.3292168Z Building dependency tree...
+2026-11-13T11:10:54.3299397Z Reading state information...
+2026-11-13T11:10:54.4779394Z libgl1-mesa-dri is already the newest version (25.2.8-0ubuntu0.24.04.4).
+2026-11-13T11:10:54.4780294Z libgl1-mesa-dri set to manually installed.
+2026-11-13T11:10:54.4781190Z The following NEW packages will be installed:
+2026-11-13T11:10:54.4784646Z   libegl-mesa0 libegl1 libgles2
+2026-11-13T11:10:54.4977960Z 0 upgraded, 3 newly installed, 0 to remove and 20 not upgraded.
+2026-11-13T11:10:54.4978614Z Need to get 163 kB of archives.
+2026-11-13T11:10:54.4979190Z After this operation, 609 kB of additional disk space will be used.
+2026-11-13T11:10:54.4979899Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-13T11:10:54.5405290Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.4 [117 kB]
+2026-11-13T11:10:54.5671167Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
+2026-11-13T11:10:54.5926541Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
+2026-11-13T11:10:54.8477270Z Fetched 163 kB in 0s (1522 kB/s)
+2026-11-13T11:10:54.8715842Z Selecting previously unselected package libegl-mesa0:amd64.
+2026-11-13T11:10:54.8999837Z (Reading database ... 
+2026-11-13T11:10:54.9000373Z (Reading database ... 5%
+2026-11-13T11:10:54.9001019Z (Reading database ... 10%
+2026-11-13T11:10:54.9001307Z (Reading database ... 15%
+2026-11-13T11:10:54.9001589Z (Reading database ... 20%
+2026-11-13T11:10:54.9002023Z (Reading database ... 25%
+2026-11-13T11:10:54.9002452Z (Reading database ... 30%
+2026-11-13T11:10:54.9002798Z (Reading database ... 35%
+2026-11-13T11:10:54.9003062Z (Reading database ... 40%
+2026-11-13T11:10:54.9003321Z (Reading database ... 45%
+2026-11-13T11:10:54.9003579Z (Reading database ... 50%
+2026-11-13T11:10:54.9053931Z (Reading database ... 55%
+2026-11-13T11:10:55.0669824Z (Reading database ... 60%
+2026-11-13T11:10:55.2549823Z (Reading database ... 65%
+2026-11-13T11:10:55.4198050Z (Reading database ... 70%
+2026-11-13T11:10:55.6087521Z (Reading database ... 75%
+2026-11-13T11:10:55.7642746Z (Reading database ... 80%
+2026-11-13T11:10:55.9521939Z (Reading database ... 85%
+2026-11-13T11:10:56.0575084Z (Reading database ... 90%
+2026-11-13T11:10:56.1320123Z (Reading database ... 95%
+2026-11-13T11:10:56.1321074Z (Reading database ... 100%
+2026-11-13T11:10:56.1321850Z (Reading database ... 216752 files and directories currently installed.)
+2026-11-13T11:10:56.1361935Z Preparing to unpack .../libegl-mesa0_25.2.8-0ubuntu0.24.04.4_amd64.deb ...
+2026-11-13T11:10:56.1397086Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.4) ...
+2026-11-13T11:10:56.1667103Z Selecting previously unselected package libegl1:amd64.
+2026-11-13T11:10:56.1803695Z Preparing to unpack .../libegl1_1.7.0-1build1_amd64.deb ...
+2026-11-13T11:10:56.1812996Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+2026-11-13T11:10:56.2075228Z Selecting previously unselected package libgles2:amd64.
+2026-11-13T11:10:56.2209506Z Preparing to unpack .../libgles2_1.7.0-1build1_amd64.deb ...
+2026-11-13T11:10:56.2216888Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+2026-11-13T11:10:56.2642021Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.4) ...
+2026-11-13T11:10:56.2662560Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+2026-11-13T11:10:56.2683629Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+2026-11-13T11:10:56.2705321Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-11-13T11:10:56.9741254Z 
+2026-11-13T11:10:56.9741760Z Running kernel seems to be up-to-date.
+2026-11-13T11:10:56.9742165Z 
+2026-11-13T11:10:56.9742359Z No services need to be restarted.
+2026-11-13T11:10:56.9742669Z 
+2026-11-13T11:10:56.9742847Z No containers need to be restarted.
+2026-11-13T11:10:56.9743111Z 
+2026-11-13T11:10:56.9743260Z No user sessions are running outdated binaries.
+2026-11-13T11:10:56.9743515Z 
+2026-11-13T11:10:56.9743840Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-11-13T11:10:57.9197554Z  Downloading crates ...
+2026-11-13T11:10:58.0272395Z   Downloaded khronos-egl v6.0.0
+2026-11-13T11:10:58.0350019Z   Downloaded libc v0.2.191
+2026-11-13T11:10:58.0854239Z    Compiling libc v0.2.191
+2026-11-13T11:10:58.0861433Z    Compiling khronos-egl v6.0.0
+2026-11-13T11:10:59.3561488Z    Compiling snowhush-android v0.13.1 (/home/runner/work/Snowhush-Android/Snowhush-Android/android/native)
+2026-11-13T11:11:00.0690455Z     Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.17s
+2026-11-13T11:11:01.9300904Z round [61,402][239,580] radius 88 curve 2.0; badged [331,401][509,580] radius 49 curve 2.3; widget [49,901][1031,1260] radius 81 curve 2.0; clock [201,1401][869,1560] radius 32 curve 2.3; docked [451,2083][629,2300] radius 83 curve 2.0
+2026-11-13T11:11:01.9303117Z The outlines are made out.
+2026-11-13T11:11:11.6882379Z llvmpipe (LLVM 20.1.2, 256 bits) (OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4); 360x780 px, snow 360x780 at 0,0, scale 1; 360x780 points, 1 sprites, Interactive; 0 windows, 1 head starts; Full; 120 Hz; 668 frames, 668 drawn
+2026-11-13T11:11:11.6883908Z The engine answers every call the app makes.
+2026-11-13T11:11:11.8069444Z ##[group]Run actions/upload-artifact@v7
+2026-11-13T11:11:11.8069748Z with:
+2026-11-13T11:11:11.8069939Z   name: engine-pictures
+2026-11-13T11:11:11.8070191Z   path: android/hosttest/out/*.png
+2026-11-13T11:11:11.8070447Z   if-no-files-found: ignore
+2026-11-13T11:11:11.8070955Z   compression-level: 6
+2026-11-13T11:11:11.8071174Z   overwrite: false
+2026-11-13T11:11:11.8071382Z   include-hidden-files: false
+2026-11-13T11:11:11.8071608Z   archive: true
+2026-11-13T11:11:11.8071794Z ##[endgroup]
+2026-11-13T11:11:11.9533975Z With the provided path, there will be 2 files uploaded
+2026-11-13T11:11:11.9539983Z Artifact name is valid!
+2026-11-13T11:11:11.9540909Z Root directory input is valid!
+2026-11-13T11:11:12.1706577Z Uploading artifact: engine-pictures.zip
+2026-11-13T11:11:12.1746670Z Beginning upload of artifact content to blob storage
+2026-11-13T11:11:12.3048973Z Uploaded bytes 225290
+2026-11-13T11:11:12.3211602Z Finished uploading artifact content to blob storage!
+2026-11-13T11:11:12.3212765Z SHA256 digest of uploaded artifact is 94dcd30d9bb5e1f0a95c9e55af28cf17bdd734cad07099aca8d94a0097d54dec
+2026-11-13T11:11:12.3213750Z Finalizing artifact upload
+2026-11-13T11:11:12.6872966Z Artifact engine-pictures successfully finalized. Artifact ID 14031202826
+2026-11-13T11:11:12.6874591Z Artifact engine-pictures has been successfully uploaded! Final size is 225290 bytes. Artifact ID is 14031202826
+2026-11-13T11:11:12.6878196Z Artifact download URL: https://github.com/Le-F-Sur-GitH/Snowhush-Android/actions/runs/43414673810/artifacts/14031202826
+2026-11-13T11:11:12.7116808Z Post job cleanup.
+2026-11-13T11:11:12.8046540Z [command]/usr/bin/git version
+2026-11-13T11:11:12.8093279Z git version 2.56.1
+2026-11-13T11:11:12.8132588Z Temporarily overriding HOME='/home/runner/work/_temp/02e49e62-0441-4659-9b1f-aeee42dbc0be' before making global git config changes
+2026-11-13T11:11:12.8134269Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:11:12.8138200Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:11:12.8174491Z Removing SSH command configuration
+2026-11-13T11:11:12.8182198Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:11:12.8223063Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:11:12.8491771Z Removing HTTP extra header
+2026-11-13T11:11:12.8511835Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:11:12.8537762Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:11:12.8796020Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:11:12.8804594Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:11:12.8846996Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:11:12.8848644Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:11:12.8849937Z includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:11:12.8851140Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:11:12.8857974Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:11:12.8903442Z /home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:11:12.8906991Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-7f3c4e2c\-4b2c\-4f48\-8082\-eec0cbbac846\.config
+2026-11-13T11:11:12.8977004Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:11:12.9025317Z /home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:11:12.9038152Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-7f3c4e2c\-4b2c\-4f48\-8082\-eec0cbbac846\.config
+2026-11-13T11:11:12.9088472Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:11:12.9131767Z /github/runner_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:11:12.9137488Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-7f3c4e2c\-4b2c\-4f48\-8082\-eec0cbbac846\.config
+2026-11-13T11:11:12.9186513Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:11:12.9223937Z /github/runner_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config
+2026-11-13T11:11:12.9233500Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-7f3c4e2c\-4b2c\-4f48\-8082\-eec0cbbac846\.config
+2026-11-13T11:11:12.9281639Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:11:12.9541004Z Removing credentials config '/home/runner/work/_temp/git-credentials-7f3c4e2c-4b2c-4f48-8082-eec0cbbac846.config'
+2026-11-13T11:11:12.9699217Z Cleaning up orphan processes

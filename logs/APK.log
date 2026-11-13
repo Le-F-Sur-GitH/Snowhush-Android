@@ -1,0 +1,660 @@
+﻿2026-11-13T11:08:47.9097992Z Current runner version: '2.338.2'
+2026-11-13T11:08:47.9123361Z ##[group]Runner Image Provisioner
+2026-11-13T11:08:47.9124213Z Hosted Compute Agent
+2026-11-13T11:08:47.9124879Z Version: 20261103.629
+2026-11-13T11:08:47.9125585Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-13T11:08:47.9126344Z Build Date: 2026-11-03T17:26:59Z
+2026-11-13T11:08:47.9127187Z Worker ID: {bdf553a9-ea1b-4e10-8771-08b945c36988}
+2026-11-13T11:08:47.9127923Z Region: eastus
+2026-11-13T11:08:47.9128507Z Cloud: Azure
+2026-11-13T11:08:47.9129100Z ##[endgroup]
+2026-11-13T11:08:47.9130584Z ##[group]Operating System
+2026-11-13T11:08:47.9131333Z Ubuntu
+2026-11-13T11:08:47.9132198Z 24.04.5
+2026-11-13T11:08:47.9133156Z LTS
+2026-11-13T11:08:47.9133765Z ##[endgroup]
+2026-11-13T11:08:47.9134362Z ##[group]Runner Image
+2026-11-13T11:08:47.9135052Z Image: ubuntu-24.04
+2026-11-13T11:08:47.9135625Z Version: 20261111.370.1
+2026-11-13T11:08:47.9136984Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.370/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-13T11:08:47.9138527Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.370
+2026-11-13T11:08:47.9139570Z ##[endgroup]
+2026-11-13T11:08:47.9140758Z ##[group]GITHUB_TOKEN Permissions
+2026-11-13T11:08:47.9143224Z Actions: read
+2026-11-13T11:08:47.9143853Z Contents: write
+2026-11-13T11:08:47.9144492Z Metadata: read
+2026-11-13T11:08:47.9145104Z ##[endgroup]
+2026-11-13T11:08:47.9147215Z Secret source: Actions
+2026-11-13T11:08:47.9148431Z Cache mode: write
+2026-11-13T11:08:47.9149370Z Prepare workflow directory
+2026-11-13T11:08:47.9487137Z Prepare all required actions
+2026-11-13T11:08:47.9537020Z Getting action download info
+2026-11-13T11:08:48.1766902Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-13T11:08:48.5989508Z Download action repository 'actions/setup-java@v6' (SHA:b843ebf9b913146b38da2eaa7aeddf76074ae1ad)
+2026-11-13T11:08:48.8632347Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+2026-11-13T11:08:49.1004393Z Complete job name: APK
+2026-11-13T11:08:49.1955447Z ##[group]Run actions/checkout@v7
+2026-11-13T11:08:49.1956430Z with:
+2026-11-13T11:08:49.1956966Z   repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:49.1961322Z   token: ***
+2026-11-13T11:08:49.1962015Z   ssh-strict: true
+2026-11-13T11:08:49.1962502Z   ssh-user: git
+2026-11-13T11:08:49.1962991Z   persist-credentials: true
+2026-11-13T11:08:49.1963528Z   clean: true
+2026-11-13T11:08:49.1964022Z   sparse-checkout-cone-mode: true
+2026-11-13T11:08:49.1964609Z   fetch-depth: 1
+2026-11-13T11:08:49.1965087Z   fetch-tags: false
+2026-11-13T11:08:49.1965586Z   show-progress: true
+2026-11-13T11:08:49.1966088Z   lfs: false
+2026-11-13T11:08:49.1966551Z   submodules: false
+2026-11-13T11:08:49.1967054Z   set-safe-directory: true
+2026-11-13T11:08:49.1967610Z   allow-unsafe-pr-checkout: false
+2026-11-13T11:08:49.1968477Z ##[endgroup]
+2026-11-13T11:08:51.3085543Z Syncing repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:51.3087641Z ##[group]Getting Git version info
+2026-11-13T11:08:51.3088535Z Working directory is '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:08:51.3089518Z [command]/usr/bin/git version
+2026-11-13T11:08:51.4323465Z git version 2.56.1
+2026-11-13T11:08:51.4347408Z ##[endgroup]
+2026-11-13T11:08:51.4360121Z Temporarily overriding HOME='/home/runner/work/_temp/a94d98ef-05d2-4d35-8ce1-f024026307e9' before making global git config changes
+2026-11-13T11:08:51.4362228Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:08:51.4367637Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:08:51.4585748Z Deleting the contents of '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:08:51.4588824Z ##[group]Determining repository object format
+2026-11-13T11:08:51.4591131Z ##[endgroup]
+2026-11-13T11:08:51.4592959Z ##[group]Initializing the repository
+2026-11-13T11:08:51.4597733Z [command]/usr/bin/git init /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:08:51.5072955Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-13T11:08:51.5074132Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-13T11:08:51.5075301Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-13T11:08:51.5076011Z hint: call:
+2026-11-13T11:08:51.5076449Z hint:
+2026-11-13T11:08:51.5076996Z hint: 	git config --global init.defaultBranch <name>
+2026-11-13T11:08:51.5077581Z hint:
+2026-11-13T11:08:51.5078290Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-13T11:08:51.5079137Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-13T11:08:51.5079851Z hint:
+2026-11-13T11:08:51.5080310Z hint: 	git branch -m <name>
+2026-11-13T11:08:51.5080783Z hint:
+2026-11-13T11:08:51.5081760Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-13T11:08:51.5194403Z Initialized empty Git repository in /home/runner/work/Snowhush-Android/Snowhush-Android/.git/
+2026-11-13T11:08:51.5206774Z [command]/usr/bin/git remote add origin https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:51.5430283Z ##[endgroup]
+2026-11-13T11:08:51.5431213Z ##[group]Disabling automatic garbage collection
+2026-11-13T11:08:51.5434097Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-13T11:08:51.5482443Z ##[endgroup]
+2026-11-13T11:08:51.5483336Z ##[group]Setting up auth
+2026-11-13T11:08:51.5483937Z Removing SSH command configuration
+2026-11-13T11:08:51.5489043Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:08:51.5536991Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:08:51.7367008Z Removing HTTP extra header
+2026-11-13T11:08:51.7373800Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:08:51.7424309Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:08:51.7674769Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:08:51.7679530Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:08:51.7735873Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:08:51.8000439Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-13T11:08:51.8059676Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path /home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:08:51.8117068Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:08:51.8173556Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:08:51.8224238Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:08:51.8276797Z ##[endgroup]
+2026-11-13T11:08:51.8278119Z ##[group]Fetching the repository
+2026-11-13T11:08:51.8287155Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d82a8c573085f6828dfde2b770b3a04efa22b97b:refs/remotes/origin/main
+2026-11-13T11:08:52.1878405Z From https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:08:52.1880042Z  * [new ref]         d82a8c573085f6828dfde2b770b3a04efa22b97b -> origin/main
+2026-11-13T11:08:52.1889264Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-13T11:08:52.1940801Z   origin/main
+2026-11-13T11:08:52.1972626Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-13T11:08:52.1990183Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:08:52.1995741Z ##[endgroup]
+2026-11-13T11:08:52.1996893Z ##[group]Determining the checkout info
+2026-11-13T11:08:52.1998259Z ##[endgroup]
+2026-11-13T11:08:52.2002034Z [command]/usr/bin/git sparse-checkout disable
+2026-11-13T11:08:52.2153849Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-13T11:08:52.2204762Z ##[group]Checking out the ref
+2026-11-13T11:08:52.2209663Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-13T11:08:52.2588157Z Switched to a new branch 'main'
+2026-11-13T11:08:52.2630839Z branch 'main' set up to track 'origin/main'.
+2026-11-13T11:08:52.2641013Z ##[endgroup]
+2026-11-13T11:08:52.2733200Z [command]/usr/bin/git log -1 --format=%H
+2026-11-13T11:08:52.2761335Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:08:52.3191367Z ##[group]Run actions/setup-java@v6
+2026-11-13T11:08:52.3191876Z with:
+2026-11-13T11:08:52.3192078Z   distribution: temurin
+2026-11-13T11:08:52.3192299Z   java-version: 17
+2026-11-13T11:08:52.3192505Z   java-package: jdk
+2026-11-13T11:08:52.3192713Z   check-latest: false
+2026-11-13T11:08:52.3192927Z   force-download: false
+2026-11-13T11:08:52.3193141Z   set-default: true
+2026-11-13T11:08:52.3193345Z   server-id: github
+2026-11-13T11:08:52.3193581Z   mvn-repositories-include-central: true
+2026-11-13T11:08:52.3193901Z   mvn-repositories-prioritize-central: true
+2026-11-13T11:08:52.3194234Z   overwrite-settings: true
+2026-11-13T11:08:52.3194510Z   cache-read-only: false
+2026-11-13T11:08:52.3194762Z   job-status: success
+2026-11-13T11:08:52.3197515Z   token: ***
+2026-11-13T11:08:52.3197747Z   show-download-progress: false
+2026-11-13T11:08:52.3198011Z   problem-matcher: true
+2026-11-13T11:08:52.3198232Z ##[endgroup]
+2026-11-13T11:08:52.3970105Z ##[group]Installed distributions
+2026-11-13T11:08:52.4908721Z Resolved Java 17.0.21+9 from tool-cache
+2026-11-13T11:08:52.4909500Z Setting Java 17.0.21+9 as the default
+2026-11-13T11:08:52.4919440Z 
+2026-11-13T11:08:52.4919705Z Java configuration:
+2026-11-13T11:08:52.4920136Z   Distribution: temurin
+2026-11-13T11:08:52.4920665Z   Version: 17.0.21+9
+2026-11-13T11:08:52.4921153Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:08:52.4921861Z 
+2026-11-13T11:08:52.4922442Z ##[endgroup]
+2026-11-13T11:08:52.4959272Z Creating settings.xml with server-id: github
+2026-11-13T11:08:52.4966944Z Creating toolchains.xml for JDK version 17 from temurin
+2026-11-13T11:08:52.4970885Z Writing to /home/runner/.m2/settings.xml
+2026-11-13T11:08:52.4982831Z Writing to /home/runner/.m2/toolchains.xml
+2026-11-13T11:08:52.4992466Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-11-13T11:08:52.5128548Z ##[group]Run rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+2026-11-13T11:08:52.5129873Z [36;1mrustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android[0m
+2026-11-13T11:08:52.5130750Z [36;1mcargo install cargo-ndk --locked[0m
+2026-11-13T11:08:52.5131883Z [36;1mecho "ANDROID_NDK_HOME=${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_HOME}" >> "$GITHUB_ENV"[0m
+2026-11-13T11:08:52.5169583Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:08:52.5170036Z env:
+2026-11-13T11:08:52.5170565Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:08:52.5171747Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:08:52.5172851Z   MAVEN_ARGS: -ntp
+2026-11-13T11:08:52.5173211Z ##[endgroup]
+2026-11-13T11:08:54.9154655Z info: downloading 3 components
+2026-11-13T11:09:09.4085817Z     Updating crates.io index
+2026-11-13T11:09:09.9765481Z  Downloading crates ...
+2026-11-13T11:09:10.0906178Z   Downloaded cargo-ndk v4.1.2
+2026-11-13T11:09:10.4208012Z   Installing cargo-ndk v4.1.2
+2026-11-13T11:09:10.4415229Z     Updating crates.io index
+2026-11-13T11:09:11.8825858Z     Updating crates.io index
+2026-11-13T11:09:11.9529927Z  Downloading crates ...
+2026-11-13T11:09:11.9678595Z   Downloaded anstream v0.6.20
+2026-11-13T11:09:11.9709342Z   Downloaded anstyle v1.0.11
+2026-11-13T11:09:11.9729893Z   Downloaded anstyle-parse v0.2.7
+2026-11-13T11:09:11.9746294Z   Downloaded anyhow v1.0.98
+2026-11-13T11:09:11.9785360Z   Downloaded anstyle-query v1.1.4
+2026-11-13T11:09:11.9796245Z   Downloaded autocfg v1.5.0
+2026-11-13T11:09:11.9815004Z   Downloaded cargo-util-schemas v0.8.2
+2026-11-13T11:09:11.9835819Z   Downloaded version_check v0.9.5
+2026-11-13T11:09:11.9848191Z   Downloaded cfg-if v1.0.1
+2026-11-13T11:09:11.9863490Z   Downloaded synstructure v0.13.2
+2026-11-13T11:09:11.9874880Z   Downloaded unicode-ident v1.0.18
+2026-11-13T11:09:11.9904767Z   Downloaded thiserror v2.0.12
+2026-11-13T11:09:11.9965819Z   Downloaded toml_datetime v0.6.11
+2026-11-13T11:09:11.9976848Z   Downloaded tinystr v0.8.1
+2026-11-13T11:09:11.9998900Z   Downloaded colorchoice v1.0.4
+2026-11-13T11:09:12.0008120Z   Downloaded equivalent v1.0.2
+2026-11-13T11:09:12.0019014Z   Downloaded heck v0.5.0
+2026-11-13T11:09:12.0031880Z   Downloaded idna_adapter v1.2.1
+2026-11-13T11:09:12.0049107Z   Downloaded icu_properties_data v2.0.1
+2026-11-13T11:09:12.0145719Z   Downloaded camino v1.1.10
+2026-11-13T11:09:12.0164549Z   Downloaded pct-str v1.2.0
+2026-11-13T11:09:12.0178318Z   Downloaded clap_derive v4.5.41
+2026-11-13T11:09:12.0199535Z   Downloaded displaydoc v0.2.5
+2026-11-13T11:09:12.0228021Z   Downloaded clap v4.5.42
+2026-11-13T11:09:12.0313345Z   Downloaded filetime v0.2.25
+2026-11-13T11:09:12.0328771Z   Downloaded icu_properties v2.0.1
+2026-11-13T11:09:12.0349386Z   Downloaded eieio v1.0.0
+2026-11-13T11:09:12.0356511Z   Downloaded clap_builder v4.5.42
+2026-11-13T11:09:12.0416215Z   Downloaded icu_normalizer v2.0.0
+2026-11-13T11:09:12.0448349Z   Downloaded dunce v1.0.5
+2026-11-13T11:09:12.0457118Z   Downloaded is-terminal v0.4.16
+2026-11-13T11:09:12.0465846Z   Downloaded is_terminal_polyfill v1.70.1
+2026-11-13T11:09:12.0474706Z   Downloaded potential_utf v0.1.2
+2026-11-13T11:09:12.0484280Z   Downloaded itoa v1.0.15
+2026-11-13T11:09:12.0498750Z   Downloaded form_urlencoded v1.2.1
+2026-11-13T11:09:12.0506651Z   Downloaded log v0.4.27
+2026-11-13T11:09:12.0528110Z   Downloaded clap_lex v0.7.5
+2026-11-13T11:09:12.0538672Z   Downloaded erased-serde v0.4.6
+2026-11-13T11:09:12.0561254Z   Downloaded ordered-float v2.10.1
+2026-11-13T11:09:12.0574345Z   Downloaded cargo-platform v0.2.0
+2026-11-13T11:09:12.0586096Z   Downloaded iref v1.4.3
+2026-11-13T11:09:12.0609933Z   Downloaded yoke-derive v0.8.0
+2026-11-13T11:09:12.0618969Z   Downloaded strsim v0.11.1
+2026-11-13T11:09:12.0631185Z   Downloaded typeid v1.0.3
+2026-11-13T11:09:12.0643149Z   Downloaded utf8-decode v1.0.1
+2026-11-13T11:09:12.0653953Z   Downloaded utf8_iter v1.0.4
+2026-11-13T11:09:12.0664169Z   Downloaded zerofrom v0.1.6
+2026-11-13T11:09:12.0672358Z   Downloaded serde-value v0.7.0
+2026-11-13T11:09:12.0682110Z   Downloaded serde_spanned v0.6.9
+2026-11-13T11:09:12.0692155Z   Downloaded zerofrom-derive v0.1.6
+2026-11-13T11:09:12.0700947Z   Downloaded stable_deref_trait v1.2.0
+2026-11-13T11:09:12.0709094Z   Downloaded toml_write v0.1.2
+2026-11-13T11:09:12.0721408Z   Downloaded percent-encoding v2.3.1
+2026-11-13T11:09:12.0728962Z   Downloaded pathos v0.3.0
+2026-11-13T11:09:12.0753175Z   Downloaded serde_spanned v1.0.0
+2026-11-13T11:09:12.0764278Z   Downloaded thiserror-impl v2.0.12
+2026-11-13T11:09:12.0778197Z   Downloaded utf8parse v0.2.2
+2026-11-13T11:09:12.0787526Z   Downloaded os_str_bytes v2.4.0
+2026-11-13T11:09:12.0803758Z   Downloaded writeable v0.6.1
+2026-11-13T11:09:12.0820911Z   Downloaded toml_datetime v0.7.0
+2026-11-13T11:09:12.0833061Z   Downloaded yoke v0.8.0
+2026-11-13T11:09:12.0848637Z   Downloaded zerovec-derive v0.11.1
+2026-11-13T11:09:12.0862207Z   Downloaded litemap v0.8.0
+2026-11-13T11:09:12.0883238Z   Downloaded once_cell v1.21.3
+2026-11-13T11:09:12.0906754Z   Downloaded ryu v1.0.20
+2026-11-13T11:09:12.0936701Z   Downloaded semver v1.0.26
+2026-11-13T11:09:12.0959118Z   Downloaded termcolor v1.4.1
+2026-11-13T11:09:12.0970871Z   Downloaded thiserror-impl v1.0.69
+2026-11-13T11:09:12.0983473Z   Downloaded toml_writer v1.0.2
+2026-11-13T11:09:12.0996364Z   Downloaded unicode-xid v0.2.6
+2026-11-13T11:09:12.1008854Z   Downloaded cargo_metadata v0.21.0
+2026-11-13T11:09:12.1026524Z   Downloaded icu_provider v2.0.0
+2026-11-13T11:09:12.1050743Z   Downloaded smallvec v1.15.1
+2026-11-13T11:09:12.1070491Z   Downloaded quote v1.0.40
+2026-11-13T11:09:12.1095926Z   Downloaded serde_derive v1.0.219
+2026-11-13T11:09:12.1119368Z   Downloaded thiserror v1.0.69
+2026-11-13T11:09:12.1172415Z   Downloaded toml v0.8.23
+2026-11-13T11:09:12.1195649Z   Downloaded toml_parser v1.0.2
+2026-11-13T11:09:12.1217351Z   Downloaded num-traits v0.2.19
+2026-11-13T11:09:12.1242446Z   Downloaded proc-macro2 v1.0.95
+2026-11-13T11:09:12.1267757Z   Downloaded icu_locale_core v2.0.0
+2026-11-13T11:09:12.1333672Z   Downloaded serde-untagged v0.1.7
+2026-11-13T11:09:12.1349156Z   Downloaded toml v0.9.5
+2026-11-13T11:09:12.1388800Z   Downloaded zerotrie v0.2.2
+2026-11-13T11:09:12.1423452Z   Downloaded icu_collections v2.0.0
+2026-11-13T11:09:12.1483403Z   Downloaded icu_normalizer_data v2.0.0
+2026-11-13T11:09:12.1503547Z   Downloaded memchr v2.7.5
+2026-11-13T11:09:12.1556074Z   Downloaded serde v1.0.219
+2026-11-13T11:09:12.1587052Z   Downloaded toml_edit v0.22.27
+2026-11-13T11:09:12.1628889Z   Downloaded url v2.5.4
+2026-11-13T11:09:12.1653130Z   Downloaded indexmap v2.10.0
+2026-11-13T11:09:12.1691683Z   Downloaded idna v1.0.3
+2026-11-13T11:09:12.1724577Z   Downloaded zerovec v0.11.4
+2026-11-13T11:09:12.1776277Z   Downloaded hashbrown v0.15.4
+2026-11-13T11:09:12.1822701Z   Downloaded winnow v0.7.12
+2026-11-13T11:09:12.1908285Z   Downloaded serde_json v1.0.142
+2026-11-13T11:09:12.1976561Z   Downloaded syn v2.0.104
+2026-11-13T11:09:12.2075306Z   Downloaded libc v0.2.174
+2026-11-13T11:09:12.2827289Z    Compiling proc-macro2 v1.0.95
+2026-11-13T11:09:12.2827956Z    Compiling unicode-ident v1.0.18
+2026-11-13T11:09:12.2830846Z    Compiling serde v1.0.219
+2026-11-13T11:09:12.2831716Z    Compiling stable_deref_trait v1.2.0
+2026-11-13T11:09:17.9108846Z    Compiling writeable v0.6.1
+2026-11-13T11:09:18.9254703Z    Compiling litemap v0.8.0
+2026-11-13T11:09:19.3317973Z    Compiling icu_normalizer_data v2.0.0
+2026-11-13T11:09:20.9161255Z    Compiling smallvec v1.15.1
+2026-11-13T11:09:21.1596406Z    Compiling icu_properties_data v2.0.1
+2026-11-13T11:09:25.4372088Z    Compiling autocfg v1.5.0
+2026-11-13T11:09:25.4972818Z    Compiling typeid v1.0.3
+2026-11-13T11:09:25.5305532Z    Compiling winnow v0.7.12
+2026-11-13T11:09:25.5979834Z    Compiling percent-encoding v2.3.1
+2026-11-13T11:09:25.8592643Z    Compiling hashbrown v0.15.4
+2026-11-13T11:09:26.4950386Z    Compiling num-traits v0.2.19
+2026-11-13T11:09:26.6502846Z    Compiling libc v0.2.174
+2026-11-13T11:09:26.7458885Z    Compiling equivalent v1.0.2
+2026-11-13T11:09:26.7752783Z    Compiling indexmap v2.10.0
+2026-11-13T11:09:27.1813508Z    Compiling quote v1.0.40
+2026-11-13T11:09:27.4253130Z    Compiling syn v2.0.104
+2026-11-13T11:09:27.6943186Z    Compiling utf8parse v0.2.2
+2026-11-13T11:09:27.7362797Z    Compiling semver v1.0.26
+2026-11-13T11:09:27.7553207Z    Compiling toml_write v0.1.2
+2026-11-13T11:09:27.8685460Z    Compiling utf8_iter v1.0.4
+2026-11-13T11:09:27.9362796Z    Compiling thiserror v2.0.12
+2026-11-13T11:09:27.9959548Z    Compiling ordered-float v2.10.1
+2026-11-13T11:09:28.0412637Z    Compiling anstyle-parse v0.2.7
+2026-11-13T11:09:28.2237974Z    Compiling form_urlencoded v1.2.1
+2026-11-13T11:09:28.3042672Z    Compiling anstyle v1.0.11
+2026-11-13T11:09:28.4907032Z    Compiling utf8-decode v1.0.1
+2026-11-13T11:09:28.5473689Z    Compiling thiserror v1.0.69
+2026-11-13T11:09:28.6122821Z    Compiling is_terminal_polyfill v1.70.1
+2026-11-13T11:09:28.6553779Z    Compiling colorchoice v1.0.4
+2026-11-13T11:09:28.6970706Z    Compiling anstyle-query v1.1.4
+2026-11-13T11:09:28.7112768Z    Compiling serde_json v1.0.142
+2026-11-13T11:09:28.7418497Z    Compiling camino v1.1.10
+2026-11-13T11:09:28.8033158Z    Compiling anstream v0.6.20
+2026-11-13T11:09:28.9722619Z    Compiling pct-str v1.2.0
+2026-11-13T11:09:28.9752269Z    Compiling ryu v1.0.20
+2026-11-13T11:09:29.2519189Z    Compiling memchr v2.7.5
+2026-11-13T11:09:29.2572587Z    Compiling unicode-xid v0.2.6
+2026-11-13T11:09:29.3104066Z    Compiling anyhow v1.0.98
+2026-11-13T11:09:29.3352986Z    Compiling strsim v0.11.1
+2026-11-13T11:09:29.4498963Z    Compiling clap_lex v0.7.5
+2026-11-13T11:09:29.7532861Z    Compiling heck v0.5.0
+2026-11-13T11:09:29.9148329Z    Compiling itoa v1.0.15
+2026-11-13T11:09:30.0012397Z    Compiling clap_builder v4.5.42
+2026-11-13T11:09:30.3486899Z    Compiling iref v1.4.3
+2026-11-13T11:09:30.8642789Z    Compiling toml_parser v1.0.2
+2026-11-13T11:09:30.9212669Z    Compiling synstructure v0.13.2
+2026-11-13T11:09:31.4713259Z    Compiling toml_writer v1.0.2
+2026-11-13T11:09:31.6872936Z    Compiling once_cell v1.21.3
+2026-11-13T11:09:31.9036915Z    Compiling log v0.4.27
+2026-11-13T11:09:32.1479633Z    Compiling os_str_bytes v2.4.0
+2026-11-13T11:09:32.2342979Z    Compiling cargo-ndk v4.1.2
+2026-11-13T11:09:32.3512873Z    Compiling cfg-if v1.0.1
+2026-11-13T11:09:32.3872939Z    Compiling eieio v1.0.0
+2026-11-13T11:09:32.5353912Z    Compiling filetime v0.2.25
+2026-11-13T11:09:32.5623015Z    Compiling serde_derive v1.0.219
+2026-11-13T11:09:32.6942694Z    Compiling zerofrom-derive v0.1.6
+2026-11-13T11:09:32.9899521Z    Compiling yoke-derive v0.8.0
+2026-11-13T11:09:34.1849972Z    Compiling zerofrom v0.1.6
+2026-11-13T11:09:34.1897732Z    Compiling zerovec-derive v0.11.1
+2026-11-13T11:09:34.2814657Z    Compiling yoke v0.8.0
+2026-11-13T11:09:34.4762335Z    Compiling displaydoc v0.2.5
+2026-11-13T11:09:34.9832619Z    Compiling zerotrie v0.2.2
+2026-11-13T11:09:35.1902804Z    Compiling zerovec v0.11.4
+2026-11-13T11:09:35.6064618Z    Compiling thiserror-impl v2.0.12
+2026-11-13T11:09:36.6502909Z    Compiling tinystr v0.8.1
+2026-11-13T11:09:36.7782788Z    Compiling potential_utf v0.1.2
+2026-11-13T11:09:36.8290963Z    Compiling icu_locale_core v2.0.0
+2026-11-13T11:09:36.8722921Z    Compiling icu_collections v2.0.0
+2026-11-13T11:09:37.6942714Z    Compiling thiserror-impl v1.0.69
+2026-11-13T11:09:38.7432677Z    Compiling icu_provider v2.0.0
+2026-11-13T11:09:38.7887693Z    Compiling toml_datetime v0.6.11
+2026-11-13T11:09:39.1080968Z    Compiling icu_properties v2.0.1
+2026-11-13T11:09:39.1162816Z    Compiling icu_normalizer v2.0.0
+2026-11-13T11:09:40.1283091Z    Compiling serde_spanned v0.6.9
+2026-11-13T11:09:40.2222824Z    Compiling toml_edit v0.22.27
+2026-11-13T11:09:40.5483015Z    Compiling idna_adapter v1.2.1
+2026-11-13T11:09:40.6332873Z    Compiling idna v1.0.3
+2026-11-13T11:09:41.2642959Z    Compiling erased-serde v0.4.6
+2026-11-13T11:09:41.9752165Z    Compiling serde-untagged v0.1.7
+2026-11-13T11:09:42.3102758Z    Compiling url v2.5.4
+2026-11-13T11:09:42.7833493Z    Compiling toml v0.8.23
+2026-11-13T11:09:43.8622768Z    Compiling serde-value v0.7.0
+2026-11-13T11:09:44.5710088Z    Compiling cargo-util-schemas v0.8.2
+2026-11-13T11:09:46.5532929Z    Compiling toml_datetime v0.7.0
+2026-11-13T11:09:46.9392679Z    Compiling serde_spanned v1.0.0
+2026-11-13T11:09:47.0331184Z    Compiling cargo-platform v0.2.0
+2026-11-13T11:09:47.5642750Z    Compiling clap_derive v4.5.41
+2026-11-13T11:09:47.7459449Z    Compiling cargo_metadata v0.21.0
+2026-11-13T11:09:47.9952621Z    Compiling toml v0.9.5
+2026-11-13T11:09:49.3072548Z    Compiling clap v4.5.42
+2026-11-13T11:09:49.3452894Z    Compiling pathos v0.3.0
+2026-11-13T11:09:50.7432942Z    Compiling is-terminal v0.4.16
+2026-11-13T11:09:50.7922672Z    Compiling dunce v1.0.5
+2026-11-13T11:09:50.8462800Z    Compiling termcolor v1.4.1
+2026-11-13T11:09:51.2762825Z    Compiling version_check v0.9.5
+2026-11-13T11:09:56.2515376Z     Finished `release` profile [optimized] target(s) in 53.23s
+2026-11-13T11:09:56.3008125Z   Installing /home/runner/.cargo/bin/cargo-ndk
+2026-11-13T11:09:56.3206983Z   Installing /home/runner/.cargo/bin/cargo-ndk-env
+2026-11-13T11:09:56.3207712Z   Installing /home/runner/.cargo/bin/cargo-ndk-runner
+2026-11-13T11:09:56.3208310Z   Installing /home/runner/.cargo/bin/cargo-ndk-test
+2026-11-13T11:09:56.3800226Z    Installed package `cargo-ndk v4.1.2` (executables `cargo-ndk`, `cargo-ndk-env`, `cargo-ndk-runner`, `cargo-ndk-test`)
+2026-11-13T11:09:56.4554173Z ##[group]Run [ -n "$KEYSTORE" ] || exit 0
+2026-11-13T11:09:56.4554541Z [36;1m[ -n "$KEYSTORE" ] || exit 0[0m
+2026-11-13T11:09:56.4554907Z [36;1mecho "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/snowhush.keystore"[0m
+2026-11-13T11:09:56.4555268Z [36;1m{[0m
+2026-11-13T11:09:56.4555561Z [36;1m  echo "SNOWHUSH_KEYSTORE=$RUNNER_TEMP/snowhush.keystore"[0m
+2026-11-13T11:09:56.4555975Z [36;1m  echo "SNOWHUSH_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"[0m
+2026-11-13T11:09:56.4556331Z [36;1m  echo "SNOWHUSH_KEY_ALIAS=$KEY_ALIAS"[0m
+2026-11-13T11:09:56.4556723Z [36;1m  echo "SNOWHUSH_KEY_PASSWORD=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"[0m
+2026-11-13T11:09:56.4557090Z [36;1m} >> "$GITHUB_ENV"[0m
+2026-11-13T11:09:56.4577338Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:09:56.4577587Z env:
+2026-11-13T11:09:56.4577890Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:09:56.4578427Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:09:56.4578818Z   MAVEN_ARGS: -ntp
+2026-11-13T11:09:56.4579104Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/30.0.16248370
+2026-11-13T11:09:56.4579426Z   KEYSTORE: 
+2026-11-13T11:09:56.4579617Z   KEYSTORE_PASSWORD: 
+2026-11-13T11:09:56.4579845Z   KEY_ALIAS: 
+2026-11-13T11:09:56.4580033Z   KEY_PASSWORD: 
+2026-11-13T11:09:56.4580224Z ##[endgroup]
+2026-11-13T11:09:56.4673226Z ##[group]Run ./gradlew --no-daemon --stacktrace assembleRelease
+2026-11-13T11:09:56.4673691Z [36;1m./gradlew --no-daemon --stacktrace assembleRelease[0m
+2026-11-13T11:09:56.4692113Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:09:56.4692363Z env:
+2026-11-13T11:09:56.4692674Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:09:56.4693185Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:09:56.4693572Z   MAVEN_ARGS: -ntp
+2026-11-13T11:09:56.4693871Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/30.0.16248370
+2026-11-13T11:09:56.4694197Z ##[endgroup]
+2026-11-13T11:10:02.3100583Z Downloading https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+2026-11-13T11:10:07.8661348Z .............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%..............100%
+2026-11-13T11:10:10.0199408Z 
+2026-11-13T11:10:10.0201062Z Welcome to Gradle 8.14.3!
+2026-11-13T11:10:10.0201388Z 
+2026-11-13T11:10:10.0202428Z Here are the highlights of this release:
+2026-11-13T11:10:10.0206651Z  - Java 24 support
+2026-11-13T11:10:10.0207126Z  - GraalVM Native Image toolchain selection
+2026-11-13T11:10:10.0212534Z  - Enhancements to test reporting
+2026-11-13T11:10:10.0213005Z  - Build Authoring improvements
+2026-11-13T11:10:10.0213194Z 
+2026-11-13T11:10:10.2209021Z For more details see https://docs.gradle.org/8.14.3/release-notes.html
+2026-11-13T11:10:10.2209693Z 
+2026-11-13T11:10:10.2211126Z To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-13T11:10:12.6192539Z Daemon will be stopped at the end of the build 
+2026-11-13T11:10:43.9187795Z 
+2026-11-13T11:10:43.9190038Z > Task :app:cargoNdk
+2026-11-13T11:10:43.9193224Z warning: Environment variable `ANDROID_NDK_HOME = "/usr/local/lib/android/sdk/ndk/30.0.16248370"` doesn't match `ANDROID_NDK_ROOT = "/usr/local/lib/android/sdk/ndk/27.3.13750724"`
+2026-11-13T11:10:43.9194983Z     Building arm64-v8a (aarch64-linux-android)
+2026-11-13T11:10:43.9195814Z     Updating crates.io index
+2026-11-13T11:10:43.9196521Z  Downloading crates ...
+2026-11-13T11:10:43.9197190Z   Downloaded bitflags v1.3.2
+2026-11-13T11:10:43.9197882Z   Downloaded cesu8 v1.1.0
+2026-11-13T11:10:43.9198537Z   Downloaded adler2 v2.0.1
+2026-11-13T11:10:43.9199225Z   Downloaded cfg-if v1.0.5
+2026-11-13T11:10:43.9199891Z   Downloaded jni-sys v0.4.1
+2026-11-13T11:10:43.9200557Z   Downloaded bytes v1.12.1
+2026-11-13T11:10:43.9201293Z   Downloaded jni-sys-macros v0.4.1
+2026-11-13T11:10:43.9202438Z   Downloaded jni-sys v0.3.1
+2026-11-13T11:10:43.9203140Z   Downloaded fdeflate v0.3.7
+2026-11-13T11:10:43.9203846Z   Downloaded quote v1.0.47
+2026-11-13T11:10:43.9204495Z   Downloaded simd-adler32 v0.3.10
+2026-11-13T11:10:43.9205205Z   Downloaded same-file v1.0.6
+2026-11-13T11:10:43.9205874Z   Downloaded libloading v0.8.9
+2026-11-13T11:10:43.9206569Z   Downloaded walkdir v2.5.0
+2026-11-13T11:10:43.9207262Z   Downloaded unicode-ident v1.0.27
+2026-11-13T11:10:43.9207972Z   Downloaded crc32fast v1.5.5
+2026-11-13T11:10:43.9208689Z   Downloaded png v0.17.16
+2026-11-13T11:10:43.9209372Z   Downloaded proc-macro2 v1.0.107
+2026-11-13T11:10:43.9210084Z   Downloaded miniz_oxide v0.8.9
+2026-11-13T11:10:43.9210803Z   Downloaded miniz_oxide v0.9.1
+2026-11-13T11:10:43.9212192Z   Downloaded flate2 v1.1.11
+2026-11-13T11:10:43.9212868Z   Downloaded log v0.4.35
+2026-11-13T11:10:43.9213530Z   Downloaded jni v0.21.1
+2026-11-13T11:10:43.9214174Z   Downloaded memchr v2.8.3
+2026-11-13T11:10:43.9214816Z   Downloaded combine v4.6.9
+2026-11-13T11:10:43.9215482Z   Downloaded glow v0.18.0
+2026-11-13T11:10:43.9216122Z   Downloaded zlib-rs v0.6.8
+2026-11-13T11:10:43.9216764Z   Downloaded syn v2.0.119
+2026-11-13T11:10:43.9217438Z    Compiling proc-macro2 v1.0.107
+2026-11-13T11:10:43.9218489Z    Compiling quote v1.0.47
+2026-11-13T11:10:43.9219229Z    Compiling unicode-ident v1.0.27
+2026-11-13T11:10:43.9219943Z    Compiling simd-adler32 v0.3.10
+2026-11-13T11:10:43.9220625Z    Compiling cfg-if v1.0.5
+2026-11-13T11:10:43.9221260Z    Compiling crc32fast v1.5.5
+2026-11-13T11:10:43.9222238Z    Compiling adler2 v2.0.1
+2026-11-13T11:10:43.9222869Z    Compiling syn v2.0.119
+2026-11-13T11:10:43.9223532Z    Compiling jni-sys v0.3.1
+2026-11-13T11:10:44.0189380Z    Compiling thiserror v1.0.69
+2026-11-13T11:10:45.0202806Z    Compiling miniz_oxide v0.9.1
+2026-11-13T11:10:45.0232728Z    Compiling memchr v2.8.3
+2026-11-13T11:10:45.0262337Z    Compiling bytes v1.12.1
+2026-11-13T11:10:45.9188560Z    Compiling combine v4.6.9
+2026-11-13T11:10:46.0192749Z    Compiling flate2 v1.1.11
+2026-11-13T11:10:46.6206069Z    Compiling miniz_oxide v0.8.9
+2026-11-13T11:10:46.9212794Z    Compiling fdeflate v0.3.7
+2026-11-13T11:10:47.0214768Z    Compiling jni-sys-macros v0.4.1
+2026-11-13T11:10:47.3217141Z    Compiling jni-sys v0.4.1
+2026-11-13T11:10:47.6194285Z    Compiling thiserror-impl v1.0.69
+2026-11-13T11:10:48.0202712Z    Compiling cesu8 v1.1.0
+2026-11-13T11:10:48.2193501Z    Compiling bitflags v1.3.2
+2026-11-13T11:10:48.3217202Z    Compiling log v0.4.35
+2026-11-13T11:10:48.3252575Z    Compiling png v0.17.16
+2026-11-13T11:10:48.5202930Z    Compiling libloading v0.8.9
+2026-11-13T11:10:48.6187697Z    Compiling glow v0.18.0
+2026-11-13T11:10:48.7188283Z    Compiling snowhush-core v0.0.0 (/home/runner/work/Snowhush-Android/Snowhush-Android/core)
+2026-11-13T11:10:51.2222827Z    Compiling jni v0.21.1
+2026-11-13T11:10:54.6188168Z    Compiling snowhush-android v0.13.1 (/home/runner/work/Snowhush-Android/Snowhush-Android/android/native)
+2026-11-13T11:11:07.4188002Z     Finished `release` profile [optimized] target(s) in 25.18s
+2026-11-13T11:11:07.4188790Z     Building armeabi-v7a (armv7-linux-androideabi)
+2026-11-13T11:11:07.6186811Z    Compiling simd-adler32 v0.3.10
+2026-11-13T11:11:07.6187648Z    Compiling cfg-if v1.0.5
+2026-11-13T11:11:07.6188090Z    Compiling adler2 v2.0.1
+2026-11-13T11:11:07.6188361Z    Compiling crc32fast v1.5.5
+2026-11-13T11:11:07.6188690Z    Compiling thiserror v1.0.69
+2026-11-13T11:11:07.8212863Z    Compiling miniz_oxide v0.9.1
+2026-11-13T11:11:07.9218229Z    Compiling jni-sys v0.3.1
+2026-11-13T11:11:07.9242722Z    Compiling jni-sys v0.4.1
+2026-11-13T11:11:07.9252461Z    Compiling memchr v2.8.3
+2026-11-13T11:11:07.9272772Z    Compiling bytes v1.12.1
+2026-11-13T11:11:08.2193215Z    Compiling miniz_oxide v0.8.9
+2026-11-13T11:11:08.5199451Z    Compiling flate2 v1.1.11
+2026-11-13T11:11:08.8188186Z    Compiling combine v4.6.9
+2026-11-13T11:11:09.0212682Z    Compiling fdeflate v0.3.7
+2026-11-13T11:11:09.3202622Z    Compiling log v0.4.35
+2026-11-13T11:11:09.5213852Z    Compiling cesu8 v1.1.0
+2026-11-13T11:11:09.6195073Z    Compiling bitflags v1.3.2
+2026-11-13T11:11:09.7202630Z    Compiling png v0.17.16
+2026-11-13T11:11:09.7232238Z    Compiling libloading v0.8.9
+2026-11-13T11:11:09.8213847Z    Compiling glow v0.18.0
+2026-11-13T11:11:09.9188296Z    Compiling snowhush-core v0.0.0 (/home/runner/work/Snowhush-Android/Snowhush-Android/core)
+2026-11-13T11:11:13.1187964Z    Compiling jni v0.21.1
+2026-11-13T11:11:16.1187437Z    Compiling snowhush-android v0.13.1 (/home/runner/work/Snowhush-Android/Snowhush-Android/android/native)
+2026-11-13T11:11:18.0223662Z     Finished `release` profile [optimized] target(s) in 10.55s
+2026-11-13T11:11:18.0252399Z     Building x86_64 (x86_64-linux-android)
+2026-11-13T11:11:18.0253091Z    Compiling simd-adler32 v0.3.10
+2026-11-13T11:11:18.0253645Z    Compiling cfg-if v1.0.5
+2026-11-13T11:11:18.0254137Z    Compiling adler2 v2.0.1
+2026-11-13T11:11:18.0254622Z    Compiling crc32fast v1.5.5
+2026-11-13T11:11:18.0255130Z    Compiling thiserror v1.0.69
+2026-11-13T11:11:18.1216655Z    Compiling jni-sys v0.3.1
+2026-11-13T11:11:18.1232541Z    Compiling jni-sys v0.4.1
+2026-11-13T11:11:18.1242509Z    Compiling memchr v2.8.3
+2026-11-13T11:11:18.3202891Z    Compiling miniz_oxide v0.9.1
+2026-11-13T11:11:18.3223146Z    Compiling bytes v1.12.1
+2026-11-13T11:11:18.5202869Z    Compiling miniz_oxide v0.8.9
+2026-11-13T11:11:19.2202696Z    Compiling combine v4.6.9
+2026-11-13T11:11:19.3187840Z    Compiling flate2 v1.1.11
+2026-11-13T11:11:19.9202959Z    Compiling fdeflate v0.3.7
+2026-11-13T11:11:19.9232738Z    Compiling log v0.4.35
+2026-11-13T11:11:20.0193430Z    Compiling bitflags v1.3.2
+2026-11-13T11:11:20.0222372Z    Compiling cesu8 v1.1.0
+2026-11-13T11:11:20.1193551Z    Compiling libloading v0.8.9
+2026-11-13T11:11:20.2192809Z    Compiling png v0.17.16
+2026-11-13T11:11:20.3202851Z    Compiling glow v0.18.0
+2026-11-13T11:11:20.8203110Z    Compiling snowhush-core v0.0.0 (/home/runner/work/Snowhush-Android/Snowhush-Android/core)
+2026-11-13T11:11:23.8195423Z    Compiling jni v0.21.1
+2026-11-13T11:11:26.9188255Z    Compiling snowhush-android v0.13.1 (/home/runner/work/Snowhush-Android/Snowhush-Android/android/native)
+2026-11-13T11:11:28.7187685Z     Finished `release` profile [optimized] target(s) in 10.78s
+2026-11-13T11:11:28.8195144Z      Copying libraries to /home/runner/work/Snowhush-Android/Snowhush-Android/android/app/src/main/jniLibs
+2026-11-13T11:11:28.8196001Z 
+2026-11-13T11:11:28.8199402Z > Task :app:preBuild
+2026-11-13T11:11:28.8200146Z > Task :app:preReleaseBuild
+2026-11-13T11:11:28.9227064Z > Task :app:mergeReleaseJniLibFolders
+2026-11-13T11:11:29.0213454Z > Task :app:checkReleaseDuplicateClasses
+2026-11-13T11:11:29.0242422Z > Task :app:mergeReleaseNativeLibs
+2026-11-13T11:11:29.0243318Z > Task :app:checkReleaseAarMetadata
+2026-11-13T11:11:29.0272500Z > Task :app:javaPreCompileRelease
+2026-11-13T11:11:29.0302882Z > Task :app:processReleaseNavigationResources
+2026-11-13T11:11:29.1232312Z 
+2026-11-13T11:11:29.1232953Z > Task :app:stripReleaseDebugSymbols
+2026-11-13T11:11:29.1234023Z Unable to strip the following libraries, packaging them as they are: libsnowhush.so. Run with --info option to learn more.
+2026-11-13T11:11:29.4192372Z 
+2026-11-13T11:11:29.4193556Z > Task :app:compileReleaseNavigationResources
+2026-11-13T11:11:29.4194256Z > Task :app:generateReleaseResValues
+2026-11-13T11:11:29.4194843Z > Task :app:extractReleaseNativeSymbolTables
+2026-11-13T11:11:29.4195441Z > Task :app:mapReleaseSourceSetPaths
+2026-11-13T11:11:29.4196051Z > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+2026-11-13T11:11:29.4196668Z > Task :app:generateReleaseResources
+2026-11-13T11:11:29.8206256Z > Task :app:packageReleaseResources
+2026-11-13T11:11:32.1187848Z > Task :app:mergeReleaseResources
+2026-11-13T11:11:32.4209789Z > Task :app:createReleaseCompatibleScreenManifests
+2026-11-13T11:11:32.4223205Z > Task :app:extractDeepLinksRelease
+2026-11-13T11:11:32.5192739Z > Task :app:parseReleaseLocalResources
+2026-11-13T11:11:32.6187666Z > Task :app:processReleaseMainManifest
+2026-11-13T11:11:32.9233214Z > Task :app:processReleaseManifest
+2026-11-13T11:11:32.9262567Z > Task :app:desugarReleaseFileDependencies
+2026-11-13T11:11:32.9263470Z > Task :app:processReleaseManifestForPackage
+2026-11-13T11:11:33.0232702Z > Task :app:mergeReleaseStartupProfile
+2026-11-13T11:11:33.0259789Z > Task :app:mergeReleaseArtProfile
+2026-11-13T11:11:33.0262101Z > Task :app:mergeExtDexRelease
+2026-11-13T11:11:33.0292149Z > Task :app:mergeReleaseShaders
+2026-11-13T11:11:33.0322195Z > Task :app:compileReleaseShaders NO-SOURCE
+2026-11-13T11:11:33.0342355Z > Task :app:generateReleaseAssets UP-TO-DATE
+2026-11-13T11:11:33.0362108Z > Task :app:mergeReleaseAssets
+2026-11-13T11:11:33.0402026Z > Task :app:compressReleaseAssets
+2026-11-13T11:11:33.1212847Z > Task :app:extractReleaseVersionControlInfo
+2026-11-13T11:11:33.1242369Z > Task :app:processReleaseJavaRes NO-SOURCE
+2026-11-13T11:11:33.2189686Z > Task :app:processReleaseResources
+2026-11-13T11:11:33.2190324Z > Task :app:collectReleaseDependencies
+2026-11-13T11:11:33.2190892Z > Task :app:mergeReleaseJavaResource
+2026-11-13T11:11:40.7202880Z > Task :app:compileReleaseJavaWithJavac
+2026-11-13T11:11:42.8212811Z > Task :app:dexBuilderRelease
+2026-11-13T11:11:42.8262677Z > Task :app:mergeReleaseGlobalSynthetics
+2026-11-13T11:11:42.9188591Z > Task :app:sdkReleaseDependencyData
+2026-11-13T11:11:42.9195298Z > Task :app:optimizeReleaseResources
+2026-11-13T11:11:42.9196388Z > Task :app:validateSigningRelease
+2026-11-13T11:11:42.9197064Z > Task :app:writeReleaseAppMetadata
+2026-11-13T11:11:43.0187401Z > Task :app:writeReleaseSigningConfigVersions
+2026-11-13T11:11:43.1202753Z > Task :app:mergeDexRelease
+2026-11-13T11:11:43.1203701Z > Task :app:compileReleaseArtProfile
+2026-11-13T11:11:43.4187536Z > Task :app:packageRelease
+2026-11-13T11:11:43.5192006Z > Task :app:createReleaseApkListingFileRedirect
+2026-11-13T11:11:43.5193284Z > Task :app:assembleRelease
+2026-11-13T11:11:43.5193848Z 
+2026-11-13T11:11:43.5195307Z [Incubating] Problems report is available at: file:///home/runner/work/Snowhush-Android/Snowhush-Android/android/build/reports/problems/problems-report.html
+2026-11-13T11:11:43.5196693Z 
+2026-11-13T11:11:43.5197382Z Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+2026-11-13T11:11:43.5198245Z 
+2026-11-13T11:11:43.5199216Z You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-11-13T11:11:43.5200633Z 
+2026-11-13T11:11:43.5201985Z For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-11-13T11:11:43.5229759Z 
+2026-11-13T11:11:43.5282262Z BUILD SUCCESSFUL in 1m 42s
+2026-11-13T11:11:43.5324641Z 44 actionable tasks: 44 executed
+2026-11-13T11:11:43.8038709Z ##[group]Run actions/upload-artifact@v7
+2026-11-13T11:11:43.8039020Z with:
+2026-11-13T11:11:43.8039222Z   name: Snowhush-Android
+2026-11-13T11:11:43.8039505Z   path: android/app/build/outputs/apk/release/*.apk
+2026-11-13T11:11:43.8039827Z   if-no-files-found: error
+2026-11-13T11:11:43.8040060Z   compression-level: 6
+2026-11-13T11:11:43.8040272Z   overwrite: false
+2026-11-13T11:11:43.8040484Z   include-hidden-files: false
+2026-11-13T11:11:43.8040895Z   archive: true
+2026-11-13T11:11:43.8041084Z env:
+2026-11-13T11:11:43.8041377Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:11:43.8042248Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-13T11:11:43.8042647Z   MAVEN_ARGS: -ntp
+2026-11-13T11:11:43.8042932Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/30.0.16248370
+2026-11-13T11:11:43.8043257Z ##[endgroup]
+2026-11-13T11:11:43.9592285Z With the provided path, there will be 1 file uploaded
+2026-11-13T11:11:43.9597458Z Artifact name is valid!
+2026-11-13T11:11:43.9598253Z Root directory input is valid!
+2026-11-13T11:11:44.1987434Z Uploading artifact: Snowhush-Android.zip
+2026-11-13T11:11:44.2029497Z Beginning upload of artifact content to blob storage
+2026-11-13T11:11:44.6173242Z Uploaded bytes 1861639
+2026-11-13T11:11:44.6342156Z Finished uploading artifact content to blob storage!
+2026-11-13T11:11:44.6343346Z SHA256 digest of uploaded artifact is 5f21cf48d02f5c71ef8127517238aff2528163edfdad3bf2ee74a54877726b98
+2026-11-13T11:11:44.6344455Z Finalizing artifact upload
+2026-11-13T11:11:44.9769263Z Artifact Snowhush-Android successfully finalized. Artifact ID 14031566077
+2026-11-13T11:11:44.9770889Z Artifact Snowhush-Android has been successfully uploaded! Final size is 1861639 bytes. Artifact ID is 14031566077
+2026-11-13T11:11:44.9773991Z Artifact download URL: https://github.com/Le-F-Sur-GitH/Snowhush-Android/actions/runs/43414673810/artifacts/14031566077
+2026-11-13T11:11:45.0030401Z Post job cleanup.
+2026-11-13T11:11:45.0948872Z Post job cleanup.
+2026-11-13T11:11:45.1952800Z [command]/usr/bin/git version
+2026-11-13T11:11:45.1964975Z git version 2.56.1
+2026-11-13T11:11:45.2008336Z Temporarily overriding HOME='/home/runner/work/_temp/324f755e-4662-4617-a657-68d998b214c6' before making global git config changes
+2026-11-13T11:11:45.2012505Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:11:45.2015239Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:11:45.2063908Z Removing SSH command configuration
+2026-11-13T11:11:45.2072832Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:11:45.2119785Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:11:45.2542399Z Removing HTTP extra header
+2026-11-13T11:11:45.2543697Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:11:45.2591154Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:11:45.2989628Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:11:45.2999345Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:11:45.3061954Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:11:45.3068576Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:11:45.3099838Z includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:11:45.3100999Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:11:45.3103934Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:11:45.3127224Z /home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:11:45.3143328Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-7cd997ff\-7260\-41ff\-ad11\-baccac921ebe\.config
+2026-11-13T11:11:45.3205331Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:11:45.3254580Z /home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:11:45.3267461Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-7cd997ff\-7260\-41ff\-ad11\-baccac921ebe\.config
+2026-11-13T11:11:45.3324315Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:11:45.3366464Z /github/runner_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:11:45.3378298Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-7cd997ff\-7260\-41ff\-ad11\-baccac921ebe\.config
+2026-11-13T11:11:45.3437750Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:11:45.3481239Z /github/runner_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config
+2026-11-13T11:11:45.3492034Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-7cd997ff\-7260\-41ff\-ad11\-baccac921ebe\.config
+2026-11-13T11:11:45.3552332Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:11:45.3831102Z Removing credentials config '/home/runner/work/_temp/git-credentials-7cd997ff-7260-41ff-ad11-baccac921ebe.config'
+2026-11-13T11:11:45.3999171Z Cleaning up orphan processes

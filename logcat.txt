@@ -1,0 +1,54 @@
+11-13 11:12:58.236   362   362 D AndroidRuntime: >>>>>> START com.android.internal.os.ZygoteInit uid 0 <<<<<<
+11-13 11:12:58.251   362   362 I AndroidRuntime: Using default boot image
+11-13 11:12:58.251   362   362 I AndroidRuntime: Leaving lock profiling enabled
+11-13 11:13:08.768  1050  1050 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+11-13 11:13:23.126  3533  3685 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 0 sprites, Calm; 0 windows, 0 head starts; Full; 60 Hz; 0 frames, 0 drawn
+11-13 11:14:01.866  3533  5149 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 0 sprites, Calm; 0 windows, 0 head starts; Full; 60 Hz; 0 frames, 0 drawn
+11-13 11:14:26.794  5806  5806 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:14:26.798  5806  5806 I AndroidRuntime: Using default boot image
+11-13 11:14:26.798  5806  5806 I AndroidRuntime: Leaving lock profiling enabled
+11-13 11:14:27.060  5806  5806 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 11:14:28.392  5806  5806 D AndroidRuntime: Shutting down VM
+11-13 11:14:32.821  5913  5913 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:14:32.831  5913  5913 I AndroidRuntime: Using default boot image
+11-13 11:14:32.831  5913  5913 I AndroidRuntime: Leaving lock profiling enabled
+11-13 11:14:33.140  5913  5913 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 11:14:34.305  5913  5913 D AndroidRuntime: Shutting down VM
+11-13 11:14:37.676  3533  5943 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 0 sprites, Calm; 0 windows, 0 head starts; Full; 60 Hz; 0 frames, 0 drawn
+11-13 11:14:37.681  3533  3685 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 93 sprites, Calm; 1 windows, 0 head starts; Full; 60 Hz; 415 frames, 415 drawn
+11-13 11:14:38.151  3533  5976 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 0 sprites, Calm; 0 windows, 0 head starts; Full; 60 Hz; 0 frames, 0 drawn
+11-13 11:14:38.786  3533  5988 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 0 sprites, Calm; 0 windows, 0 head starts; Full; 60 Hz; 0 frames, 0 drawn
+11-13 11:15:11.727  3533  3533 I Snowhush: home screen: launcher com.google.android.apps.nexuslauncher, Android 34, 768x1232 at 2.0, 23 nodes, 6 in sight of 6, 6 outlines from a picture
+11-13 11:15:11.727  3533  3533 D Snowhush: widget androidx.viewpager.widget.ViewPager [64,49][736,197] shown [64,86][736,160] children 1
+11-13 11:15:11.727  3533  3533 D Snowhush: icon android.widget.TextView [50,906][154,1023] guessed 72,910 61 children 0
+11-13 11:15:11.727  3533  3533 D Snowhush: icon android.widget.TextView [191,906][295,1023] guessed 213,910 61 children 0
+11-13 11:15:11.727  3533  3533 D Snowhush: icon android.widget.TextView [332,906][436,1023] guessed 354,910 61 children 0
+11-13 11:15:11.727  3533  3533 D Snowhush: icon android.widget.TextView [473,906][577,1023] guessed 495,910 61 children 0
+11-13 11:15:11.727  3533  3533 D Snowhush: icon android.widget.TextView [614,906][718,1023] guessed 636,910 61 children 0
+11-13 11:15:11.727  3533  3533 D Snowhush: widget android.widget.FrameLayout [50,1070][718,1196] shown [50,1070][718,1196] children 2
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 55,918 94x94 corners 47 curve 2.0
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 196,918 94x94 corners 47 curve 2.0
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 337,917 93x94 corners 48 curve 2.0
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 478,918 94x94 corners 47 curve 2.0
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 619,918 94x94 corners 47 curve 2.0
+11-13 11:15:11.727  3533  3533 D Snowhush: snow lies at 51,1083 666x101 corners 52 curve 2.3
+11-13 11:15:20.143  3533  5988 I Snowhush: Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)) (OpenGL ES 3.1 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))); 768x1280 px, snow 768x1280 at 0,0, scale 2; 384x640 points, 93 sprites, Calm; 2 windows, 0 head starts; Full; 60 Hz; 30 frames, 30 drawn
+11-13 11:16:10.393  6472  6472 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+11-13 11:16:10.399  6472  6472 I AndroidRuntime: Using default boot image
+11-13 11:16:10.399  6472  6472 I AndroidRuntime: Leaving lock profiling enabled
+11-13 11:16:10.574  6472  6472 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+11-13 11:16:11.645  6472  6472 D AndroidRuntime: Shutting down VM
+11-13 11:16:18.830  3533  3533 I Snowhush: home screen: launcher com.google.android.apps.nexuslauncher, Android 34, 768x1232 at 2.0, 23 nodes, 6 in sight of 7, 6 outlines from a picture
+11-13 11:16:18.830  3533  3533 D Snowhush: widget androidx.viewpager.widget.ViewPager [64,49][736,197] shown [64,86][736,160] children 1
+11-13 11:16:18.830  3533  3533 D Snowhush: icon android.widget.TextView [50,906][154,1023] guessed 72,910 61 children 0
+11-13 11:16:18.830  3533  3533 D Snowhush: icon android.widget.TextView [191,906][295,1023] guessed 213,910 61 children 0
+11-13 11:16:18.830  3533  3533 D Snowhush: icon android.widget.TextView [332,906][436,1023] guessed 354,910 61 children 0
+11-13 11:16:18.830  3533  3533 D Snowhush: icon android.widget.TextView [473,906][577,1023] guessed 495,910 61 children 0
+11-13 11:16:18.830  3533  3533 D Snowhush: icon android.widget.TextView [614,906][718,1023] guessed 636,910 61 children 0
+11-13 11:16:18.830  3533  3533 D Snowhush: widget android.widget.FrameLayout [50,1070][718,1196] shown [50,1070][718,1196] children 2
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 55,918 94x94 corners 47 curve 2.0
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 196,918 94x94 corners 47 curve 2.0
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 337,917 93x94 corners 48 curve 2.0
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 478,918 94x94 corners 47 curve 2.0
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 619,918 94x94 corners 47 curve 2.0
+11-13 11:16:18.830  3533  3533 D Snowhush: snow lies at 51,1083 666x101 corners 52 curve 2.3

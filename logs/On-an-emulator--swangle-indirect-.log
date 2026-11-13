@@ -1,0 +1,468 @@
+﻿2026-11-13T11:11:50.1410615Z Current runner version: '2.338.2'
+2026-11-13T11:11:50.1430097Z ##[group]Runner Image Provisioner
+2026-11-13T11:11:50.1430665Z Hosted Compute Agent
+2026-11-13T11:11:50.1431098Z Version: 20261028.624
+2026-11-13T11:11:50.1431520Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-13T11:11:50.1431985Z Build Date: 2026-10-28T21:51:42Z
+2026-11-13T11:11:50.1432415Z Worker ID: {18102b58-4b6f-4e6b-99ac-0b56ade13d6e}
+2026-11-13T11:11:50.1432847Z Region: southcentralus
+2026-11-13T11:11:50.1433236Z Cloud: Azure
+2026-11-13T11:11:50.1433737Z ##[endgroup]
+2026-11-13T11:11:50.1434619Z ##[group]Operating System
+2026-11-13T11:11:50.1435022Z Ubuntu
+2026-11-13T11:11:50.1435348Z 24.04.5
+2026-11-13T11:11:50.1435978Z LTS
+2026-11-13T11:11:50.1436333Z ##[endgroup]
+2026-11-13T11:11:50.1436661Z ##[group]Runner Image
+2026-11-13T11:11:50.1437073Z Image: ubuntu-24.04
+2026-11-13T11:11:50.1437420Z Version: 20261101.360.1
+2026-11-13T11:11:50.1438253Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-13T11:11:50.1439161Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+2026-11-13T11:11:50.1439773Z ##[endgroup]
+2026-11-13T11:11:50.1440506Z ##[group]GITHUB_TOKEN Permissions
+2026-11-13T11:11:50.1441975Z Actions: read
+2026-11-13T11:11:50.1442325Z Contents: write
+2026-11-13T11:11:50.1442753Z Metadata: read
+2026-11-13T11:11:50.1443096Z ##[endgroup]
+2026-11-13T11:11:50.1445080Z Secret source: Actions
+2026-11-13T11:11:50.1445744Z Cache mode: write
+2026-11-13T11:11:50.1446186Z Prepare workflow directory
+2026-11-13T11:11:50.1684069Z Prepare all required actions
+2026-11-13T11:11:50.1719036Z Getting action download info
+2026-11-13T11:11:50.4449506Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-13T11:11:50.5572762Z Download action repository 'actions/download-artifact@v8' (SHA:9000827ccba6bdab643e8b6fd33ac0654aef8333)
+2026-11-13T11:11:50.9961056Z Download action repository 'reactivecircus/android-emulator-runner@v2' (SHA:a421e43855164a8197daf9d8d40fe71c6996bb0d)
+2026-11-13T11:11:51.3878046Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+2026-11-13T11:11:51.5445834Z Complete job name: On an emulator (swangle_indirect)
+2026-11-13T11:11:51.6001881Z ##[group]Run actions/checkout@v7
+2026-11-13T11:11:51.6002317Z with:
+2026-11-13T11:11:51.6002586Z   repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:11:51.6004872Z   token: ***
+2026-11-13T11:11:51.6005109Z   ssh-strict: true
+2026-11-13T11:11:51.6005353Z   ssh-user: git
+2026-11-13T11:11:51.6005604Z   persist-credentials: true
+2026-11-13T11:11:51.6005872Z   clean: true
+2026-11-13T11:11:51.6006123Z   sparse-checkout-cone-mode: true
+2026-11-13T11:11:51.6006410Z   fetch-depth: 1
+2026-11-13T11:11:51.6006651Z   fetch-tags: false
+2026-11-13T11:11:51.6006897Z   show-progress: true
+2026-11-13T11:11:51.6007156Z   lfs: false
+2026-11-13T11:11:51.6007398Z   submodules: false
+2026-11-13T11:11:51.6007668Z   set-safe-directory: true
+2026-11-13T11:11:51.6007949Z   allow-unsafe-pr-checkout: false
+2026-11-13T11:11:51.6008318Z ##[endgroup]
+2026-11-13T11:11:51.7925349Z Syncing repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:11:51.7927007Z ##[group]Getting Git version info
+2026-11-13T11:11:51.7927815Z Working directory is '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:11:51.7928836Z [command]/usr/bin/git version
+2026-11-13T11:11:51.7992877Z git version 2.56.0
+2026-11-13T11:11:51.8012093Z ##[endgroup]
+2026-11-13T11:11:51.8018799Z Temporarily overriding HOME='/home/runner/work/_temp/2e089cd1-5ce0-4e44-b6d9-21cb9262927a' before making global git config changes
+2026-11-13T11:11:51.8019622Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:11:51.8025017Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:11:51.8083329Z Deleting the contents of '/home/runner/work/Snowhush-Android/Snowhush-Android'
+2026-11-13T11:11:51.8085972Z ##[group]Determining repository object format
+2026-11-13T11:11:51.8087115Z ##[endgroup]
+2026-11-13T11:11:51.8087964Z ##[group]Initializing the repository
+2026-11-13T11:11:51.8089387Z [command]/usr/bin/git init /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:11:51.8180210Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-13T11:11:51.8181273Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-13T11:11:51.8182176Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-13T11:11:51.8182857Z hint: call:
+2026-11-13T11:11:51.8183226Z hint:
+2026-11-13T11:11:51.8183827Z hint: 	git config --global init.defaultBranch <name>
+2026-11-13T11:11:51.8184387Z hint:
+2026-11-13T11:11:51.8184890Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-13T11:11:51.8185761Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-13T11:11:51.8186524Z hint:
+2026-11-13T11:11:51.8186890Z hint: 	git branch -m <name>
+2026-11-13T11:11:51.8187319Z hint:
+2026-11-13T11:11:51.8187894Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-13T11:11:51.8196497Z Initialized empty Git repository in /home/runner/work/Snowhush-Android/Snowhush-Android/.git/
+2026-11-13T11:11:51.8206663Z [command]/usr/bin/git remote add origin https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:11:51.8254508Z ##[endgroup]
+2026-11-13T11:11:51.8255968Z ##[group]Disabling automatic garbage collection
+2026-11-13T11:11:51.8257860Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-13T11:11:51.8294344Z ##[endgroup]
+2026-11-13T11:11:51.8295733Z ##[group]Setting up auth
+2026-11-13T11:11:51.8296263Z Removing SSH command configuration
+2026-11-13T11:11:51.8300226Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:11:51.8339302Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:11:51.8662287Z Removing HTTP extra header
+2026-11-13T11:11:51.8668096Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:11:51.8709572Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:11:51.8903959Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:11:51.8907858Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:11:51.8949384Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:11:51.9144963Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-13T11:11:51.9188069Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path /home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:11:51.9225134Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:11:51.9264386Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:11:51.9301109Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:11:51.9337169Z ##[endgroup]
+2026-11-13T11:11:51.9337629Z ##[group]Fetching the repository
+2026-11-13T11:11:51.9341556Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d82a8c573085f6828dfde2b770b3a04efa22b97b:refs/remotes/origin/main
+2026-11-13T11:11:52.5249226Z From https://github.com/Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:11:52.5250635Z  * [new ref]         d82a8c573085f6828dfde2b770b3a04efa22b97b -> origin/main
+2026-11-13T11:11:52.5257472Z [command]/usr/bin/git branch --list --remote origin/main
+2026-11-13T11:11:52.5294207Z   origin/main
+2026-11-13T11:11:52.5301337Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-11-13T11:11:52.5336895Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:11:52.5407481Z ##[endgroup]
+2026-11-13T11:11:52.5408370Z ##[group]Determining the checkout info
+2026-11-13T11:11:52.5409546Z ##[endgroup]
+2026-11-13T11:11:52.5410095Z [command]/usr/bin/git sparse-checkout disable
+2026-11-13T11:11:52.5411670Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-13T11:11:52.5449232Z ##[group]Checking out the ref
+2026-11-13T11:11:52.5452542Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-11-13T11:11:52.5712134Z Switched to a new branch 'main'
+2026-11-13T11:11:52.5719321Z branch 'main' set up to track 'origin/main'.
+2026-11-13T11:11:52.5722329Z ##[endgroup]
+2026-11-13T11:11:52.5775477Z [command]/usr/bin/git log -1 --format=%H
+2026-11-13T11:11:52.5812522Z d82a8c573085f6828dfde2b770b3a04efa22b97b
+2026-11-13T11:11:52.6027358Z ##[group]Run actions/download-artifact@v8
+2026-11-13T11:11:52.6027760Z with:
+2026-11-13T11:11:52.6028006Z   name: Snowhush-Android
+2026-11-13T11:11:52.6028317Z   path: apk
+2026-11-13T11:11:52.6028567Z   merge-multiple: false
+2026-11-13T11:11:52.6028897Z   repository: Le-F-Sur-GitH/Snowhush-Android
+2026-11-13T11:11:52.6029278Z   run-id: 43414673810
+2026-11-13T11:11:52.6029563Z   skip-decompress: false
+2026-11-13T11:11:52.6029896Z   digest-mismatch: error
+2026-11-13T11:11:52.6030205Z ##[endgroup]
+2026-11-13T11:11:52.7036170Z Downloading single artifact
+2026-11-13T11:11:52.8990508Z Preparing to download the following artifacts:
+2026-11-13T11:11:52.8992429Z - Snowhush-Android (ID: 14031566077, Size: 1861639, Expected Digest: sha256:5f21cf48d02f5c71ef8127517238aff2528163edfdad3bf2ee74a54877726b98)
+2026-11-13T11:11:53.2592185Z Redirecting to blob download url: https://productionresultssa1.blob.core.windows.net/actions-results/5aad7d3b-4232-890c-b135-de82e886903f/workflow-job-run-03e387bd-c63c-54c9-a4d4-f1879c48f815/artifacts/4797b2a5c05c01808a0634792793667ad698b5be1ebacb7f5cb484df3c490382.zip
+2026-11-13T11:11:53.2596759Z Starting download of artifact to: /home/runner/work/Snowhush-Android/Snowhush-Android/apk
+2026-11-13T11:11:53.4440021Z (node:2125) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+2026-11-13T11:11:53.4444292Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-13T11:11:53.7007422Z SHA256 digest of downloaded artifact is 5f21cf48d02f5c71ef8127517238aff2528163edfdad3bf2ee74a54877726b98
+2026-11-13T11:11:53.7009391Z Artifact download completed successfully.
+2026-11-13T11:11:53.7010504Z Total of 1 artifact(s) downloaded
+2026-11-13T11:11:53.7011582Z Download artifact has finished successfully
+2026-11-13T11:11:53.7165860Z ##[group]Run echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+2026-11-13T11:11:53.7168010Z [36;1mecho 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules[0m
+2026-11-13T11:11:53.7169493Z [36;1msudo udevadm control --reload-rules[0m
+2026-11-13T11:11:53.7170402Z [36;1msudo udevadm trigger --name-match=kvm[0m
+2026-11-13T11:11:53.7191423Z shell: /usr/bin/bash -e {0}
+2026-11-13T11:11:53.7192138Z ##[endgroup]
+2026-11-13T11:11:53.7307722Z KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"
+2026-11-13T11:11:53.7708578Z ##[group]Run reactivecircus/android-emulator-runner@v2
+2026-11-13T11:11:53.7710032Z with:
+2026-11-13T11:11:53.7710714Z   api-level: 34
+2026-11-13T11:11:53.7711423Z   arch: x86_64
+2026-11-13T11:11:53.7712160Z   target: google_apis
+2026-11-13T11:11:53.7713063Z   profile: Nexus 4
+2026-11-13T11:11:53.7713972Z   cores: 4
+2026-11-13T11:11:53.7714537Z   ram-size: 4096M
+2026-11-13T11:11:53.7715078Z   disable-animations: false
+2026-11-13T11:11:53.7716105Z   emulator-options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -camera-back none
+2026-11-13T11:11:53.7717265Z   script: sh android/tools/smoke.sh apk smoke
+2026-11-13T11:11:53.7717989Z   avd-name: test
+2026-11-13T11:11:53.7718530Z   force-avd-creation: true
+2026-11-13T11:11:53.7719138Z   emulator-boot-timeout: 600
+2026-11-13T11:11:53.7719800Z   emulator-port: 5554
+2026-11-13T11:11:53.7720406Z   disable-spellchecker: false
+2026-11-13T11:11:53.7721105Z   disable-linux-hw-accel: auto
+2026-11-13T11:11:53.7721799Z   enable-hw-keyboard: false
+2026-11-13T11:11:53.7722458Z   channel: stable
+2026-11-13T11:11:53.7723036Z ##[endgroup]
+2026-11-13T11:11:53.8166774Z ##[group]Configure emulator
+2026-11-13T11:11:53.8167923Z API level: 34
+2026-11-13T11:11:53.8168748Z System image API level: 34
+2026-11-13T11:11:53.8171033Z target: google_apis
+2026-11-13T11:11:53.8172201Z CPU architecture: x86_64
+2026-11-13T11:11:53.8173022Z Hardware profile: Nexus 4
+2026-11-13T11:11:53.8173962Z Cores: 4
+2026-11-13T11:11:53.8174642Z RAM size: 4096M
+2026-11-13T11:11:53.8175336Z Heap size: 
+2026-11-13T11:11:53.8176024Z SD card path or size: 
+2026-11-13T11:11:53.8176801Z Disk size: 
+2026-11-13T11:11:53.8177457Z AVD name: test
+2026-11-13T11:11:53.8178168Z force avd creation: true
+2026-11-13T11:11:53.8178962Z Emulator boot timeout: 600
+2026-11-13T11:11:53.8179902Z emulator port: 5554
+2026-11-13T11:11:53.8181124Z emulator options: -no-window -gpu swangle_indirect -noaudio -no-boot-anim -camera-back none
+2026-11-13T11:11:53.8182596Z disable animations: false
+2026-11-13T11:11:53.8183494Z disable spellchecker: false
+2026-11-13T11:11:53.8184849Z disable Linux hardware acceleration: false
+2026-11-13T11:11:53.8186139Z enable hardware keyboard: false
+2026-11-13T11:11:53.8187003Z Channel: 0 (stable)
+2026-11-13T11:11:53.8187782Z Script:
+2026-11-13T11:11:53.8188786Z sh android/tools/smoke.sh apk smoke
+2026-11-13T11:11:53.8189680Z Pre emulator launch script:
+2026-11-13T11:11:53.8191064Z ##[endgroup]
+2026-11-13T11:11:53.8192345Z ##[group]Install Android SDK
+2026-11-13T11:11:53.8212565Z [command]/usr/bin/sh -c \yes | sdkmanager --licenses > /dev/null
+2026-11-13T11:11:57.4423198Z Installing latest build tools, platform tools, and platform.
+2026-11-13T11:11:57.4431635Z [command]/usr/bin/sh -c \sdkmanager --install 'build-tools;37.0.0' platform-tools 'platforms;android-34'> /dev/null
+2026-11-13T11:11:58.4495722Z Installing latest emulator.
+2026-11-13T11:11:58.4502769Z [command]/usr/bin/sh -c \sdkmanager --install emulator --channel=0 > /dev/null
+2026-11-13T11:12:07.1834957Z Installing system images.
+2026-11-13T11:12:07.1842030Z [command]/usr/bin/sh -c \sdkmanager --install 'system-images;android-34;google_apis;x86_64' --channel=0 > /dev/null
+2026-11-13T11:12:45.5259177Z ##[endgroup]
+2026-11-13T11:12:45.5259806Z ##[group]Create AVD
+2026-11-13T11:12:45.5260530Z Creating AVD.
+2026-11-13T11:12:45.5270703Z [command]/usr/bin/sh -c \echo no | avdmanager create avd --force -n test --package 'system-images;android-34;google_apis;x86_64' --device 'Nexus 4'
+2026-11-13T11:12:46.0384957Z Loading local repository...                                                     
+2026-11-13T11:12:46.0385369Z [=========                              ] 25% Loading local repository...       
+2026-11-13T11:12:46.0385709Z [=========                              ] 25% Fetch remote repository...        
+2026-11-13T11:12:46.0385919Z [=======================================] 100% Fetch remote repository...       
+2026-11-13T11:12:46.2964790Z Auto-selecting single ABI x86_64
+2026-11-13T11:12:46.5894008Z [command]/usr/bin/sh -c \printf 'hw.cpu.ncore=4\nhw.ramSize=4096M\n' >> /home/runner/.android/avd/test.avd/config.ini
+2026-11-13T11:12:46.5911703Z ##[endgroup]
+2026-11-13T11:12:46.5913855Z ##[group]Launch Emulator
+2026-11-13T11:12:46.5914156Z Starting emulator.
+2026-11-13T11:12:46.5920788Z [command]/usr/bin/sh -c \/usr/local/lib/android/sdk/emulator/emulator -port 5554 -avd test -no-window -gpu swangle_indirect -noaudio -no-boot-anim -camera-back none &
+2026-11-13T11:12:46.6006825Z INFO         | Android emulator version 37.2.13.0 (build_id 16740729) (CL:N/A)
+2026-11-13T11:12:46.6008162Z INFO         | Graphics backend: gfxstream
+2026-11-13T11:12:46.6008604Z INFO         | Found systemPath /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64/
+2026-11-13T11:12:46.6359689Z INFO         | Saving last run QEMU version for the AVD to 2
+2026-11-13T11:12:46.6359965Z ##############################################################################
+2026-11-13T11:12:46.6360229Z ##                        WARNING - ACTION REQUIRED                         ##
+2026-11-13T11:12:46.6360467Z ##  Consider using the '-metrics-collection' flag to help improve the       ##
+2026-11-13T11:12:46.6360724Z ##  emulator by sending anonymized usage data. Or use the '-no-metrics'     ##
+2026-11-13T11:12:46.6360977Z ##  flag to bypass this warning and turn off the metrics collection.        ##
+2026-11-13T11:12:46.6361254Z ##  In a future release this warning will turn into a one-time blocking     ##
+2026-11-13T11:12:46.6361847Z ##  prompt to ask for explicit user input regarding metrics collection.     ##
+2026-11-13T11:12:46.6362184Z ##                                                                          ##
+2026-11-13T11:12:46.6362492Z ##  Please see '-help-metrics-collection' for more details. You can use     ##
+2026-11-13T11:12:46.6362871Z ##  '-metrics-to-file' or '-metrics-to-console' flags to see what type of   ##
+2026-11-13T11:12:46.6363273Z ##  data is being collected by emulator as part of usage statistics.        ##
+2026-11-13T11:12:46.6363732Z ##############################################################################
+2026-11-13T11:12:46.6364013Z INFO         | Guest GLES Driver: Auto (ext controls)
+2026-11-13T11:12:46.6364399Z INFO         | emuglConfig_init: vulkan_mode_selected:swiftshader gles_mode_selected:swangle
+2026-11-13T11:12:46.6364682Z INFO         | Checking system compatibility:
+2026-11-13T11:12:46.6364859Z INFO         |   Checking: hasSufficientDiskSpace
+2026-11-13T11:12:46.6365139Z INFO         |      Ok: Disk space requirements to run avd: `test` are met
+2026-11-13T11:12:46.6365347Z INFO         |   Checking: hasSufficientHwGpu
+2026-11-13T11:12:46.6365541Z INFO         |      Ok: Hardware GPU compatibility checks are not required
+2026-11-13T11:12:46.6365736Z INFO         |   Checking: hasSufficientSystem
+2026-11-13T11:12:46.6365988Z INFO         |      Ok: System requirements to run avd: `test` are met
+2026-11-13T11:12:46.6366411Z WARNING      | Feature QuickbootFileBacked is disabled due to stability issues, if you really want that, the environment variable ANDROID_EMU_FORCE_QUICKBOOT_FILE_BACKED need to set to 1
+2026-11-13T11:12:47.4004717Z ERROR        | Unable to connect to adb daemon on port: 5037
+2026-11-13T11:12:47.4013297Z INFO         | Storing crashdata in: /tmp/android-runner/emu-crash-37.2.13.db, detection is enabled for process: 2474
+2026-11-13T11:12:47.4014058Z INFO         | Initializing gfxstream backend
+2026-11-13T11:12:47.4023165Z INFO         | startOpenglesRendererImpl: gpu info
+2026-11-13T11:12:47.4023469Z INFO         | 
+2026-11-13T11:12:47.4026465Z INFO         | initIcdPaths: ICD set to 'swiftshader', using Swiftshader ICD
+2026-11-13T11:12:47.4027097Z INFO         | Setting ICD filenames for the loader = /usr/local/lib/android/sdk/emulator/lib64/vulkan/vk_swiftshader_icd.json
+2026-11-13T11:12:47.4032571Z INFO         | SharedLibrary::open for [/usr/local/lib/android/sdk/emulator/qemu/linux-x86_64/lib64/vulkan/libvulkan.so]
+2026-11-13T11:12:47.4033810Z INFO         | SharedLibrary::open for [/usr/local/lib/android/sdk/emulator/qemu/linux-x86_64/lib64/vulkan/libvulkan.so.1]
+2026-11-13T11:12:47.4034489Z INFO         | SharedLibrary::open for [/usr/local/lib/android/sdk/emulator/lib64/vulkan/libvulkan.so]
+2026-11-13T11:12:47.4034970Z INFO         | Added library: /usr/local/lib/android/sdk/emulator/lib64/vulkan/libvulkan.so
+2026-11-13T11:12:47.4064320Z INFO         | Selecting Vulkan device: SwiftShader Device (Subzero), Version: 1.3.0
+2026-11-13T11:12:47.4064770Z INFO         | Using Vulkan externalMemoryMode: OpaqueFd for VkEmulation
+2026-11-13T11:12:47.4527920Z INFO         | Format VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 does not support YCbCr sampler conversion
+2026-11-13T11:12:47.4594664Z INFO         | SharedLibrary::open for [libX11]
+2026-11-13T11:12:47.4596521Z WARNING      | Could not open libX11.so, try libX11.so.6
+2026-11-13T11:12:47.4596908Z INFO         | SharedLibrary::open for [libX11.so.6]
+2026-11-13T11:12:47.4597225Z INFO         | SharedLibrary::open for [libX11-xcb]
+2026-11-13T11:12:47.4597563Z WARNING      | Could not open libX11-xcb.so, try libX11-xcb.so.1
+2026-11-13T11:12:47.4597922Z INFO         | SharedLibrary::open for [libX11-xcb.so.1]
+2026-11-13T11:12:47.4668082Z INFO         | Initializing VkEmulation features:
+2026-11-13T11:12:47.4669644Z INFO         |     glInteropSupported: false
+2026-11-13T11:12:47.4670078Z INFO         |     useDeferredCommands: true
+2026-11-13T11:12:47.4670522Z INFO         |     createResourceWithRequirements: true
+2026-11-13T11:12:47.4670979Z INFO         |     useVulkanComposition: false
+2026-11-13T11:12:47.4672852Z INFO         |     useVulkanNativeSwapchain: false
+2026-11-13T11:12:47.4674913Z INFO         |     enable guestRenderDoc: false
+2026-11-13T11:12:47.4676360Z INFO         |     ASTC LDR emulation mode: Gpu
+2026-11-13T11:12:47.4677468Z INFO         |     enable ETC2 emulation: true
+2026-11-13T11:12:47.4679027Z INFO         |     enable Ycbcr emulation: false
+2026-11-13T11:12:47.4679844Z INFO         |     guestVulkanOnly: false
+2026-11-13T11:12:47.4680676Z INFO         |     useDedicatedAllocations: false
+2026-11-13T11:12:47.4681115Z INFO         |     guestVulkanMaxApiVersion: 1.3.0
+2026-11-13T11:12:47.4682260Z INFO         |     enableProtectedMemoryEmulation: false
+2026-11-13T11:12:47.4691463Z INFO         | Graphics Adapter Vendor Google (Google Inc. (Google))
+2026-11-13T11:12:47.4692110Z INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0))
+2026-11-13T11:12:47.4692833Z INFO         | Graphics API Version OpenGL ES 3.0 (OpenGL ES 3.1.0 (ANGLE 2.1.17841 git hash: 5fa2e61da947))
+2026-11-13T11:12:47.4698649Z INFO         | Graphics API Extensions GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_standard_derivatives GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_OVR_multiview2 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 GL_EXT_draw_buffers_indexed GL_EXT_clip_cull_distance 
+2026-11-13T11:12:47.4701721Z INFO         | Graphics Device Extensions N/A
+2026-11-13T11:12:47.4702342Z INFO         | Disabling sparse binding feature support
+2026-11-13T11:12:47.4732115Z ERROR        | Setting read-only feature 'GLAsyncSwap' to '0'
+2026-11-13T11:12:47.4736543Z INFO         | Feature 'GLAsyncSwap' (50) is overridden to 'disabled'
+2026-11-13T11:12:47.4747190Z INFO         | Sending adb public key [QAAAAJl8beNX6OCPBjWyQfI3QwxbtbL6dUqUMvKdn+ZocUBdjtpe67LLgWB5UPYmzEQYYZ1unatJkXdA8eJL2Nr3MOOrOv0CiyeBJJ0kUC8uWsDtbkeitfpc0Mzv3bSfkckZO3g6cEevk5HyvsVEB5jl/5n2eww6LpS3PkowFZ2ohDWgPodu7A8u0CcEHUeCLpYY/WA1LHl0xtlnjUpqMq+IjOqZxKYvRqq8cwpGi/OxKQOxlNacPdrUCYHiY0T+6wUaVzlxkhooWx/kyRsbAteiwZ+mnX1ROktBc5Kj2CTjchhsDv8vV310jOLMdutRY/KoG+H6bf7p+2LKEFUNnB236N1xEdWsG53G4yCNJt3q7UWNIV8129nJwL+Gr3DXtkx3yvgGib3BTJoQ32L3q8fuWrFmjqtzUvZQEVMf8swmA8JuTZaniZbuHaToof0SsprMhlyq1/MuDvUubAzFMYq9Z6IW5OTjS1xVgl9/XuilZGJPHJxVNHFalAxqly3J4dKhKOHN3LoDa7Bl59YQHdCi5N1UeA5qpdGwPEyIzYS5BccbcVDSDNI+hgPn6awP1Q2yr7nw0jEOVfwTdOrd7TEEDosM1S1YGp8fK7CoZH72IqGx1gGZq+Y7GZQt6keSEteVsv6o0ffpdSY5m8awSYza0jD3Mq9YRFIJ+2dAmJ9/kxS7ciaYNgEAAQA= runner@unknown]
+2026-11-13T11:12:47.4752577Z INFO         | Userspace boot properties:
+2026-11-13T11:12:47.4753377Z INFO         |   androidboot.boot_devices=pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0
+2026-11-13T11:12:47.4753807Z INFO         |   androidboot.dalvik.vm.heapsize=576m
+2026-11-13T11:12:47.4754012Z INFO         |   androidboot.debug.hwui.renderer=skiagl
+2026-11-13T11:12:47.4754213Z INFO         |   androidboot.debug.sf.nobootanimation=1
+2026-11-13T11:12:47.4754400Z INFO         |   androidboot.hardware=ranchu
+2026-11-13T11:12:47.4754604Z INFO         |   androidboot.hardware.gltransport=pipe
+2026-11-13T11:12:47.4754797Z INFO         |   androidboot.hardware.vulkan=ranchu
+2026-11-13T11:12:47.4754976Z INFO         |   androidboot.logcat=*:V
+2026-11-13T11:12:47.4755151Z INFO         |   androidboot.opengles.version=196609
+2026-11-13T11:12:47.4755328Z INFO         |   androidboot.qemu=1
+2026-11-13T11:12:47.4757182Z INFO         |   androidboot.qemu.adb.pubkey=QAAAAJl8beNX6OCPBjWyQfI3QwxbtbL6dUqUMvKdn+ZocUBdjtpe67LLgWB5UPYmzEQYYZ1unatJkXdA8eJL2Nr3MOOrOv0CiyeBJJ0kUC8uWsDtbkeitfpc0Mzv3bSfkckZO3g6cEevk5HyvsVEB5jl/5n2eww6LpS3PkowFZ2ohDWgPodu7A8u0CcEHUeCLpYY/WA1LHl0xtlnjUpqMq+IjOqZxKYvRqq8cwpGi/OxKQOxlNacPdrUCYHiY0T+6wUaVzlxkhooWx/kyRsbAteiwZ+mnX1ROktBc5Kj2CTjchhsDv8vV310jOLMdutRY/KoG+H6bf7p+2LKEFUNnB236N1xEdWsG53G4yCNJt3q7UWNIV8129nJwL+Gr3DXtkx3yvgGib3BTJoQ32L3q8fuWrFmjqtzUvZQEVMf8swmA8JuTZaniZbuHaToof0SsprMhlyq1/MuDvUubAzFMYq9Z6IW5OTjS1xVgl9/XuilZGJPHJxVNHFalAxqly3J4dKhKOHN3LoDa7Bl59YQHdCi5N1UeA5qpdGwPEyIzYS5BccbcVDSDNI+hgPn6awP1Q2yr7nw0jEOVfwTdOrd7TEEDosM1S1YGp8fK7CoZH72IqGx1gGZq+Y7GZQt6keSEteVsv6o0ffpdSY5m8awSYza0jD3Mq9YRFIJ+2dAmJ9/kxS7ciaYNgEAAQA= runner@unknown
+2026-11-13T11:12:47.4759030Z INFO         |   androidboot.qemu.avd_name=test
+2026-11-13T11:12:47.4759231Z INFO         |   androidboot.qemu.camera_hq_edge_processing=0
+2026-11-13T11:12:47.4759434Z INFO         |   androidboot.qemu.camera_protocol_ver=1
+2026-11-13T11:12:47.4759634Z INFO         |   androidboot.qemu.cpuvulkan.version=4206592
+2026-11-13T11:12:47.4759863Z INFO         |   androidboot.qemu.gltransport.drawFlushInterval=800
+2026-11-13T11:12:47.4760088Z INFO         |   androidboot.qemu.gltransport.name=pipe
+2026-11-13T11:12:47.4760281Z INFO         |   androidboot.qemu.hwcodec.avcdec=2
+2026-11-13T11:12:47.4760467Z INFO         |   androidboot.qemu.hwcodec.hevcdec=2
+2026-11-13T11:12:47.4760654Z INFO         |   androidboot.qemu.hwcodec.vpxdec=2
+2026-11-13T11:12:47.4760884Z INFO         |   androidboot.qemu.settings.system.screen_off_timeout=2147483647
+2026-11-13T11:12:47.4761119Z INFO         |   androidboot.qemu.skin=768x1280
+2026-11-13T11:12:47.4761293Z INFO         |   androidboot.qemu.virtiowifi=1
+2026-11-13T11:12:47.4761464Z INFO         |   androidboot.qemu.vsync=60
+2026-11-13T11:12:47.4761644Z INFO         |   androidboot.serialno=EMULATOR37X2X13X0
+2026-11-13T11:12:47.4761921Z INFO         |   androidboot.vbmeta.digest=451e57ed688ff746d2c636d52169ade253e2bc5bb30a5c3ff23679ca15d3bcd3
+2026-11-13T11:12:47.4762197Z INFO         |   androidboot.vbmeta.hash_alg=sha256
+2026-11-13T11:12:47.4762372Z INFO         |   androidboot.vbmeta.size=6656
+2026-11-13T11:12:47.4762551Z INFO         |   androidboot.veritymode=enforcing
+2026-11-13T11:12:47.4965142Z WARNING: cannnot unmap ptr 0x7f11f7801000 as it is in the protected range from 0x7f10f7800000 to 0x7f11f7a00000
+2026-11-13T11:12:47.4965507Z pc_memory_init: above 4g size: 40000000
+2026-11-13T11:12:47.5118877Z INFO         | Monitoring duration of emulator setup.
+2026-11-13T11:12:48.5081196Z INFO         | Successfully initialized netsim WiFi
+2026-11-13T11:12:48.5081907Z INFO         | Activated packet streamer for bluetooth emulation
+2026-11-13T11:12:48.5117668Z INFO         | Setting display: 0 configuration to: 768x1280, dpi: 320x320 
+2026-11-13T11:12:48.5118057Z INFO         | setDisplayActiveConfig: id:0, 768x1280
+2026-11-13T11:12:48.5118556Z INFO         | emulatorSetupEnvironment: Environment scene is not required
+2026-11-13T11:12:48.5182984Z INFO         | Loading snapshot 'default_boot'...
+2026-11-13T11:12:48.5184788Z WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
+2026-11-13T11:12:48.5376433Z WARNING      | Device 'cache' does not have the requested snapshot 'default_boot'
+2026-11-13T11:12:48.5377290Z 
+2026-11-13T11:12:48.5377412Z WARNING      | Failed to load snapshot 'default_boot'
+2026-11-13T11:12:48.5377966Z USER_INFO    | The emulator is performing a cold boot without a saved state because there's no snapshot and you have configured it not to save on exit.
+2026-11-13T11:12:48.6562394Z WARNING      | Failed to process .ini file /home/runner/.android/emu-update-last-check.ini for reading.
+2026-11-13T11:12:56.5991861Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:12:56.6024957Z * daemon not running; starting now at tcp:5037
+2026-11-13T11:12:56.7423042Z * daemon started successfully
+2026-11-13T11:12:56.7423371Z adb: device offline
+2026-11-13T11:12:56.7426914Z The process '/usr/local/lib/android/sdk/platform-tools/adb' failed with exit code 1
+2026-11-13T11:12:58.7485026Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:12:58.7647968Z 
+2026-11-13T11:13:00.7695674Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:00.7821849Z 
+2026-11-13T11:13:02.7874975Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:02.7969803Z 
+2026-11-13T11:13:04.8038296Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:04.8299708Z 
+2026-11-13T11:13:06.8311749Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:06.8467823Z 
+2026-11-13T11:13:08.8604963Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:08.8854898Z 
+2026-11-13T11:13:10.8912908Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:10.9165575Z 
+2026-11-13T11:13:12.1067976Z INFO         | Boot completed in 25486 ms
+2026-11-13T11:13:12.1084808Z INFO         | Increasing screen off timeout, logcat buffer size to 2M.
+2026-11-13T11:13:12.9265752Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed
+2026-11-13T11:13:12.9829112Z 1
+2026-11-13T11:13:12.9854604Z Emulator booted.
+2026-11-13T11:13:12.9894872Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 shell input keyevent 82
+2026-11-13T11:13:16.8538552Z ##[endgroup]
+2026-11-13T11:13:16.8564412Z [command]/usr/bin/sh -c sh android/tools/smoke.sh apk smoke
+2026-11-13T11:13:19.7831619Z Performing Streamed Install
+2026-11-13T11:13:19.7884621Z Success
+2026-11-13T11:13:20.8145009Z Starting: Intent { cmp=app.snowhush.android/.MainActivity }
+2026-11-13T11:13:22.7364587Z Status: ok
+2026-11-13T11:13:22.7384119Z LaunchState: COLD
+2026-11-13T11:13:22.7399643Z Activity: app.snowhush.android/.MainActivity
+2026-11-13T11:13:22.7425754Z TotalTime: 1852
+2026-11-13T11:13:22.7426930Z WaitTime: 1921
+2026-11-13T11:13:22.7427854Z Complete
+2026-11-13T11:13:58.6224977Z Starting: Intent { act=android.service.wallpaper.CHANGE_LIVE_WALLPAPER (has extras) }
+2026-11-13T11:14:00.2595795Z Status: ok
+2026-11-13T11:14:00.2628800Z LaunchState: COLD
+2026-11-13T11:14:00.2634937Z Activity: com.android.wallpaper.livepicker/.LiveWallpaperChange
+2026-11-13T11:14:00.2642223Z TotalTime: 1479
+2026-11-13T11:14:00.2652261Z WaitTime: 1633
+2026-11-13T11:14:00.2671653Z Complete
+2026-11-13T11:15:19.0089706Z Starting: Intent { cmp=app.snowhush.android/.MainActivity }
+2026-11-13T11:15:19.8250078Z Warning: Activity not started, its current task has been brought to the front
+2026-11-13T11:15:19.8296923Z Status: ok
+2026-11-13T11:15:19.8364339Z LaunchState: HOT
+2026-11-13T11:15:19.8394570Z Activity: app.snowhush.android/.MainActivity
+2026-11-13T11:15:19.8406634Z TotalTime: 804
+2026-11-13T11:15:19.8413888Z WaitTime: 829
+2026-11-13T11:15:19.8414089Z Complete
+2026-11-13T11:16:27.8379036Z the snow is the wallpaper
+2026-11-13T11:16:27.8416029Z 11-13 11:16:18.830  3533  3533 I Snowhush: home screen: launcher com.google.android.apps.nexuslauncher, Android 34, 768x1232 at 2.0, 23 nodes, 6 in sight of 7, 6 outlines from a picture
+2026-11-13T11:16:27.8442407Z snow lies at 55,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8443095Z snow lies at 196,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8444061Z snow lies at 337,917 93x94 corners 48 curve 2.0
+2026-11-13T11:16:27.8444740Z snow lies at 478,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8445077Z snow lies at 619,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8445416Z snow lies at 51,1083 666x101 corners 52 curve 2.3
+2026-11-13T11:16:27.8445737Z snow lies at 55,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8446083Z snow lies at 196,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8446376Z snow lies at 337,917 93x94 corners 48 curve 2.0
+2026-11-13T11:16:27.8446706Z snow lies at 478,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8447085Z snow lies at 619,918 94x94 corners 47 curve 2.0
+2026-11-13T11:16:27.8447347Z snow lies at 51,1083 666x101 corners 52 curve 2.3
+2026-11-13T11:16:27.8455734Z the app runs
+2026-11-13T11:16:27.8465477Z ##[group]Terminate Emulator
+2026-11-13T11:16:27.8479681Z [command]/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5554 emu kill
+2026-11-13T11:16:27.8522184Z OK: killing emulator, bye bye
+2026-11-13T11:16:27.8522618Z OK
+2026-11-13T11:16:27.8523818Z INFO         | Wait for emulator (pid 2474) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+2026-11-13T11:16:27.8524411Z 
+2026-11-13T11:16:27.8525034Z ##[endgroup]
+2026-11-13T11:16:38.3837768Z INFO         | Saving with gfxstream=1
+2026-11-13T11:16:38.4463965Z INFO         | Saving snapshot 'default_boot' took 10572 ms
+2026-11-13T11:16:38.6270279Z ERROR        | stop: Not implemented
+2026-11-13T11:16:38.6270878Z WARNING      | Emulator client has not yet been configured.. Call configure me first!
+2026-11-13T11:16:38.6617455Z INFO         | removeAll
+2026-11-13T11:16:39.0635652Z WARNING      | Netsim Wifi dns:///localhost:39249 is gone due to Stream removed (CANCELLED)
+2026-11-13T11:16:39.9911848Z ##[group]Run actions/upload-artifact@v7
+2026-11-13T11:16:39.9912146Z with:
+2026-11-13T11:16:39.9912331Z   name: emulator-swangle_indirect
+2026-11-13T11:16:39.9912556Z   path: smoke
+2026-11-13T11:16:39.9912739Z   if-no-files-found: ignore
+2026-11-13T11:16:39.9912958Z   compression-level: 6
+2026-11-13T11:16:39.9913159Z   overwrite: false
+2026-11-13T11:16:39.9913352Z   include-hidden-files: false
+2026-11-13T11:16:39.9913566Z   archive: true
+2026-11-13T11:16:39.9913916Z env:
+2026-11-13T11:16:39.9914114Z   ANDROID_AVD_HOME: /home/runner/.android/avd
+2026-11-13T11:16:39.9914362Z ##[endgroup]
+2026-11-13T11:16:40.1526988Z With the provided path, there will be 17 files uploaded
+2026-11-13T11:16:40.1529957Z Artifact name is valid!
+2026-11-13T11:16:40.1530358Z Root directory input is valid!
+2026-11-13T11:16:40.4439846Z Uploading artifact: emulator-swangle_indirect.zip
+2026-11-13T11:16:40.4468391Z Beginning upload of artifact content to blob storage
+2026-11-13T11:16:41.1801384Z Uploaded bytes 4595527
+2026-11-13T11:16:41.2245277Z Finished uploading artifact content to blob storage!
+2026-11-13T11:16:41.2246436Z SHA256 digest of uploaded artifact is 30ea188f72b4acaa59b33a2a09c95206d4c5ca67ffc00b1687430c3a850ba7c6
+2026-11-13T11:16:41.2247079Z Finalizing artifact upload
+2026-11-13T11:16:41.6592043Z Artifact emulator-swangle_indirect successfully finalized. Artifact ID 14031004284
+2026-11-13T11:16:41.6592907Z Artifact emulator-swangle_indirect has been successfully uploaded! Final size is 4595527 bytes. Artifact ID is 14031004284
+2026-11-13T11:16:41.6596812Z Artifact download URL: https://github.com/Le-F-Sur-GitH/Snowhush-Android/actions/runs/43414673810/artifacts/14031004284
+2026-11-13T11:16:41.6783770Z Post job cleanup.
+2026-11-13T11:16:41.7468175Z [command]/usr/bin/git version
+2026-11-13T11:16:41.7512878Z git version 2.56.0
+2026-11-13T11:16:41.7542128Z Temporarily overriding HOME='/home/runner/work/_temp/7f2fcdc8-dc72-4320-bc14-942fc09e53c8' before making global git config changes
+2026-11-13T11:16:41.7542868Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-13T11:16:41.7547061Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Snowhush-Android/Snowhush-Android
+2026-11-13T11:16:41.7594745Z Removing SSH command configuration
+2026-11-13T11:16:41.7602032Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-13T11:16:41.7647350Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-13T11:16:41.7919421Z Removing HTTP extra header
+2026-11-13T11:16:41.7926373Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-13T11:16:41.7977832Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-13T11:16:41.8224583Z Removing includeIf entries pointing to credentials config files
+2026-11-13T11:16:41.8231425Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-13T11:16:41.8274352Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:16:41.8274894Z includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:16:41.8275321Z includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:16:41.8275632Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:16:41.8284431Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path
+2026-11-13T11:16:41.8323701Z /home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:16:41.8334860Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-f6b9f929\-42db\-4c61\-b12f\-b5f3ac31d3f4\.config
+2026-11-13T11:16:41.8386513Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path
+2026-11-13T11:16:41.8427662Z /home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:16:41.8437046Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Snowhush-Android/Snowhush-Android/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-f6b9f929\-42db\-4c61\-b12f\-b5f3ac31d3f4\.config
+2026-11-13T11:16:41.8488075Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-13T11:16:41.8528070Z /github/runner_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:16:41.8535536Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-f6b9f929\-42db\-4c61\-b12f\-b5f3ac31d3f4\.config
+2026-11-13T11:16:41.8585033Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-13T11:16:41.8622910Z /github/runner_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config
+2026-11-13T11:16:41.8630622Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-f6b9f929\-42db\-4c61\-b12f\-b5f3ac31d3f4\.config
+2026-11-13T11:16:41.8707940Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-13T11:16:41.8958510Z Removing credentials config '/home/runner/work/_temp/git-credentials-f6b9f929-42db-4c61-b12f-b5f3ac31d3f4.config'
+2026-11-13T11:16:41.9138871Z Cleaning up orphan processes
+2026-11-13T11:16:41.9470519Z Terminate orphan process: pid (2640) (adb)
