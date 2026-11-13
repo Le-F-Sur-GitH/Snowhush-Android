@@ -67,6 +67,11 @@ public final class OutlineTest {
         // A see-through one: a mark on the left and words on the right, at different heights.
         blob(alpha, 60, 1700, 160, 1800, 20, 2, 255);
         name(alpha, 600, 1760, 1000);
+        // Writing big enough to be taken for something: rings and strokes, more gaps than ink.
+        for (int letter = 0; letter < 12; letter++) {
+            blob(alpha, 100 + letter * 60, 1900, 148 + letter * 60, 1960, 24, 2, 255);
+            blob(alpha, 108 + letter * 60, 1908, 140 + letter * 60, 1952, 16, 2, 0);
+        }
         // An icon on a bar that runs the whole width behind it, as a dock's.
         blob(alpha, 0, 2180, WIDTH, 2300, 0, 2, 255);
         blob(alpha, 450, 2080, 630, 2260, 90, 2, 255);
@@ -103,6 +108,9 @@ public final class OutlineTest {
 
         float[] scattered = Outline.within(picture, 40, 1680, 1040, 1820, DP);
         check(scattered == null || scattered[Outline.RIGHT] < 200, "nothing lies across a widget that is mostly nothing: " + told(scattered));
+
+        float[] written = Outline.within(picture, 60, 1880, 1000, 1980, DP);
+        check(written == null, "nothing lies along a line of writing: " + told(written));
 
         float[] docked = Outline.within(picture, 420, 2060, 660, 2320, DP);
         check(docked != null, "the docked icon should hold snow");

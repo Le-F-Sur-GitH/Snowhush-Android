@@ -14,8 +14,11 @@ import java.util.Arrays;
  * <p>Nothing here knows of Android: the picture comes in as one byte of opacity a pixel.
  */
 final class Outline {
-    /** How opaque a pixel is, of 255, before it counts as drawn: shadows and scrims are fainter than this. */
-    static final int SOLID = 96;
+    /**
+     * How opaque a pixel is, of 255, before it counts as drawn: a quarter. The shadows under icons and names and the
+     * scrims along the screen's edges are fainter than this; a widget of frosted glass is not.
+     */
+    static final int SOLID = 64;
     /** What {@link #within} answers with: left, top, right, bottom, the corners' radius, and how square their curve is. */
     static final int LEFT = 0;
     static final int TOP = 1;
@@ -163,6 +166,14 @@ final class Outline {
         }
         // Mostly gaps, as words far apart are: no ledge to lie on.
         if (drawn * 2 < c1 - c0 + 1) return null;
+        // Nor is there one along a line of writing, which is more gaps than strokes: an icon or a widget is filled in.
+        int filled = 0;
+        for (int y = top; y < to; y++) {
+            for (int x = c0; x <= c1; x++) {
+                if (picture.solid(left + x, y)) filled++;
+            }
+        }
+        if (filled * 100L < (long) (c1 - c0 + 1) * (to - top) * 42) return null;
 
         // How far in from each end the top is level: that is how big the corners are. A badge makes its own corner
         // look square, so the rounder of the two is believed.

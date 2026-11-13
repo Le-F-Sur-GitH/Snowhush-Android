@@ -475,7 +475,8 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         ui.enable(meltRow, ground || widgets || icons);
 
         deepStatus.setText(deep ? getString(R.string.on) : "\u203A");
-        ui.show(liftRow, icons);
+        // Where a picture of the home screen shows the icons, there is nothing to nudge.
+        ui.show(liftRow, icons && DeepService.guessing());
         lift.setProgress(Prefs.iconLift(prefs));
         wide.setProgress(Prefs.iconWidth(prefs));
         motionSwitch.setChecked(prefs.getBoolean(Prefs.MOTION, true));

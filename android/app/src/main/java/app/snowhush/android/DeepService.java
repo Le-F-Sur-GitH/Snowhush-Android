@@ -40,7 +40,7 @@ import java.util.Objects;
  */
 public final class DeepService extends AccessibilityService implements SharedPreferences.OnSharedPreferenceChangeListener {
     /** How long a picture of the home screen is waited for, and how long one is gone by before another is taken. */
-    private static final long PICTURE_WAIT = 900;
+    private static final long PICTURE_WAIT = 1200;
     private static final long PICTURE_KEPT = 20_000;
     /** The least Android leaves between two pictures, and a little more. */
     private static final long PICTURE_REST = 420;
@@ -55,6 +55,8 @@ public final class DeepService extends AccessibilityService implements SharedPre
 
     private static DeepService running;
     private static volatile String report = "";
+    /** Whether the icons' places are guessed at, for want of a picture to find them in. */
+    private static volatile boolean guessing = Build.VERSION.SDK_INT < 34;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable read = this::read;
@@ -73,7 +75,6 @@ public final class DeepService extends AccessibilityService implements SharedPre
     private int nodes;
     /** Counts the looks, so an answer that comes late knows a newer look has taken over. */
     private int turn;
-    private int awaiting;
     /** Whether Android's pictures of the home screen are any use here: until one comes back solid all over. */
     private boolean pictures = Build.VERSION.SDK_INT >= 34;
     private int refusals;
@@ -85,6 +86,11 @@ public final class DeepService extends AccessibilityService implements SharedPre
     }
 
     /** What the last look at the home screen found, without a word of what it shows: for fitting a launcher. */
+    /** Whether where the icons are drawn is a guess, which the app's two sliders can then set right. */
+    static boolean guessing() {
+        return guessing;
+    }
+
     static String report() {
         return report;
     }
@@ -212,7 +218,6 @@ public final class DeepService extends AccessibilityService implements SharedPre
     private void read() {
         readAt = SystemClock.uptimeMillis();
         final int look = ++turn;
-        awaiting = 0;
         AccessibilityNodeInfo root;
         try {
             root = getRootInActiveWindow();
@@ -262,49 +267,53 @@ public final class DeepService extends AccessibilityService implements SharedPre
             return;
         }
         // Exactly where each item begins is in a picture of the home screen's own layer. Android takes its time over
-        // one, and now and then never answers.
-        awaiting = look;
+        // one, and now and then never answers: past a wait the guesses are told, and set right if the picture
+        // comes after all.
+        final boolean[] told = {false};
         reader.postDelayed(() -> {
-            if (awaiting != look) return;
-            awaiting = 0;
+            if (turn != look || told[0]) return;
+            told[0] = true;
             pictured = "no picture came";
             tell(launcher, metrics, read, seen, notes);
         }, PICTURE_WAIT);
         HomePicture.take(this, windowId, reader::post, (picture, error) -> {
-            if (awaiting != look) return;
-            awaiting = 0;
+            // A newer look has taken over.
+            if (turn != look) return;
             if (picture == null && error == HomePicture.TOO_SOON) {
                 // What shows stays as it is until Android will take another.
-                schedule(PICTURE_REST);
+                if (!told[0]) schedule(PICTURE_REST);
                 return;
             }
             if (picture == null) {
                 pictured = "no picture, " + error;
                 if (++refusals >= 3) pictures = false;
+                if (told[0]) return;
             } else {
                 refusals = 0;
-                fit(picture, window, metrics, seen, notes);
+                if (!fit(picture, window, metrics, seen, notes) && told[0]) return;
             }
+            told[0] = true;
             tell(launcher, metrics, read, seen, notes);
         });
     }
 
     /**
      * Finds in a picture of the home screen's own layer where each item begins, and remembers it. With no item told
-     * of by the launcher, whatever the picture shows that could be one is an item.
+     * of by the launcher, whatever the picture shows that could be one is an item. Returns whether the picture was
+     * any use.
      */
-    private void fit(Outline.Picture picture, Rect window, DisplayMetrics metrics, ArrayList<Item> seen, StringBuilder notes) {
+    private boolean fit(Outline.Picture picture, Rect window, DisplayMetrics metrics, ArrayList<Item> seen, StringBuilder notes) {
         float share = Outline.solidShare(picture);
         if (share > 0.9f) {
             // Solid all over: no layer of its own but a whole screen, wallpaper and all. Nothing to be made out, ever.
             pictures = false;
             pictured = "pictures are solid";
-            return;
+            return false;
         }
         if (share < 0.002f) {
             // Nothing drawn at all: the home screen is on its way in or out.
             pictured = "an empty picture";
-            return;
+            return false;
         }
         pictureAt = SystemClock.uptimeMillis();
         pictured = "";
@@ -333,7 +342,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
                 seen.add(item);
             }
             notes.append("found by picture alone: ").append(seen.size()).append('\n');
-            return;
+            return true;
         }
         for (Item item : seen) {
             // A little past the item's room: an icon may reach to the very edge of it.
@@ -347,6 +356,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
                     dp);
             fits.put(item.id(), shape == null ? null : onScreen(shape, window, across, down));
         }
+        return true;
     }
 
     /** What {@link Outline} made out in the picture, in the screen's pixels. */
@@ -406,6 +416,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
             at += Native.WINDOW_NUMBERS;
         }
         String outlines = fitted > 0 ? fitted + " outlines from a picture" : pictured.isEmpty() ? "outlines guessed" : "outlines guessed, " + pictured;
+        final boolean guessed = fitted == 0;
         StringBuilder places = new StringBuilder();
         for (float[] item : shown) {
             places.append("snow lies at ").append(Math.round(item[1])).append(',').append(Math.round(item[2])).append(' ')
@@ -423,6 +434,7 @@ public final class DeepService extends AccessibilityService implements SharedPre
                 for (int line = 1; line < lines.length; line++) Log.d("Snowhush", lines[line]);
             }
             report = noted;
+            if (!shown.isEmpty()) guessing = guessed;
             Snow.setItems(numbers, count, false);
         });
     }
