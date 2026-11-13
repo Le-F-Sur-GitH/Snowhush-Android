@@ -35,6 +35,8 @@
     <string name="wallpaper_set">Definir plano de fundo</string>
     <string name="wallpaper_picture">Escolher imagem</string>
     <string name="wallpaper_remove">Remover imagem</string>
+    <string name="wallpaper_adjust">Ajustar imagem</string>
+    <string name="wallpaper_center">Centralizar</string>
     <string name="wallpaper_unsupported">Este celular não tem planos de fundo animados.</string>
     <string name="picture_failed">Não foi possível usar essa imagem.</string>
     <string name="surface_widgets">Widgets</string>

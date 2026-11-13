@@ -35,6 +35,8 @@
     <string name="wallpaper_set">Définir le fond d\'écran</string>
     <string name="wallpaper_picture">Choisir une image</string>
     <string name="wallpaper_remove">Retirer l\'image</string>
+    <string name="wallpaper_adjust">Ajuster l\'image</string>
+    <string name="wallpaper_center">Recentrer</string>
     <string name="wallpaper_unsupported">Ce téléphone n\'a pas de fonds d\'écran animés.</string>
     <string name="picture_failed">Cette image n\'a pas pu être utilisée.</string>
     <string name="surface_widgets">Widgets</string>

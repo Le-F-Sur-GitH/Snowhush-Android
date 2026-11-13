@@ -8,6 +8,8 @@
 "wallpaper_set" = "Definir plano de fundo";
 "wallpaper_picture" = "Escolher imagem";
 "wallpaper_remove" = "Remover imagem";
+"wallpaper_adjust" = "Ajustar imagem";
+"wallpaper_center" = "Centralizar";
 "wallpaper_unsupported" = "Este celular não tem planos de fundo animados.";
 "picture_failed" = "Não foi possível usar essa imagem.";
 "surface_widgets" = "Widgets";

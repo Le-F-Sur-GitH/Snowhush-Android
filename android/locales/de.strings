@@ -8,6 +8,8 @@
 "wallpaper_set" = "Hintergrund festlegen";
 "wallpaper_picture" = "Bild auswählen";
 "wallpaper_remove" = "Bild entfernen";
+"wallpaper_adjust" = "Bild anpassen";
+"wallpaper_center" = "Zentrieren";
 "wallpaper_unsupported" = "Dieses Handy hat keine Live-Hintergründe.";
 "picture_failed" = "Dieses Bild konnte nicht verwendet werden.";
 "surface_widgets" = "Widgets";

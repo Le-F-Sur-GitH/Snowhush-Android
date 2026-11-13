@@ -36,6 +36,8 @@
     <string name="wallpaper_set">Set Wallpaper</string>
     <string name="wallpaper_picture">Choose Picture</string>
     <string name="wallpaper_remove">Remove Picture</string>
+    <string name="wallpaper_adjust">Adjust Picture</string>
+    <string name="wallpaper_center">Center</string>
     <string name="wallpaper_unsupported">This phone has no live wallpapers.</string>
     <string name="picture_failed">That picture couldn\'t be used.</string>
     <string name="surface_widgets">Widgets</string>

@@ -44,6 +44,12 @@ final class Prefs {
     static final String PICTURE = "wallpaperPicture";
     /** The live wallpaper's picture, in the app's files. */
     static final String PICTURE_FILE = "wallpaper.jpg";
+    /** The picture as it was chosen, whole, which the one shown is framed out of. */
+    static final String PICTURE_SOURCE = "wallpaper-source.jpg";
+    /** How the picture was framed: how many times bigger than filling the screen, and the point of it at the middle. */
+    static final String PICTURE_ZOOM = "pictureZoom";
+    static final String PICTURE_X = "pictureX";
+    static final String PICTURE_Y = "pictureY";
 
     static final int SNOW = 0;
     static final int AUTUMN = 1;

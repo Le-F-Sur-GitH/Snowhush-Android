@@ -35,6 +35,8 @@
     <string name="wallpaper_set">Встановити шпалери</string>
     <string name="wallpaper_picture">Вибрати зображення</string>
     <string name="wallpaper_remove">Прибрати зображення</string>
+    <string name="wallpaper_adjust">Налаштувати зображення</string>
+    <string name="wallpaper_center">По центру</string>
     <string name="wallpaper_unsupported">На цьому телефоні немає живих шпалер.</string>
     <string name="picture_failed">Це зображення не вдалося використати.</string>
     <string name="surface_widgets">Віджети</string>

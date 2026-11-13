@@ -35,6 +35,8 @@
     <string name="wallpaper_set">Hintergrund festlegen</string>
     <string name="wallpaper_picture">Bild auswählen</string>
     <string name="wallpaper_remove">Bild entfernen</string>
+    <string name="wallpaper_adjust">Bild anpassen</string>
+    <string name="wallpaper_center">Zentrieren</string>
     <string name="wallpaper_unsupported">Dieses Handy hat keine Live-Hintergründe.</string>
     <string name="picture_failed">Dieses Bild konnte nicht verwendet werden.</string>
     <string name="surface_widgets">Widgets</string>

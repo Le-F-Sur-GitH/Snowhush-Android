@@ -8,6 +8,8 @@
 "wallpaper_set" = "设为壁纸";
 "wallpaper_picture" = "选取图片";
 "wallpaper_remove" = "移除图片";
+"wallpaper_adjust" = "调整图片";
+"wallpaper_center" = "居中";
 "wallpaper_unsupported" = "这部手机不支持动态壁纸。";
 "picture_failed" = "无法使用那张图片。";
 "surface_widgets" = "小组件";

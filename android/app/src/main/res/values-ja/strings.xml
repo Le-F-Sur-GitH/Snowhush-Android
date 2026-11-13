@@ -35,6 +35,8 @@
     <string name="wallpaper_set">壁紙に設定</string>
     <string name="wallpaper_picture">画像を選ぶ</string>
     <string name="wallpaper_remove">画像を削除</string>
+    <string name="wallpaper_adjust">画像を調整</string>
+    <string name="wallpaper_center">中央に戻す</string>
     <string name="wallpaper_unsupported">このスマートフォンはライブ壁紙に対応していません。</string>
     <string name="picture_failed">その画像は使えませんでした。</string>
     <string name="surface_widgets">ウィジェット</string>

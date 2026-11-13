@@ -10,6 +10,8 @@
 "wallpaper_set" = "Set Wallpaper";
 "wallpaper_picture" = "Choose Picture";
 "wallpaper_remove" = "Remove Picture";
+"wallpaper_adjust" = "Adjust Picture";
+"wallpaper_center" = "Center";
 "wallpaper_unsupported" = "This phone has no live wallpapers.";
 "picture_failed" = "That picture couldn't be used.";
 "surface_widgets" = "Widgets";

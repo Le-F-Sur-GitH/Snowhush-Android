@@ -8,6 +8,8 @@
 "wallpaper_set" = "Установить обои";
 "wallpaper_picture" = "Выбрать картинку";
 "wallpaper_remove" = "Убрать картинку";
+"wallpaper_adjust" = "Настроить картинку";
+"wallpaper_center" = "По центру";
 "wallpaper_unsupported" = "На этом телефоне нет живых обоев.";
 "picture_failed" = "Эту картинку не удалось использовать.";
 "surface_widgets" = "Виджеты";

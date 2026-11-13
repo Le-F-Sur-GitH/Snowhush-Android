@@ -35,6 +35,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Where the wallpaper's picture is moved and sized. -->
+        <activity
+            android:name=".FrameActivity"
+            android:configChanges="keyboardHidden|uiMode"
+            android:exported="false" />
+
         <!-- The snow: on the home and lock screens, behind the apps. -->
         <service
             android:name=".SnowWallpaper"

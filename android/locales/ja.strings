@@ -8,6 +8,8 @@
 "wallpaper_set" = "壁紙に設定";
 "wallpaper_picture" = "画像を選ぶ";
 "wallpaper_remove" = "画像を削除";
+"wallpaper_adjust" = "画像を調整";
+"wallpaper_center" = "中央に戻す";
 "wallpaper_unsupported" = "このスマートフォンはライブ壁紙に対応していません。";
 "picture_failed" = "その画像は使えませんでした。";
 "surface_widgets" = "ウィジェット";

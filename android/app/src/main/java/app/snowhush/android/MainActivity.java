@@ -17,6 +17,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
@@ -69,7 +70,7 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
     private int statusBar;
 
     private TextView wallpaperStatus;
-    private TextView removePicture;
+    private View removePicture;
     private TextView intensityValue;
     private SeekBar intensity;
     private TextView opacityValue;
@@ -253,9 +254,17 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         second.setMarginStart(ui.dp(10));
         pictures.addView(choose, second);
         card.addView(pictures, ui.spaced(4));
-        removePicture = ui.button(getString(R.string.wallpaper_remove), false);
-        removePicture.setOnClickListener(view -> removePicture());
-        card.addView(removePicture, ui.spaced(10));
+        LinearLayout kept = ui.row();
+        TextView adjust = ui.button(getString(R.string.wallpaper_adjust), false);
+        adjust.setOnClickListener(view -> framePicture());
+        kept.addView(adjust, ui.weighted());
+        TextView remove = ui.button(getString(R.string.wallpaper_remove), false);
+        remove.setOnClickListener(view -> removePicture());
+        LinearLayout.LayoutParams beside = ui.weighted();
+        beside.setMarginStart(ui.dp(10));
+        kept.addView(remove, beside);
+        removePicture = kept;
+        card.addView(kept, ui.spaced(10));
         View foot = new View(this);
         card.addView(foot, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(12)));
     }
@@ -530,19 +539,41 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         }
     }
 
+    /**
+     * Asks for a picture from wherever the phone keeps them: the gallery first, and the file browser beside it.
+     */
     @SuppressWarnings("deprecation")
     private void choosePicture() {
-        Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
+        Intent gallery = new Intent(Intent.ACTION_PICK).setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        Intent files = new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
+        Intent chooser = Intent.createChooser(gallery, getString(R.string.wallpaper_picture)).putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {files});
         try {
-            startActivityForResult(pick, PICK_PICTURE);
+            startActivityForResult(chooser, PICK_PICTURE);
         } catch (ActivityNotFoundException missing) {
             Toast.makeText(this, R.string.picture_failed, Toast.LENGTH_LONG).show();
         }
     }
 
+    /** Opens the picture to be moved and sized on the screen. */
+    private void framePicture() {
+        // A picture chosen before it could be framed is only kept as it was shown: that is what there is to frame.
+        File source = new File(getFilesDir(), Prefs.PICTURE_SOURCE);
+        File shown = new File(getFilesDir(), Prefs.PICTURE_FILE);
+        if (!source.isFile() && shown.isFile()) {
+            try {
+                java.nio.file.Files.copy(shown.toPath(), source.toPath());
+            } catch (IOException | RuntimeException failed) {
+                Log.w(TAG, "the picture can't be framed", failed);
+            }
+        }
+        open(new Intent(this, FrameActivity.class));
+    }
+
     private void removePicture() {
-        File file = new File(getFilesDir(), Prefs.PICTURE_FILE);
-        if (file.exists() && !file.delete()) Log.w(TAG, "the picture is still there");
+        for (String name : new String[] {Prefs.PICTURE_FILE, Prefs.PICTURE_SOURCE}) {
+            File file = new File(getFilesDir(), name);
+            if (file.exists() && !file.delete()) Log.w(TAG, "the picture is still there");
+        }
         prefs.edit().putInt(Prefs.PICTURE, 0).apply();
     }
 
@@ -553,7 +584,10 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
         if (request == PICK_PICTURE && result == RESULT_OK && data != null && data.getData() != null) keepPicture(data.getData());
     }
 
-    /** Copies the picture picked into the app's own files, upright and no bigger than a screen needs. */
+    /**
+     * Copies the picture picked into the app's own files, upright and no bigger than a screen needs, then opens it to
+     * be framed: it becomes the wallpaper's once that is accepted.
+     */
     private void keepPicture(Uri source) {
         new Thread(() -> {
             boolean kept = false;
@@ -600,11 +634,11 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
                             break;
                     }
                     Bitmap upright = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                    File draft = new File(getFilesDir(), Prefs.PICTURE_FILE + ".new");
+                    File draft = new File(getFilesDir(), Prefs.PICTURE_SOURCE + ".new");
                     try (FileOutputStream out = new FileOutputStream(draft)) {
-                        kept = upright.compress(Bitmap.CompressFormat.JPEG, 92, out);
+                        kept = upright.compress(Bitmap.CompressFormat.JPEG, 95, out);
                     }
-                    kept = kept && draft.renameTo(new File(getFilesDir(), Prefs.PICTURE_FILE));
+                    kept = kept && draft.renameTo(new File(getFilesDir(), Prefs.PICTURE_SOURCE));
                 }
             } catch (IOException | RuntimeException | OutOfMemoryError unreadable) {
                 Log.w(TAG, "the picture can't be kept", unreadable);
@@ -612,7 +646,9 @@ public final class MainActivity extends Activity implements SurfaceHolder.Callba
             final boolean done = kept;
             runOnUiThread(() -> {
                 if (done) {
-                    prefs.edit().putInt(Prefs.PICTURE, Math.max(1, prefs.getInt(Prefs.PICTURE, 0) + 1)).apply();
+                    // A new picture starts out whole and in the middle.
+                    prefs.edit().remove(Prefs.PICTURE_ZOOM).remove(Prefs.PICTURE_X).remove(Prefs.PICTURE_Y).apply();
+                    framePicture();
                 } else {
                     Toast.makeText(this, R.string.picture_failed, Toast.LENGTH_LONG).show();
                 }

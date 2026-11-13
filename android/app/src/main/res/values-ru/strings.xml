@@ -35,6 +35,8 @@
     <string name="wallpaper_set">Установить обои</string>
     <string name="wallpaper_picture">Выбрать картинку</string>
     <string name="wallpaper_remove">Убрать картинку</string>
+    <string name="wallpaper_adjust">Настроить картинку</string>
+    <string name="wallpaper_center">По центру</string>
     <string name="wallpaper_unsupported">На этом телефоне нет живых обоев.</string>
     <string name="picture_failed">Эту картинку не удалось использовать.</string>
     <string name="surface_widgets">Виджеты</string>

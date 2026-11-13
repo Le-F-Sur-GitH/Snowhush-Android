@@ -35,6 +35,8 @@
     <string name="wallpaper_set">设为壁纸</string>
     <string name="wallpaper_picture">选取图片</string>
     <string name="wallpaper_remove">移除图片</string>
+    <string name="wallpaper_adjust">调整图片</string>
+    <string name="wallpaper_center">居中</string>
     <string name="wallpaper_unsupported">这部手机不支持动态壁纸。</string>
     <string name="picture_failed">无法使用那张图片。</string>
     <string name="surface_widgets">小组件</string>

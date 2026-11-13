@@ -8,6 +8,8 @@
 "wallpaper_set" = "Définir le fond d'écran";
 "wallpaper_picture" = "Choisir une image";
 "wallpaper_remove" = "Retirer l'image";
+"wallpaper_adjust" = "Ajuster l'image";
+"wallpaper_center" = "Recentrer";
 "wallpaper_unsupported" = "Ce téléphone n'a pas de fonds d'écran animés.";
 "picture_failed" = "Cette image n'a pas pu être utilisée.";
 "surface_widgets" = "Widgets";
